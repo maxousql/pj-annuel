@@ -1,0 +1,480 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+
+  @@map("auth_provider")
+}
+
+enum OrganizationRole {
+  ADMIN
+  EDITOR
+  READER
+
+  @@map("organization_role")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PENDING
+  DISABLED
+
+  @@map("membership_status")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+
+  @@map("invitation_status")
+}
+
+enum ContentFormat {
+  BLOG_ARTICLE
+  LINKEDIN_POST
+  SOCIAL_POST
+  EMAIL
+  HOOK
+  THREAD
+  OTHER
+
+  @@map("content_format")
+}
+
+enum ContentIdeaStatus {
+  DRAFT
+  SAVED
+  DISMISSED
+  USED
+  ARCHIVED
+
+  @@map("content_idea_status")
+}
+
+enum ContentItemStatus {
+  DRAFT
+  REVIEW
+  READY
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+  DELETED
+
+  @@map("content_item_status")
+}
+
+enum ContentSource {
+  AI_GENERATED
+  USER_CREATED
+  CURATED_RESOURCE
+  IMPORTED
+  NOTION
+
+  @@map("content_source")
+}
+
+enum ResourceType {
+  URL
+  RSS
+  MANUAL
+  NOTION
+
+  @@map("resource_type")
+}
+
+enum ResourceStatus {
+  NEW
+  SUMMARIZED
+  USED
+  ARCHIVED
+
+  @@map("resource_status")
+}
+
+enum PublicationChannel {
+  LINKEDIN
+  BLOG
+  EMAIL
+  X
+  FACEBOOK
+  INSTAGRAM
+  OTHER
+
+  @@map("publication_channel")
+}
+
+enum PublicationStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  CANCELLED
+
+  @@map("publication_status")
+}
+
+enum IntegrationProvider {
+  NOTION
+  GOOGLE
+  RSS
+  OTHER
+
+  @@map("integration_provider")
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  DISABLED
+  ERROR
+
+  @@map("integration_status")
+}
+
+enum AiGenerationType {
+  IDEA
+  CONTENT
+  SUMMARY
+  DUPLICATE_CHECK
+  EDITORIAL_CONTEXT
+  CONTENT_IDEA
+  CONTENT_DRAFT
+  RESOURCE_SUMMARY
+
+  @@map("ai_generation_type")
+}
+
+enum AiGenerationStatus {
+  SUCCEEDED
+  FAILED
+
+  @@map("ai_generation_status")
+}
+
+model User {
+  id                    String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  email                 String             @unique
+  name                  String
+  avatarUrl             String?            @map("avatar_url")
+  preferences           Json               @default("{}")
+  onboardingCompletedAt DateTime?          @map("onboarding_completed_at") @db.Timestamptz(6)
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  authAccounts          AuthAccount[]
+  ownedOrganizations    Organization[]     @relation("OrganizationOwner")
+  memberships           Membership[]
+  invitationsSent       Invitation[]       @relation("InvitationInviter")
+  editorialContexts     EditorialContext[] @relation("EditorialContextCreator")
+  contentIdeas          ContentIdea[]      @relation("ContentIdeaCreator")
+  contentItems          ContentItem[]      @relation("ContentItemCreator")
+  aiGenerationLogs      AiGenerationLog[]
+
+  @@map("users")
+}
+
+model AuthAccount {
+  id                String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  userId            String       @map("user_id") @db.Uuid
+  provider          AuthProvider
+  providerAccountId String       @map("provider_account_id")
+  passwordHash      String?      @map("password_hash")
+  metadata          Json         @default("{}")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model Organization {
+  id                     String                  @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  name                   String
+  slug                   String                  @unique
+  ownerId                String                  @map("owner_id") @db.Uuid
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt              DateTime?               @map("deleted_at") @db.Timestamptz(6)
+  owner                  User                    @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  memberships            Membership[]
+  invitations            Invitation[]
+  editorialContexts      EditorialContext[]
+  contentIdeas           ContentIdea[]
+  contentItems           ContentItem[]
+  contentCategories      ContentCategory[]
+  tags                   Tag[]
+  curatedResources       CuratedResource[]
+  publicationPlans       PublicationPlan[]
+  integrationCredentials IntegrationCredential[]
+  aiGenerationLogs       AiGenerationLog[]
+
+  @@index([ownerId])
+  @@map("organizations")
+}
+
+model Membership {
+  id             String           @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  role           OrganizationRole @default(READER)
+  status         MembershipStatus @default(PENDING)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, role])
+  @@map("memberships")
+}
+
+model Invitation {
+  id             String           @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  email          String
+  role           OrganizationRole @default(READER)
+  tokenHash      String           @unique @map("token_hash")
+  expiresAt      DateTime         @map("expires_at") @db.Timestamptz(6)
+  status         InvitationStatus @default(PENDING)
+  invitedById    String?          @map("invited_by_id") @db.Uuid
+  acceptedAt     DateTime?        @map("accepted_at") @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      User?            @relation("InvitationInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("invitations")
+}
+
+model EditorialContext {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  sector         String
+  targetAudience String       @map("target_audience")
+  tone           String
+  positioning    String
+  themes         String[]     @default([])
+  resourceNotes  String?      @map("resource_notes")
+  createdById    String?      @map("created_by_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User?        @relation("EditorialContextCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId])
+  @@index([organizationId])
+  @@map("editorial_contexts")
+}
+
+model ContentIdea {
+  id                String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId    String            @map("organization_id") @db.Uuid
+  title             String
+  angle             String
+  recommendedFormat ContentFormat     @map("recommended_format")
+  justification     String
+  category          String?
+  status            ContentIdeaStatus @default(DRAFT)
+  createdById       String?           @map("created_by_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  archivedAt        DateTime?         @map("archived_at") @db.Timestamptz(6)
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy         User?             @relation("ContentIdeaCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contentItems      ContentItem[]
+  aiGenerationLogs  AiGenerationLog[] @relation("AiGenerationIdeaResult")
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, recommendedFormat])
+  @@map("content_ideas")
+}
+
+model ContentItem {
+  id               String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  ideaId           String?           @map("idea_id") @db.Uuid
+  categoryId       String?           @map("category_id") @db.Uuid
+  title            String
+  body             String            @default("")
+  format           ContentFormat
+  brief            String?
+  status           ContentItemStatus @default(DRAFT)
+  source           ContentSource     @default(AI_GENERATED)
+  topic            String?
+  duplicateScore   Float?            @map("duplicate_score")
+  createdById      String?           @map("created_by_id") @db.Uuid
+  publishedAt      DateTime?         @map("published_at") @db.Timestamptz(6)
+  archivedAt       DateTime?         @map("archived_at") @db.Timestamptz(6)
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  idea             ContentIdea?      @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  category         ContentCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy        User?             @relation("ContentItemCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contentTags      ContentTag[]
+  publicationPlans PublicationPlan[]
+  aiGenerationLogs AiGenerationLog[] @relation("AiGenerationContentResult")
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, format])
+  @@index([organizationId, source])
+  @@index([organizationId, categoryId])
+  @@map("content_items")
+}
+
+model ContentCategory {
+  id             String        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  name           String
+  slug           String
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentItems   ContentItem[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@map("content_categories")
+}
+
+model Tag {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String
+  slug           String
+  color          String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentTags    ContentTag[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@map("tags")
+}
+
+model ContentTag {
+  contentItemId  String      @map("content_item_id") @db.Uuid
+  tagId          String      @map("tag_id") @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  contentItem    ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  tag            Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contentItemId, tagId])
+  @@index([organizationId])
+  @@index([tagId])
+  @@map("content_tags")
+}
+
+model CuratedResource {
+  id               String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  url              String
+  title            String
+  summary          String?
+  source           String?
+  topic            String?
+  type             ResourceType      @default(URL)
+  status           ResourceStatus    @default(NEW)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiGenerationLogs AiGenerationLog[] @relation("AiGenerationResourceResult")
+
+  @@unique([organizationId, url])
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@index([organizationId, createdAt])
+  @@map("curated_resources")
+}
+
+model PublicationPlan {
+  id              String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId  String             @map("organization_id") @db.Uuid
+  contentItemId   String             @map("content_item_id") @db.Uuid
+  channel         PublicationChannel
+  publicationDate DateTime           @map("publication_date") @db.Timestamptz(6)
+  status          PublicationStatus  @default(DRAFT)
+  notes           String?
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentItem     ContentItem        @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, publicationDate])
+  @@index([organizationId, status])
+  @@index([organizationId, channel])
+  @@map("publication_plans")
+}
+
+model IntegrationCredential {
+  id                String              @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId    String              @map("organization_id") @db.Uuid
+  provider          IntegrationProvider
+  encryptedMetadata String              @map("encrypted_metadata")
+  encryptionKeyRef  String?             @map("encryption_key_ref")
+  status            IntegrationStatus   @default(ACTIVE)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([organizationId, status])
+  @@map("integration_credentials")
+}
+
+model AiGenerationLog {
+  id                  String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId      String             @map("organization_id") @db.Uuid
+  userId              String?            @map("user_id") @db.Uuid
+  type                AiGenerationType
+  promptVersion       String             @default("legacy") @map("prompt_version")
+  inputHash           String             @default("unknown") @map("input_hash")
+  promptMetadata      Json               @default("{}") @map("prompt_metadata")
+  model               String
+  estimatedCostCents  Int?               @map("estimated_cost_cents")
+  status              AiGenerationStatus @default(SUCCEEDED)
+  resultId            String?            @map("result_id") @db.Uuid
+  resultContentIdeaId String?            @map("result_content_idea_id") @db.Uuid
+  resultContentItemId String?            @map("result_content_item_id") @db.Uuid
+  resultResourceId    String?            @map("result_resource_id") @db.Uuid
+  errorCode           String?            @map("error_code")
+  errorMessage        String?            @map("error_message")
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization        Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  resultContentIdea   ContentIdea?       @relation("AiGenerationIdeaResult", fields: [resultContentIdeaId], references: [id], onDelete: SetNull)
+  resultContentItem   ContentItem?       @relation("AiGenerationContentResult", fields: [resultContentItemId], references: [id], onDelete: SetNull)
+  resultResource      CuratedResource?   @relation("AiGenerationResourceResult", fields: [resultResourceId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, type])
+  @@index([organizationId, inputHash])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, model])
+  @@index([userId])
+  @@index([resultContentIdeaId])
+  @@index([resultContentItemId])
+  @@index([resultResourceId])
+  @@index([promptVersion])
+  @@map("ai_generation_logs")
+}

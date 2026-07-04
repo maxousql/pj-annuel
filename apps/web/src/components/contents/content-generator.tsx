@@ -1,0 +1,529 @@
+"use client";
+
+import Link from "next/link";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
+import type {
+  ContentDuplicatePayload,
+  ContentGenerationFormat,
+  ContentIdeaOption,
+  ContentSaveStatus,
+} from "@content-ai/shared";
+import {
+  AlertCircle,
+  ArrowLeft,
+  FileText,
+  Library,
+  Loader2,
+  Save,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
+
+import {
+  CONTENT_FORMAT_LABELS,
+  SAVE_STATUS_OPTIONS,
+} from "@/components/contents/content-labels";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import {
+  fetchSourceIdeas,
+  generateContent,
+  saveContent,
+} from "@/lib/contents/client";
+
+type ContentGeneratorProps = {
+  initialIdeaId?: string;
+  organizationSlug: string;
+};
+
+const GENERATION_FORMATS: ContentGenerationFormat[] = [
+  "BLOG_ARTICLE",
+  "LINKEDIN_POST",
+  "SOCIAL_POST",
+  "EMAIL",
+  "HOOK",
+];
+
+const panelClass =
+  "border-[#18243A] bg-[#0F172A]/95 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26)] ring-1 ring-white/[0.03]";
+const fieldClass =
+  "border-[#24314D] bg-[#121C33] text-[#E8EEFF] placeholder:text-[#6F7B95] focus-visible:border-[#4D80F0] focus-visible:ring-[#4D80F0]/25";
+const selectClass =
+  "h-11 w-full rounded-xl border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] outline-none transition focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20 disabled:cursor-not-allowed disabled:opacity-60";
+
+export function ContentGenerator({
+  initialIdeaId,
+  organizationSlug,
+}: ContentGeneratorProps) {
+  const [ideas, setIdeas] = useState<ContentIdeaOption[]>([]);
+  const [ideasLoading, setIdeasLoading] = useState(true);
+  const [format, setFormat] =
+    useState<ContentGenerationFormat>("LINKEDIN_POST");
+  const [brief, setBrief] = useState("");
+  const [ideaId, setIdeaId] = useState(initialIdeaId ?? "");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [topic, setTopic] = useState("");
+  const [status, setStatus] = useState<ContentSaveStatus>("DRAFT");
+  const [duplicate, setDuplicate] = useState<ContentDuplicatePayload | null>(
+    null,
+  );
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const selectedIdea = useMemo(() => {
+    return ideas.find((idea) => idea.id === ideaId) ?? null;
+  }, [ideaId, ideas]);
+  const hasDraft = title.trim().length > 0 || body.trim().length > 0;
+  const bodyWordCount = body.trim()
+    ? body.trim().split(/\s+/).filter(Boolean).length
+    : 0;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadIdeas() {
+      setIdeasLoading(true);
+      const result = await fetchSourceIdeas(organizationSlug);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (result.error) {
+        setMessage(result.error.message);
+      } else {
+        setIdeas(result.data.ideas);
+        hydrateSelectedIdea(result.data.ideas, initialIdeaId);
+      }
+
+      setIdeasLoading(false);
+    }
+
+    void loadIdeas();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialIdeaId, organizationSlug]);
+
+  async function handleGenerate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage(null);
+
+    if (!brief.trim() && !ideaId) {
+      setMessage("Ajoutez un brief ou selectionnez une idee source.");
+      return;
+    }
+
+    setIsGenerating(true);
+    const result = await generateContent(organizationSlug, {
+      ...(brief.trim() ? { brief: brief.trim() } : {}),
+      format,
+      ...(ideaId ? { ideaId } : {}),
+    });
+    setIsGenerating(false);
+
+    if (result.error) {
+      setMessage(result.error.message);
+      return;
+    }
+
+    setTitle(result.data.draft.title);
+    setBody(result.data.draft.body);
+    setDuplicate(result.data.draft.duplicate);
+    setTopic(result.data.sourceIdea?.category ?? topic);
+  }
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage(null);
+
+    if (!title.trim() || !body.trim()) {
+      setMessage("Le titre et le corps sont requis avant sauvegarde.");
+      return;
+    }
+
+    setIsSaving(true);
+    const result = await saveContent(organizationSlug, {
+      body: body.trim(),
+      ...(brief.trim() ? { brief: brief.trim() } : {}),
+      format,
+      ...(ideaId ? { ideaId } : {}),
+      status,
+      title: title.trim(),
+      ...(topic.trim() ? { topic: topic.trim() } : {}),
+    });
+    setIsSaving(false);
+
+    if (result.error) {
+      setMessage(result.error.message);
+      return;
+    }
+
+    window.location.assign(
+      `/app/${organizationSlug}/contents/${result.data.content.id}`,
+    );
+  }
+
+  function handleIdeaChange(nextIdeaId: string) {
+    setIdeaId(nextIdeaId);
+    const nextIdea = ideas.find((idea) => idea.id === nextIdeaId);
+
+    hydrateSelectedIdea(ideas, nextIdea?.id);
+  }
+
+  function hydrateSelectedIdea(
+    sourceIdeas: ContentIdeaOption[],
+    selectedIdeaId: string | undefined,
+  ) {
+    const nextIdea = sourceIdeas.find((idea) => idea.id === selectedIdeaId);
+
+    if (nextIdea && isGenerationFormat(nextIdea.recommendedFormat)) {
+      setFormat(nextIdea.recommendedFormat);
+    }
+
+    if (nextIdea?.category) {
+      setTopic(nextIdea.category);
+    }
+  }
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)_300px]">
+      <Card className={cn(panelClass, "rounded-3xl py-0")}>
+        <CardHeader className="gap-4 border-b border-[#18243A] px-5 py-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                Generation
+              </p>
+              <CardTitle className="mt-2 text-xl font-bold text-[#E8EEFF]">
+                Configurer
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm leading-6 text-[#A3AEC5]">
+                Format, source et brief avant appel IA.
+              </CardDescription>
+            </div>
+            <Sparkles className="mt-1 size-5 text-[#C3F400]" />
+          </div>
+          <Link
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] transition hover:bg-[#1A2742]"
+            href={`/app/${organizationSlug}/contents`}
+          >
+            <ArrowLeft className="size-4" />
+            Bibliotheque
+          </Link>
+        </CardHeader>
+
+        <CardContent className="px-5 py-5">
+          <form className="grid gap-5" onSubmit={handleGenerate}>
+            <label className="grid gap-2">
+              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                Format
+              </span>
+              <select
+                className={selectClass}
+                value={format}
+                onChange={(event) =>
+                  setFormat(event.target.value as ContentGenerationFormat)
+                }
+              >
+                {GENERATION_FORMATS.map((item) => (
+                  <option key={item} value={item}>
+                    {CONTENT_FORMAT_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                Idee source
+              </span>
+              <select
+                className={selectClass}
+                disabled={ideasLoading}
+                value={ideaId}
+                onChange={(event) => handleIdeaChange(event.target.value)}
+              >
+                <option value="">
+                  {ideasLoading ? "Chargement..." : "Aucune idee selectionnee"}
+                </option>
+                {ideas.map((idea) => (
+                  <option key={idea.id} value={idea.id}>
+                    {idea.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {selectedIdea ? (
+              <div className="rounded-2xl border border-[#24314D] bg-[#121C33] p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Badge className="bg-[#4D80F0]/15 text-[#88A8FF]">
+                    Source active
+                  </Badge>
+                  <Badge className="bg-[#9D50FF]/15 text-[#D6B5FF]">
+                    {CONTENT_FORMAT_LABELS[selectedIdea.recommendedFormat]}
+                  </Badge>
+                </div>
+                <strong className="block text-sm text-[#E8EEFF]">
+                  {selectedIdea.title}
+                </strong>
+                <span className="mt-2 block text-sm leading-6 text-[#A3AEC5]">
+                  {selectedIdea.angle}
+                </span>
+              </div>
+            ) : null}
+
+            <label className="grid gap-2">
+              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                Brief
+              </span>
+              <Textarea
+                className={cn(fieldClass, "min-h-44 resize-y rounded-2xl")}
+                rows={8}
+                value={brief}
+                onChange={(event) => setBrief(event.target.value)}
+                placeholder="Objectif, audience, angle, preuve, contrainte de ton..."
+              />
+            </label>
+
+            {message ? (
+              <Alert className="border-[#F56C7A]/40 bg-[#F56C7A]/10 text-[#FFD7DC]">
+                <AlertCircle className="size-4" />
+                <AlertTitle>Action impossible</AlertTitle>
+                <AlertDescription className="text-[#FFD7DC]/85">
+                  {message}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            <Button
+              className="h-12 rounded-2xl bg-[#C3F400] font-bold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
+              disabled={isGenerating}
+              type="submit"
+            >
+              {isGenerating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Wand2 className="size-4" />
+              )}
+              {isGenerating ? "Generation..." : "Generer"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className={cn(panelClass, "min-w-0 rounded-3xl py-0")}>
+        <CardHeader className="border-b border-[#18243A] px-5 py-5 sm:px-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                Brouillon
+              </p>
+              <CardTitle className="mt-2 text-2xl font-bold text-[#E8EEFF]">
+                Edition avant sauvegarde
+              </CardTitle>
+            </div>
+            <Badge className="h-7 bg-[#121C33] px-3 text-[#A3AEC5] ring-1 ring-[#24314D]">
+              {hasDraft ? `${bodyWordCount} mots` : "En attente"}
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className="px-5 py-5 sm:px-6">
+          {hasDraft ? (
+            <form className="grid gap-5" onSubmit={handleSave}>
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  Titre
+                </span>
+                <Input
+                  className={cn(fieldClass, "h-12 rounded-2xl text-base")}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  Corps
+                </span>
+                <Textarea
+                  className={cn(
+                    fieldClass,
+                    "min-h-[460px] resize-y rounded-2xl font-mono text-sm leading-7",
+                  )}
+                  rows={18}
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                />
+              </label>
+
+              <div className="grid gap-4 md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
+                <label className="grid gap-2">
+                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                    Statut
+                  </span>
+                  <select
+                    className={selectClass}
+                    value={status}
+                    onChange={(event) =>
+                      setStatus(event.target.value as ContentSaveStatus)
+                    }
+                  >
+                    {SAVE_STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                    Sujet
+                  </span>
+                  <Input
+                    className={cn(fieldClass, "h-11 rounded-xl")}
+                    value={topic}
+                    onChange={(event) => setTopic(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <DuplicateNotice duplicate={duplicate} />
+
+              <div className="flex justify-end">
+                <Button
+                  className="h-12 rounded-2xl bg-[#C3F400] px-6 font-bold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
+                  disabled={isSaving}
+                  type="submit"
+                >
+                  {isSaving ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Save className="size-4" />
+                  )}
+                  {isSaving ? "Sauvegarde..." : "Sauvegarder"}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="grid min-h-[520px] place-items-center rounded-3xl border border-dashed border-[#24314D] bg-[#050B18]/55 p-8 text-center">
+              <div className="max-w-md">
+                <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[#4D80F0]/15 text-[#88A8FF] ring-1 ring-[#4D80F0]/25">
+                  <FileText className="size-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#E8EEFF]">
+                  Aucun brouillon
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">
+                  Generez un contenu depuis un brief ou une idee sauvegardee
+                  pour ouvrir l'espace d'edition.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <aside className="grid gap-5 xl:sticky xl:top-5">
+        <Card className={cn(panelClass, "rounded-3xl py-0")}>
+          <CardHeader className="px-5 py-5">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold text-[#E8EEFF]">
+              <Library className="size-5 text-[#88A8FF]" />
+              Contexte
+            </CardTitle>
+            <CardDescription className="text-[#A3AEC5]">
+              Parametres transmis ou prepares pour le contenu.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 px-5 pb-5">
+            <ContextRow label="Format" value={CONTENT_FORMAT_LABELS[format]} />
+            <ContextRow
+              label="Source"
+              value={selectedIdea ? selectedIdea.title : "Brief libre"}
+            />
+            <ContextRow label="Sujet" value={topic || "A definir"} />
+            <ContextRow
+              label="Brief"
+              value={
+                brief.trim() ? `${brief.trim().length} caracteres` : "Vide"
+              }
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-[#24314D] bg-[#050B18] py-0 text-[#E8EEFF] ring-1 ring-[#4D80F0]/20">
+          <CardContent className="p-5">
+            <p className="text-xs font-bold uppercase text-[#C3F400]">
+              Flux IA/API
+            </p>
+            <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">
+              La generation reste declenchee par le formulaire de gauche. La
+              sauvegarde utilise les champs edites au centre.
+            </p>
+          </CardContent>
+        </Card>
+      </aside>
+    </div>
+  );
+}
+
+function ContextRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-[#18243A] bg-[#121C33] p-3">
+      <span className="text-[11px] font-bold uppercase text-[#6F7B95]">
+        {label}
+      </span>
+      <strong className="mt-1 block overflow-hidden text-ellipsis text-sm text-[#E8EEFF]">
+        {value}
+      </strong>
+    </div>
+  );
+}
+
+function DuplicateNotice({
+  duplicate,
+}: {
+  duplicate: ContentDuplicatePayload | null;
+}) {
+  if (!duplicate || duplicate.score <= 0) {
+    return null;
+  }
+
+  return (
+    <Alert
+      className={cn(
+        "border-[#24314D] bg-[#121C33] text-[#E8EEFF]",
+        duplicate.warning && "border-[#F5C542]/40 bg-[#F5C542]/10",
+      )}
+    >
+      <AlertCircle className="size-4 text-[#F5C542]" />
+      <AlertTitle>
+        {duplicate.warning ? "Doublon potentiel" : "Similarite detectee"}
+      </AlertTitle>
+      <AlertDescription className="text-[#A3AEC5]">
+        Score {Math.round(duplicate.score * 100)}%
+        {duplicate.matchedTitle ? ` avec "${duplicate.matchedTitle}"` : ""}.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function isGenerationFormat(value: string): value is ContentGenerationFormat {
+  return GENERATION_FORMATS.includes(value as ContentGenerationFormat);
+}

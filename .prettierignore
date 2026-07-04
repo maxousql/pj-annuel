@@ -1,0 +1,12 @@
+.agents
+node_modules
+.next
+dist
+coverage
+apps/api/src/generated
+docs/cahier_des_charges.md
+package-lock.json
+apps/web/.next
+apps/**/dist
+packages/**/dist
+*.tsbuildinfo

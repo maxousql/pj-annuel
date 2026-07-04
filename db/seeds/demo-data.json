@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "email": "demo@example.com",
+      "name": "Demo Admin"
+    }
+  ],
+  "organizations": [
+    {
+      "name": "Acme Marketing",
+      "slug": "acme"
+    }
+  ],
+  "editorialContexts": [
+    {
+      "organizationSlug": "acme",
+      "industry": "B2B SaaS",
+      "targetAudience": "Responsables marketing",
+      "tone": "Professionnel, clair et concret",
+      "topics": ["content marketing", "IA", "planning editorial"]
+    }
+  ],
+  "ideas": [
+    {
+      "organizationSlug": "acme",
+      "title": "Comment structurer un calendrier editorial avec l'IA",
+      "format": "LINKEDIN_POST"
+    }
+  ],
+  "contents": [
+    {
+      "organizationSlug": "acme",
+      "title": "Premier brouillon de demonstration",
+      "format": "BLOG_ARTICLE",
+      "status": "DRAFT"
+    }
+  ]
+}
