@@ -36,6 +36,7 @@ type DashboardOverviewProps = {
 };
 
 type Accent = "blue" | "lime" | "violet";
+type PerformanceMode = "actions" | "views";
 
 export function DashboardOverview({
   organizationSlug,
@@ -43,6 +44,8 @@ export function DashboardOverview({
   const [summary, setSummary] = useState<DashboardSummaryPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [performanceMode, setPerformanceMode] =
+    useState<PerformanceMode>("views");
 
   useEffect(() => {
     let isMounted = true;
@@ -99,10 +102,10 @@ export function DashboardOverview({
       summary.counters.toReviewCount,
     0,
   );
-  const chartBars = buildChartBars(summary);
+  const chartBars = buildChartBars(summary, performanceMode, completionRate);
 
   return (
-    <div className="grid w-full max-w-[1048px] gap-[36px] text-[#E8EEFF]">
+    <div className="grid w-full gap-[36px] text-[#E8EEFF]">
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0">
           <h1 className="text-[40px] font-extrabold leading-[1.05] text-[#E8EEFF] sm:text-[44px]">
@@ -157,7 +160,7 @@ export function DashboardOverview({
         />
       </section>
 
-      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,686px)_325px]">
+      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,1fr)_325px]">
         <Panel className="min-h-[541px]">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -165,16 +168,42 @@ export function DashboardOverview({
                 Performance editoriale
               </h2>
               <p className="mt-1 text-[16px] font-medium text-[#A3AEC5]">
-                Engagement cumule des 30 derniers jours
+                {performanceMode === "views"
+                  ? "Engagement cumule des 30 derniers jours"
+                  : "Actions cumulees des 30 derniers jours"}
               </p>
             </div>
             <div className="flex h-10 rounded-[8px] bg-[#1A2742] p-1">
-              <span className="grid h-8 min-w-[69px] place-items-center rounded-[6px] bg-[#84A4FF] px-4 text-[13px] font-extrabold text-[#071123]">
+              <button
+                className={cn(
+                  "grid h-8 min-w-[69px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
+                  performanceMode === "views"
+                    ? "bg-[#84A4FF] text-[#071123]"
+                    : "text-[#A3AEC5] hover:text-[#E8EEFF]",
+                )}
+                aria-pressed={performanceMode === "views"}
+                onClick={() => {
+                  setPerformanceMode("views");
+                }}
+                type="button"
+              >
                 Vues
-              </span>
-              <span className="grid h-8 min-w-[88px] place-items-center px-4 text-[13px] font-bold text-[#A3AEC5]">
+              </button>
+              <button
+                className={cn(
+                  "grid h-8 min-w-[88px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
+                  performanceMode === "actions"
+                    ? "bg-[#84A4FF] text-[#071123]"
+                    : "text-[#A3AEC5] hover:text-[#E8EEFF]",
+                )}
+                aria-pressed={performanceMode === "actions"}
+                onClick={() => {
+                  setPerformanceMode("actions");
+                }}
+                type="button"
+              >
                 Actions
-              </span>
+              </button>
             </div>
           </div>
 
@@ -232,7 +261,7 @@ export function DashboardOverview({
         </Panel>
       </section>
 
-      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,686px)_325px]">
+      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,1fr)_325px]">
         <Panel className="min-h-[544px] p-0">
           <div className="flex items-center justify-between px-[37px] pb-7 pt-[38px]">
             <h2 className="text-[24px] font-extrabold text-[#E8EEFF]">
@@ -525,7 +554,7 @@ function DashboardState({
   title: string;
 }) {
   return (
-    <section className="max-w-[1048px] rounded-[18px] border border-[#172139] bg-[#081226] p-[37px] text-[#E8EEFF]">
+    <section className="w-full rounded-[18px] border border-[#172139] bg-[#081226] p-[37px] text-[#E8EEFF]">
       <div className="flex items-start gap-4">
         <span className="grid size-[52px] shrink-0 place-items-center rounded-[13px] bg-[#18294B] text-[#84A4FF]">
           <Icon className="size-6" />
@@ -562,20 +591,115 @@ function StatusBadge({
   );
 }
 
-function buildChartBars(summary: DashboardSummaryPayload) {
-  const base = [23, 45, 32, 68, 26, 52, 82, 29, 33, 56];
-  const modifier = Math.min(summary.counters.aiGenerationsCount, 30);
+function buildChartBars(
+  summary: DashboardSummaryPayload,
+  mode: PerformanceMode,
+  completionRate: number,
+) {
+  const bucketCount = 10;
+  const windowMs = 30 * 24 * 60 * 60 * 1000;
+  const bucketMs = windowMs / bucketCount;
+  const now = Date.now();
+  const timedSeries = Array.from({ length: bucketCount }, () => 0);
+  const seenItems = new Set<string>();
 
-  return base.map((value, index) => {
+  [...summary.latestItems, ...summary.reviewItems].forEach((item) => {
+    const itemKey = `${item.type}:${item.id}`;
+
+    if (seenItems.has(itemKey)) {
+      return;
+    }
+
+    seenItems.add(itemKey);
+
+    const updatedAt = Date.parse(item.updatedAt);
+
+    if (!Number.isFinite(updatedAt)) {
+      return;
+    }
+
+    const age = now - updatedAt;
+
+    if (age < 0 || age > windowMs) {
+      return;
+    }
+
+    const bucketIndex = Math.min(
+      bucketCount - 1,
+      Math.floor((windowMs - age) / bucketMs),
+    );
+    timedSeries[bucketIndex] += getPerformanceWeight(item, mode);
+  });
+
+  const publishedCount = Math.max(
+    summary.counters.contentsCount -
+      summary.counters.draftsCount -
+      summary.counters.toReviewCount,
+    0,
+  );
+  const topicCounts = summary.topTopics.map((topic) => topic.count);
+  const seeds = [
+    summary.counters.aiGenerationsCount,
+    summary.counters.contentsCount,
+    summary.counters.ideasCount,
+    summary.latestItems.length * 5,
+    summary.reviewItems.length * 6,
+    topicCounts[0] ?? 0,
+    summary.counters.draftsCount,
+    summary.counters.toReviewCount,
+    publishedCount,
+    completionRate,
+  ];
+  const hasTimedActivity = timedSeries.some((value) => value > 0);
+  const series = hasTimedActivity
+    ? timedSeries
+    : seeds.map((value, index) => {
+        if (mode === "views") {
+          return (
+            value + (topicCounts[index % Math.max(topicCounts.length, 1)] ?? 0)
+          );
+        }
+
+        return (
+          value * 0.68 +
+          summary.reviewItems.length * 2 +
+          summary.latestItems.length +
+          (index % 4) * 2
+        );
+      });
+  const maxValue = Math.max(...series, 1);
+
+  return series.map((value, index) => {
+    const rhythm = ((index % 3) - 1) * 4;
     const primary = Math.min(
       88,
-      Math.max(18, value + ((modifier + index) % 12)),
+      Math.max(18, 18 + Math.round((value / maxValue) * 64) + rhythm),
     );
+
     return {
       primary,
-      secondary: Math.min(100, primary + 22),
+      secondary: Math.min(100, primary + 18 + (index % 2) * 5),
     };
   });
+}
+
+function getPerformanceWeight(
+  item: DashboardLatestItemPayload,
+  mode: PerformanceMode,
+): number {
+  if (mode === "views") {
+    return item.type === "CONTENT" ? 14 : 9;
+  }
+
+  if (item.status === "PUBLISHED" || item.status === "USED") {
+    return 9;
+  }
+
+  if (item.status === "REVIEW" || item.status === "SAVED") {
+    return 6;
+  }
+
+  return 3;
 }
 
 function scoreForStatus(status: ContentIdeaStatus | ContentItemStatus): number {

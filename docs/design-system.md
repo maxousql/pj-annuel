@@ -67,9 +67,12 @@ L'app actuelle est fonctionnelle mais n'est pas alignée avec le Figma.
 
 ### Police
 
-Police cible : **Geist Sans** via `next/font`.
+Polices cibles :
 
-Alternative plus proche du rendu Figma si ajoutée au projet : **Satoshi** en police locale. Ne pas charger depuis un CDN externe.
+- **Manrope** pour les titres, titres de section, titres de cards, intitulés forts et éléments de hiérarchie.
+- **Inter** pour les textes courants, labels, formulaires, tables, menus, métadonnées et boutons.
+
+Les polices sont chargées localement via `@fontsource-variable/manrope` et `@fontsource-variable/inter`. Ne pas charger depuis un CDN externe.
 
 ### Échelle
 
@@ -85,6 +88,8 @@ Alternative plus proche du rendu Figma si ajoutée au projet : **Satoshi** en po
 
 ### Règles typo
 
+- `font-heading` doit pointer vers Manrope.
+- `font-sans` doit pointer vers Inter.
 - Les titres sont compacts, sans letter-spacing négatif.
 - Les labels de section peuvent être uppercase avec tracking léger (`0.08em` à `0.14em`), mais pas sur chaque bloc.
 - Les paragraphes ne dépassent pas `65ch`.
