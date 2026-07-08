@@ -6,6 +6,8 @@ import type {
   ContentIdeasListPayload,
   ContentIdeaStatus,
   GeneratedContentIdeasPayload,
+  GenerationLanguage,
+  GenerationTargetLength,
 } from "@content-ai/shared";
 
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
@@ -13,7 +15,11 @@ import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
 export type GenerateIdeasInput = {
   brief?: string;
   count?: number;
+  creativity?: number;
   format?: ContentFormat;
+  language?: GenerationLanguage;
+  targetLength?: GenerationTargetLength;
+  toneIntensity?: number;
   topic?: string;
 };
 

@@ -105,13 +105,13 @@ export function DashboardOverview({
   const chartBars = buildChartBars(summary, performanceMode, completionRate);
 
   return (
-    <div className="grid w-full gap-[36px] text-[#E8EEFF]">
+    <div className="grid w-full max-w-[1048px] gap-[36px] text-[color:var(--ink)]">
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0">
-          <h1 className="text-[40px] font-extrabold leading-[1.05] text-[#E8EEFF] sm:text-[44px]">
+          <h1 className="text-[40px] font-extrabold leading-[1.05] text-[color:var(--ink)] sm:text-[44px]">
             Tableau de bord
           </h1>
-          <p className="mt-3 max-w-[520px] text-[22px] font-medium leading-[1.35] text-[#A3AEC5]">
+          <p className="mt-3 max-w-[520px] text-[22px] font-medium leading-[1.35] text-[color:var(--text-muted)]">
             Bienvenue. Voici l'etat de votre strategie de contenu.
           </p>
         </div>
@@ -164,22 +164,22 @@ export function DashboardOverview({
         <Panel className="min-h-[541px]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-[24px] font-extrabold leading-tight text-[#E8EEFF]">
+              <h2 className="text-[24px] font-extrabold leading-tight text-[color:var(--ink)]">
                 Performance editoriale
               </h2>
-              <p className="mt-1 text-[16px] font-medium text-[#A3AEC5]">
+              <p className="mt-1 text-[16px] font-medium text-[color:var(--text-muted)]">
                 {performanceMode === "views"
                   ? "Engagement cumule des 30 derniers jours"
                   : "Actions cumulees des 30 derniers jours"}
               </p>
             </div>
-            <div className="flex h-10 rounded-[8px] bg-[#1A2742] p-1">
+            <div className="flex h-10 rounded-[8px] bg-[color:var(--paper-2)] p-1">
               <button
                 className={cn(
                   "grid h-8 min-w-[69px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
                   performanceMode === "views"
-                    ? "bg-[#84A4FF] text-[#071123]"
-                    : "text-[#A3AEC5] hover:text-[#E8EEFF]",
+                    ? "bg-[color:var(--klein)] text-[color:var(--paper)]"
+                    : "text-[color:var(--text-muted)] hover:text-[color:var(--ink)]",
                 )}
                 aria-pressed={performanceMode === "views"}
                 onClick={() => {
@@ -193,8 +193,8 @@ export function DashboardOverview({
                 className={cn(
                   "grid h-8 min-w-[88px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
                   performanceMode === "actions"
-                    ? "bg-[#84A4FF] text-[#071123]"
-                    : "text-[#A3AEC5] hover:text-[#E8EEFF]",
+                    ? "bg-[color:var(--klein)] text-[color:var(--paper)]"
+                    : "text-[color:var(--text-muted)] hover:text-[color:var(--ink)]",
                 )}
                 aria-pressed={performanceMode === "actions"}
                 onClick={() => {
@@ -207,7 +207,7 @@ export function DashboardOverview({
             </div>
           </div>
 
-          <div className="mt-[38px] h-[288px] border-b border-l border-[#172139] pl-2">
+          <div className="mt-[38px] h-[288px] border-b border-l border-[color:var(--border-strong)] pl-2">
             <div className="flex h-full items-end gap-px">
               {chartBars.map((bar, index) => (
                 <div
@@ -216,11 +216,11 @@ export function DashboardOverview({
                 >
                   <div className="relative h-full w-full">
                     <span
-                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[#263756]"
+                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[color:var(--paper-2)]"
                       style={{ height: `${bar.secondary}%` }}
                     />
                     <span
-                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[#84A4FF]"
+                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[color:var(--klein)]"
                       style={{ height: `${bar.primary}%` }}
                     />
                   </div>
@@ -229,7 +229,7 @@ export function DashboardOverview({
             </div>
           </div>
 
-          <div className="mt-[29px] grid grid-cols-4 text-[12px] font-black uppercase text-[#7D879E]">
+          <div className="mt-[29px] grid grid-cols-4 text-[12px] font-black uppercase text-[color:var(--text-subtle)]">
             <span>Semaine 1</span>
             <span>Semaine 2</span>
             <span>Semaine 3</span>
@@ -239,10 +239,10 @@ export function DashboardOverview({
 
         <Panel className="min-h-[541px]">
           <div className="mb-[34px] flex items-center justify-between gap-4">
-            <h2 className="text-[24px] font-extrabold leading-tight text-[#E8EEFF]">
+            <h2 className="text-[24px] font-extrabold leading-tight text-[color:var(--ink)]">
               A venir
             </h2>
-            <MoreHorizontal className="size-5 text-[#A3AEC5]" />
+            <MoreHorizontal className="size-5 text-[color:var(--text-muted)]" />
           </div>
           <div className="grid gap-5">
             {summary.reviewItems.slice(0, 3).map((item, index) => (
@@ -253,7 +253,7 @@ export function DashboardOverview({
             ) : null}
           </div>
           <Link
-            className="mt-[28px] inline-flex h-[51px] w-full items-center justify-center rounded-[12px] border border-[#24314D] bg-transparent text-[16px] font-extrabold text-[#E8EEFF] transition hover:bg-[#121C33]"
+            className="mt-[28px] inline-flex h-[51px] w-full items-center justify-center rounded-[12px] border border-[color:var(--border-strong)] bg-transparent text-[16px] font-extrabold text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
             href={`/app/${organizationSlug}/calendar`}
           >
             Voir tout le calendrier
@@ -264,11 +264,11 @@ export function DashboardOverview({
       <section className="grid gap-[36px] xl:grid-cols-[minmax(0,1fr)_325px]">
         <Panel className="min-h-[544px] p-0">
           <div className="flex items-center justify-between px-[37px] pb-7 pt-[38px]">
-            <h2 className="text-[24px] font-extrabold text-[#E8EEFF]">
+            <h2 className="text-[24px] font-extrabold text-[color:var(--ink)]">
               Contenus recents
             </h2>
             <Link
-              className="text-[14px] font-extrabold text-[#84A4FF]"
+              className="text-[14px] font-extrabold text-[color:var(--klein)]"
               href={`/app/${organizationSlug}/history`}
             >
               Voir tout
@@ -281,7 +281,7 @@ export function DashboardOverview({
         </Panel>
 
         <Panel className="min-h-[544px]">
-          <h2 className="mb-[29px] text-[24px] font-extrabold text-[#E8EEFF]">
+          <h2 className="mb-[29px] text-[24px] font-extrabold text-[color:var(--ink)]">
             Idees a explorer
           </h2>
           <div className="grid gap-5">
@@ -298,7 +298,7 @@ export function DashboardOverview({
             ) : null}
           </div>
           <Link
-            className="mt-[29px] inline-flex h-[58px] w-full items-center justify-center gap-2 rounded-[12px] border border-dashed border-[#334461] bg-[#22304D] text-[15px] font-extrabold text-[#A3AEC5] transition hover:border-[#84A4FF] hover:text-[#E8EEFF]"
+            className="mt-[29px] inline-flex h-[58px] w-full items-center justify-center gap-2 rounded-[12px] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[15px] font-extrabold text-[color:var(--text-muted)] transition hover:border-[color:var(--klein)] hover:text-[color:var(--ink)]"
             href={`/app/${organizationSlug}/ideas`}
           >
             <Lightbulb className="size-5" />
@@ -326,9 +326,9 @@ function DashboardAction({
       className={cn(
         "inline-flex h-[82px] min-w-[220px] items-center justify-center gap-5 rounded-[12px] px-6 text-center text-[18px] font-extrabold leading-tight transition",
         variant === "primary" &&
-          "bg-[#84A4FF] text-[#071123] shadow-[0_15px_32px_rgba(132,164,255,0.24)] hover:bg-[#9AB5FF]",
+          "bg-[color:var(--klein)] text-[color:var(--paper)] shadow-[0_15px_32px_rgba(132,164,255,0.24)] hover:bg-[color:var(--klein)]",
         variant === "secondary" &&
-          "bg-[#1A2742] text-[#E8EEFF] hover:bg-[#22304D]",
+          "bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]",
       )}
       href={href}
     >
@@ -354,36 +354,37 @@ function StatCard({
   return (
     <article
       className={cn(
-        "min-h-[194px] rounded-[16px] border border-[#172139] bg-[#0B1326] p-[27px]",
-        accent === "violet" &&
-          "bg-[linear-gradient(135deg,#0B1326_0%,#171633_100%)]",
-        accent === "lime" &&
-          "bg-[linear-gradient(135deg,#0B1326_0%,#12291F_100%)]",
+        "min-h-[194px] rounded-[16px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[27px]",
+        accent === "violet" && "bg-[color:var(--klein)]/4",
+        accent === "lime" && "bg-[color:var(--rubric)]/4",
       )}
     >
       <span
         className={cn(
-          "grid size-[52px] place-items-center rounded-[13px]",
-          accent === "blue" && "bg-[#18294B] text-[#84A4FF]",
-          accent === "violet" && "bg-[#2B1E58] text-[#B783FF]",
-          accent === "lime" && "bg-[#203613] text-[#C3F400]",
+          "grid size-[52px] place-items-center rounded-[13px] border-[1.5px]",
+          accent === "blue" &&
+            "border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)]",
+          accent === "violet" &&
+            "border-[color:var(--klein)] bg-[color:var(--klein)]/8 text-[color:var(--klein)]",
+          accent === "lime" &&
+            "border-[color:var(--rubric)] bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
         )}
       >
         <Icon className="size-6" />
       </span>
-      <p className="mt-[21px] text-[16px] font-semibold text-[#A3AEC5]">
+      <p className="mt-[21px] text-[16px] font-semibold text-[color:var(--text-muted)]">
         {label}
       </p>
       <div className="mt-2 flex items-end gap-3">
-        <strong className="text-[34px] font-extrabold leading-none text-[#E8EEFF]">
+        <strong className="text-[34px] font-extrabold leading-none text-[color:var(--ink)]">
           {value.toLocaleString("fr-FR")}
         </strong>
         <span
           className={cn(
             "pb-1 text-[13px] font-extrabold",
-            accent === "blue" && "text-[#C3F400]",
-            accent === "violet" && "text-[#C7CBE0]",
-            accent === "lime" && "text-[#C3F400]",
+            accent === "blue" && "text-[color:var(--rubric)]",
+            accent === "violet" && "text-[color:var(--text-muted)]",
+            accent === "lime" && "text-[color:var(--rubric)]",
           )}
         >
           {suffix}
@@ -403,7 +404,7 @@ function Panel({
   return (
     <section
       className={cn(
-        "rounded-[18px] border border-[#172139] bg-[#081226] p-[37px]",
+        "rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[37px]",
         className,
       )}
     >
@@ -422,20 +423,20 @@ function UpcomingItem({
   const days = ["MAR", "MER", "JEU"];
 
   return (
-    <article className="grid min-h-[97px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-[14px] bg-[#121C33] px-[18px]">
-      <div className="grid size-[56px] place-items-center rounded-[13px] bg-[#1B2A48] text-center">
-        <span className="block text-[13px] font-extrabold text-[#84A4FF]">
+    <article className="grid min-h-[97px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-[14px] bg-[color:var(--paper-2)] px-[18px]">
+      <div className="grid size-[56px] place-items-center rounded-[13px] bg-[color:var(--paper-2)] text-center">
+        <span className="block text-[13px] font-extrabold text-[color:var(--klein)]">
           {days[index] ?? "VEN"}
         </span>
-        <strong className="block text-[23px] font-extrabold leading-none text-[#DCE4FF]">
+        <strong className="block text-[23px] font-extrabold leading-none text-[color:var(--ink)]">
           {12 + index}
         </strong>
       </div>
       <div className="min-w-0">
-        <h3 className="line-clamp-2 text-[16px] font-extrabold leading-[1.25] text-[#E8EEFF]">
+        <h3 className="line-clamp-2 text-[16px] font-extrabold leading-[1.25] text-[color:var(--ink)]">
           {item.title}
         </h3>
-        <p className="mt-1 truncate text-[13px] font-medium text-[#A3AEC5]">
+        <p className="mt-1 truncate text-[13px] font-medium text-[color:var(--text-muted)]">
           {CONTENT_FORMAT_LABELS[item.format]} -{" "}
           {formatContentDate(item.updatedAt)}
         </p>
@@ -461,7 +462,7 @@ function RecentTable({
 
   return (
     <div className="overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1.4fr)_110px_110px_110px] border-b border-[#172139] px-[37px] pb-[17px] text-[12px] font-black uppercase text-[#7D879E]">
+      <div className="grid grid-cols-[minmax(0,1.4fr)_110px_110px_110px] border-b border-[color:var(--border-strong)] px-[37px] pb-[17px] text-[12px] font-black uppercase text-[color:var(--text-subtle)]">
         <span>Titre du contenu</span>
         <span>Statut</span>
         <span>Score IA</span>
@@ -470,24 +471,24 @@ function RecentTable({
       <div className="grid">
         {items.slice(0, 3).map((item) => (
           <Link
-            className="grid min-h-[91px] grid-cols-[minmax(0,1.4fr)_110px_110px_110px] items-center border-b border-[#172139] px-[37px] transition hover:bg-[#101A31]"
+            className="grid min-h-[91px] grid-cols-[minmax(0,1.4fr)_110px_110px_110px] items-center border-b border-[color:var(--border-strong)] px-[37px] transition hover:bg-[color:var(--paper-card)]"
             href={`/app/${organizationSlug}/history/${item.type.toLowerCase()}/${item.id}`}
             key={`${item.type}:${item.id}`}
           >
             <div className="flex min-w-0 items-center gap-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#1B2A48] text-[#A3AEC5]">
+              <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[color:var(--paper-2)] text-[color:var(--text-muted)]">
                 <FileText className="size-4" />
               </span>
-              <span className="line-clamp-2 text-[17px] font-extrabold leading-[1.15] text-[#E8EEFF]">
+              <span className="line-clamp-2 text-[17px] font-extrabold leading-[1.15] text-[color:var(--ink)]">
                 {item.title}
               </span>
             </div>
             <StatusBadge status={item.status} />
-            <div className="flex items-center gap-2 text-[15px] font-bold text-[#DCE4FF]">
-              <span className="h-1 w-9 rounded-full bg-[#84A4FF]" />
+            <div className="flex items-center gap-2 text-[15px] font-bold text-[color:var(--ink)]">
+              <span className="h-1 w-9 rounded-full bg-[color:var(--klein)]" />
               {scoreForStatus(item.status)}%
             </div>
-            <span className="truncate text-right text-[14px] font-medium text-[#A3AEC5]">
+            <span className="truncate text-right text-[14px] font-medium text-[color:var(--text-muted)]">
               {formatContentDate(item.updatedAt)}
             </span>
           </Link>
@@ -510,26 +511,26 @@ function IdeaCard({
   const confidence = index === 0 ? "Haut potentiel" : "Relevant";
 
   return (
-    <article className="min-h-[151px] rounded-[14px] border border-[#24314D] bg-[#1A2742] p-6">
+    <article className="min-h-[151px] rounded-[14px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <Badge
           className={cn(
             "rounded-[5px] px-2.5 py-1 text-[11px] font-black uppercase",
             index === 0
-              ? "bg-[#7E4CC2] text-[#E8D7FF]"
-              : "bg-[#4A6514] text-[#C3F400]",
+              ? "bg-[color:var(--klein)] text-[color:var(--klein)]"
+              : "bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
           )}
         >
           {label}
         </Badge>
-        <span className="text-[11px] font-black uppercase text-[#A3AEC5]">
+        <span className="text-[11px] font-black uppercase text-[color:var(--text-muted)]">
           {confidence}
         </span>
       </div>
-      <h3 className="line-clamp-3 text-[17px] font-extrabold leading-[1.24] text-[#E8EEFF]">
+      <h3 className="line-clamp-3 text-[17px] font-extrabold leading-[1.24] text-[color:var(--ink)]">
         {topic}
       </h3>
-      <p className="mt-3 text-[13px] font-semibold text-[#A3AEC5]">
+      <p className="mt-3 text-[13px] font-semibold text-[color:var(--text-muted)]">
         {count} occurrence{count > 1 ? "s" : ""}
       </p>
     </article>
@@ -538,7 +539,7 @@ function IdeaCard({
 
 function CompactEmpty({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-[14px] border border-dashed border-[#24314D] bg-[#0B1326] p-5 text-[15px] font-semibold text-[#A3AEC5]">
+    <div className="rounded-[14px] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-5 text-[15px] font-semibold text-[color:var(--text-muted)]">
       {children}
     </div>
   );
@@ -554,14 +555,14 @@ function DashboardState({
   title: string;
 }) {
   return (
-    <section className="w-full rounded-[18px] border border-[#172139] bg-[#081226] p-[37px] text-[#E8EEFF]">
+    <section className="max-w-[1048px] rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[37px] text-[color:var(--ink)]">
       <div className="flex items-start gap-4">
-        <span className="grid size-[52px] shrink-0 place-items-center rounded-[13px] bg-[#18294B] text-[#84A4FF]">
+        <span className="grid size-[52px] shrink-0 place-items-center rounded-[13px] bg-[color:var(--paper-2)] text-[color:var(--klein)]">
           <Icon className="size-6" />
         </span>
         <div className="min-w-0">
           <h2 className="text-[24px] font-extrabold">{title}</h2>
-          <p className="mt-2 text-[16px] font-medium leading-6 text-[#A3AEC5]">
+          <p className="mt-2 text-[16px] font-medium leading-6 text-[color:var(--text-muted)]">
             {description}
           </p>
         </div>
@@ -581,9 +582,12 @@ function StatusBadge({
     <Badge
       className={cn(
         "w-fit rounded-[5px] px-2 py-1 text-[11px] font-black uppercase",
-        tone === "lime" && "bg-[#4A6514] text-[#C3F400]",
-        tone === "blue" && "bg-[#17284E] text-[#84A4FF]",
-        tone === "violet" && "bg-[#273047] text-[#A3AEC5]",
+        tone === "lime" &&
+          "bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
+        tone === "blue" &&
+          "bg-[color:var(--paper-2)] text-[color:var(--klein)]",
+        tone === "violet" &&
+          "bg-[color:var(--paper-2)] text-[color:var(--text-muted)]",
       )}
     >
       {formatDashboardStatus(status)}

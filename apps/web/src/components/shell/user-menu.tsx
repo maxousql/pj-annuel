@@ -27,20 +27,20 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <div className="hidden min-w-0 justify-items-end gap-0.5 sm:grid">
-        <strong className="max-w-[180px] truncate text-[15px] font-extrabold leading-5 text-[#E8EEFF]">
+        <strong className="max-w-[180px] truncate text-[15px] font-extrabold leading-5 text-[color:var(--ink)]">
           {user.name}
         </strong>
-        <span className="max-w-[180px] truncate text-[12px] font-semibold leading-4 text-[#A3AEC5]">
+        <span className="max-w-[180px] truncate text-[12px] font-semibold leading-4 text-[color:var(--text-muted)]">
           Directeur Creatif
         </span>
       </div>
-      <Avatar className="size-11 border-2 border-[#84A4FF] bg-[#121C33]">
-        <AvatarFallback className="bg-[#18243A] text-sm font-black text-[#E8EEFF]">
+      <Avatar className="size-11 border-[1.5px] border-[rgba(216,64,31,0.28)] bg-[color:var(--rubric-soft)]">
+        <AvatarFallback className="bg-[color:var(--rubric-soft)] font-heading text-sm font-semibold italic text-[color:var(--rubric)]">
           {getInitials(user.name)}
         </AvatarFallback>
       </Avatar>
       <Button
-        className="hidden size-9 rounded-full border-[#24314D] bg-transparent p-0 text-[#73809A] shadow-none hover:bg-[#121C33] hover:text-[#E8EEFF] lg:inline-flex"
+        className="hidden size-9 rounded-full border-transparent bg-transparent p-0 text-[color:var(--text-muted)] shadow-none hover:bg-[color:var(--rubric-soft)] hover:text-[color:var(--ink)] lg:inline-flex"
         variant="ghost"
         type="button"
         onClick={handleLogout}

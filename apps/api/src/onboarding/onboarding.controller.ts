@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Put,
   Query,
@@ -16,6 +17,8 @@ import { OrganizationGuard } from "../organizations/organization.guard";
 import type { OrganizationRequest } from "../organizations/organizations.types";
 import { Roles } from "../organizations/roles.decorator";
 import { UpsertEditorialContextDto } from "../editorial-contexts/dto/upsert-editorial-context.dto";
+import { ApplyOnboardingPresetDto } from "./dto/apply-onboarding-preset.dto";
+import { UpdateOnboardingProgressDto } from "./dto/update-onboarding-progress.dto";
 import { OnboardingService } from "./onboarding.service";
 
 @Controller("onboarding")
@@ -57,6 +60,48 @@ export class OnboardingController {
   @UseGuards(OrganizationGuard)
   async completeOnboarding(@Req() request: OrganizationRequest) {
     const state = await this.onboardingService.completeOnboarding(
+      request.user.id,
+      request.organizationContext,
+    );
+
+    return successResponse(state);
+  }
+
+  @Post("organizations/:organizationSlug/presets/apply")
+  @Roles("EDITOR")
+  @UseGuards(OrganizationGuard)
+  async applyPreset(
+    @Req() request: OrganizationRequest,
+    @Body() dto: ApplyOnboardingPresetDto,
+  ) {
+    const state = await this.onboardingService.applyPreset(
+      request.user.id,
+      request.organizationContext,
+      dto,
+    );
+
+    return successResponse(state);
+  }
+
+  @Patch("organizations/:organizationSlug/progress")
+  @UseGuards(OrganizationGuard)
+  async updateProgress(
+    @Req() request: OrganizationRequest,
+    @Body() dto: UpdateOnboardingProgressDto,
+  ) {
+    const state = await this.onboardingService.updateAdvancedProgress(
+      request.user.id,
+      request.organizationContext,
+      dto,
+    );
+
+    return successResponse(state);
+  }
+
+  @Post("organizations/:organizationSlug/skip-advanced")
+  @UseGuards(OrganizationGuard)
+  async skipAdvanced(@Req() request: OrganizationRequest) {
+    const state = await this.onboardingService.skipAdvancedOnboarding(
       request.user.id,
       request.organizationContext,
     );

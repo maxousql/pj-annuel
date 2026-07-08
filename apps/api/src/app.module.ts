@@ -2,8 +2,11 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 import { AiModule } from "./ai/ai.module";
+import { AiSettingsModule } from "./ai-settings/ai-settings.module";
+import { AutomationsModule } from "./automations/automations.module";
 import { AuthModule } from "./auth/auth.module";
 import { ContentsModule } from "./contents/contents.module";
+import { CurationModule } from "./curation/curation.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { DatabaseModule } from "./database/database.module";
 import { EditorialContextsModule } from "./editorial-contexts/editorial-contexts.module";
@@ -22,8 +25,11 @@ import { PublicationPlansModule } from "./publication-plans/publication-plans.mo
       isGlobal: true,
     }),
     AiModule,
+    AiSettingsModule,
+    AutomationsModule,
     AuthModule,
     ContentsModule,
+    CurationModule,
     DashboardModule,
     DatabaseModule,
     EditorialContextsModule,

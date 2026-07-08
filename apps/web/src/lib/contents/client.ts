@@ -7,14 +7,20 @@ import type {
   ContentMutationPayload,
   ContentSaveStatus,
   GeneratedContentPayload,
+  GenerationLanguage,
+  GenerationTargetLength,
 } from "@content-ai/shared";
 
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
 
 export type GenerateContentInput = {
   brief?: string;
+  creativity?: number;
   format: ContentGenerationFormat;
   ideaId?: string;
+  language?: GenerationLanguage;
+  targetLength?: GenerationTargetLength;
+  toneIntensity?: number;
 };
 
 export type SaveContentInput = {

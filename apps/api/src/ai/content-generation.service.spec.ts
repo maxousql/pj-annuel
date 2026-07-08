@@ -2,6 +2,10 @@ import type { ConfigService } from "@nestjs/config";
 
 import { AiGenerationException } from "./ai.errors";
 import { ContentGenerationService } from "./content-generation.service";
+import {
+  CONTENT_IDEAS_PROMPT_VERSION,
+  RESOURCE_SUMMARY_PROMPT_VERSION,
+} from "./prompt-templates";
 import type {
   AiProvider,
   AiProviderRequest,
@@ -39,7 +43,7 @@ describe("ContentGenerationService", () => {
         inputHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         model: "stub-model",
         organizationId: "organization-id",
-        promptVersion: "content-ideas.v1",
+        promptVersion: CONTENT_IDEAS_PROMPT_VERSION,
         status: "SUCCEEDED",
         type: "CONTENT_IDEA",
         userId: "user-id",
@@ -83,7 +87,7 @@ describe("ContentGenerationService", () => {
     expect(prisma.aiGenerationLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         errorCode: "AI_TIMEOUT",
-        promptVersion: "resource-summary.v1",
+        promptVersion: RESOURCE_SUMMARY_PROMPT_VERSION,
         status: "FAILED",
         type: "RESOURCE_SUMMARY",
       }),
@@ -136,6 +140,10 @@ class FakeAiPrismaService {
         tone: "Clair",
       };
     }),
+  };
+
+  readonly brandVoiceProfile = {
+    findUnique: jest.fn(async () => null),
   };
 
   readonly aiGenerationLog = {

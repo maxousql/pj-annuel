@@ -103,6 +103,14 @@ enum ResourceStatus {
   @@map("resource_status")
 }
 
+enum SourceFeedStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+
+  @@map("source_feed_status")
+}
+
 enum PublicationChannel {
   LINKEDIN
   BLOG
@@ -161,24 +169,64 @@ enum AiGenerationStatus {
   @@map("ai_generation_status")
 }
 
+enum AutomationRuleType {
+  PUBLICATION_REMINDER
+  EDITORIAL_RECOMMENDATION
+
+  @@map("automation_rule_type")
+}
+
+enum AutomationRuleStatus {
+  ACTIVE
+  PAUSED
+
+  @@map("automation_rule_status")
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  CANCELLED
+
+  @@map("reminder_status")
+}
+
+enum RecommendationStatus {
+  OPEN
+  DISMISSED
+  APPLIED
+
+  @@map("recommendation_status")
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+
+  @@map("notification_status")
+}
+
 model User {
-  id                    String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  email                 String             @unique
-  name                  String
-  avatarUrl             String?            @map("avatar_url")
-  preferences           Json               @default("{}")
-  onboardingCompletedAt DateTime?          @map("onboarding_completed_at") @db.Timestamptz(6)
-  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
-  deletedAt             DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  authAccounts          AuthAccount[]
-  ownedOrganizations    Organization[]     @relation("OrganizationOwner")
-  memberships           Membership[]
-  invitationsSent       Invitation[]       @relation("InvitationInviter")
-  editorialContexts     EditorialContext[] @relation("EditorialContextCreator")
-  contentIdeas          ContentIdea[]      @relation("ContentIdeaCreator")
-  contentItems          ContentItem[]      @relation("ContentItemCreator")
-  aiGenerationLogs      AiGenerationLog[]
+  id                      String                   @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  email                   String                   @unique
+  name                    String
+  avatarUrl               String?                  @map("avatar_url")
+  preferences             Json                     @default("{}")
+  onboardingCompletedAt   DateTime?                @map("onboarding_completed_at") @db.Timestamptz(6)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  authAccounts            AuthAccount[]
+  ownedOrganizations      Organization[]           @relation("OrganizationOwner")
+  memberships             Membership[]
+  invitationsSent         Invitation[]             @relation("InvitationInviter")
+  editorialContexts       EditorialContext[]       @relation("EditorialContextCreator")
+  contentIdeas            ContentIdea[]            @relation("ContentIdeaCreator")
+  contentItems            ContentItem[]            @relation("ContentItemCreator")
+  aiGenerationLogs        AiGenerationLog[]
+  onboardingProgresses    OnboardingProgress[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@map("users")
 }
@@ -200,25 +248,34 @@ model AuthAccount {
 }
 
 model Organization {
-  id                     String                  @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  name                   String
-  slug                   String                  @unique
-  ownerId                String                  @map("owner_id") @db.Uuid
-  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
-  deletedAt              DateTime?               @map("deleted_at") @db.Timestamptz(6)
-  owner                  User                    @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  memberships            Membership[]
-  invitations            Invitation[]
-  editorialContexts      EditorialContext[]
-  contentIdeas           ContentIdea[]
-  contentItems           ContentItem[]
-  contentCategories      ContentCategory[]
-  tags                   Tag[]
-  curatedResources       CuratedResource[]
-  publicationPlans       PublicationPlan[]
-  integrationCredentials IntegrationCredential[]
-  aiGenerationLogs       AiGenerationLog[]
+  id                      String                   @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  name                    String
+  slug                    String                   @unique
+  ownerId                 String                   @map("owner_id") @db.Uuid
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  owner                   User                     @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  memberships             Membership[]
+  invitations             Invitation[]
+  editorialContexts       EditorialContext[]
+  contentIdeas            ContentIdea[]
+  contentItems            ContentItem[]
+  contentCategories       ContentCategory[]
+  tags                    Tag[]
+  curatedResources        CuratedResource[]
+  sourceFeeds             SourceFeed[]
+  resourceTags            ResourceTag[]
+  publicationPlans        PublicationPlan[]
+  integrationCredentials  IntegrationCredential[]
+  aiGenerationLogs        AiGenerationLog[]
+  brandVoiceProfile       BrandVoiceProfile?
+  onboardingProgresses    OnboardingProgress[]
+  automationRules         AutomationRule[]
+  reminders               Reminder[]
+  recommendations         Recommendation[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@index([ownerId])
   @@map("organizations")
@@ -357,15 +414,16 @@ model ContentCategory {
 }
 
 model Tag {
-  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
+  id             String        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
   name           String
   slug           String
   color          String?
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contentTags    ContentTag[]
+  resourceTags   ResourceTag[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -389,23 +447,80 @@ model ContentTag {
 model CuratedResource {
   id               String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
   organizationId   String            @map("organization_id") @db.Uuid
+  sourceFeedId     String?           @map("source_feed_id") @db.Uuid
   url              String
   title            String
+  description      String?
   summary          String?
+  keyPoints        String[]          @default([]) @map("key_points")
   source           String?
+  sourceName       String?           @map("source_name")
   topic            String?
   type             ResourceType      @default(URL)
   status           ResourceStatus    @default(NEW)
+  publishedAt      DateTime?         @map("published_at") @db.Timestamptz(6)
   createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceFeed       SourceFeed?       @relation(fields: [sourceFeedId], references: [id], onDelete: SetNull)
+  resourceTags     ResourceTag[]
   aiGenerationLogs AiGenerationLog[] @relation("AiGenerationResourceResult")
 
   @@unique([organizationId, url])
   @@index([organizationId, status])
   @@index([organizationId, type])
   @@index([organizationId, createdAt])
+  @@index([organizationId, sourceFeedId])
   @@map("curated_resources")
+}
+
+model SourceFeed {
+  id             String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  url            String
+  title          String
+  status         SourceFeedStatus  @default(ACTIVE)
+  lastFetchedAt  DateTime?         @map("last_fetched_at") @db.Timestamptz(6)
+  lastError      String?           @map("last_error")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resources      CuratedResource[]
+
+  @@unique([organizationId, url])
+  @@index([organizationId, status])
+  @@map("source_feeds")
+}
+
+model ResourceTag {
+  resourceId     String          @map("resource_id") @db.Uuid
+  tagId          String          @map("tag_id") @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  resource       CuratedResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag            Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+  @@index([organizationId])
+  @@index([tagId])
+  @@map("resource_tags")
+}
+
+model BrandVoiceProfile {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @unique @map("organization_id") @db.Uuid
+  language       String       @default("fr")
+  toneRules      String       @default("") @map("tone_rules")
+  examples       String[]     @default([])
+  forbiddenTerms String[]     @default([]) @map("forbidden_terms")
+  creativity     Int          @default(2)
+  targetLength   String       @default("standard") @map("target_length")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("brand_voice_profiles")
 }
 
 model PublicationPlan {
@@ -420,11 +535,115 @@ model PublicationPlan {
   updatedAt       DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contentItem     ContentItem        @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  reminders       Reminder[]
 
   @@index([organizationId, publicationDate])
   @@index([organizationId, status])
   @@index([organizationId, channel])
   @@map("publication_plans")
+}
+
+model OnboardingProgress {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  currentStep    String       @default("CHECKLIST") @map("current_step")
+  completedSteps String[]     @default([]) @map("completed_steps")
+  skippedAt      DateTime?    @map("skipped_at") @db.Timestamptz(6)
+  completedAt    DateTime?    @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@map("onboarding_progress")
+}
+
+model AutomationRule {
+  id             String               @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  type           AutomationRuleType
+  status         AutomationRuleStatus @default(ACTIVE)
+  parameters     Json                 @default("{}")
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, type])
+  @@index([organizationId, status])
+  @@map("automation_rules")
+}
+
+model Reminder {
+  id                String          @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId    String          @map("organization_id") @db.Uuid
+  publicationPlanId String          @map("publication_plan_id") @db.Uuid
+  triggerAt         DateTime        @map("trigger_at") @db.Timestamptz(6)
+  status            ReminderStatus  @default(PENDING)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  publicationPlan   PublicationPlan @relation(fields: [publicationPlanId], references: [id], onDelete: Cascade)
+  notifications     Notification[]
+
+  @@unique([organizationId, publicationPlanId, triggerAt])
+  @@index([organizationId, status])
+  @@index([triggerAt])
+  @@map("reminders")
+}
+
+model Recommendation {
+  id             String               @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  type           String
+  message        String
+  targetType     String?              @map("target_type")
+  targetId       String?              @map("target_id") @db.Uuid
+  status         RecommendationStatus @default(OPEN)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@map("recommendations")
+}
+
+model Notification {
+  id             String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  userId         String             @map("user_id") @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  reminderId     String?            @map("reminder_id") @db.Uuid
+  title          String
+  body           String
+  status         NotificationStatus @default(UNREAD)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt         DateTime?          @map("read_at") @db.Timestamptz(6)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reminder       Reminder?          @relation(fields: [reminderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([organizationId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  inAppEnabled   Boolean      @default(true) @map("in_app_enabled")
+  emailEnabled   Boolean      @default(false) @map("email_enabled")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@map("notification_preferences")
 }
 
 model IntegrationCredential {

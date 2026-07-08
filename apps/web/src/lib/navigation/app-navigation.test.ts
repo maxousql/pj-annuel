@@ -37,15 +37,24 @@ describe("app navigation", () => {
     ).toBe(true);
   });
 
-  it("keeps future modules unavailable without removing them", () => {
+  it("exposes V2 modules to editors when implemented", () => {
     const editorCuration = getNavigationItemsForRole("EDITOR").find((item) => {
       return item.id === "curation";
     });
+    const editorAutomation = getNavigationItemsForRole("EDITOR").find(
+      (item) => {
+        return item.id === "automation";
+      },
+    );
 
     expect(editorCuration).toBeDefined();
     expect(
       editorCuration ? isNavigationItemEnabled(editorCuration) : false,
-    ).toBe(false);
+    ).toBe(true);
+    expect(editorAutomation).toBeDefined();
+    expect(
+      editorAutomation ? isNavigationItemEnabled(editorAutomation) : false,
+    ).toBe(true);
   });
 
   it("extracts organization slugs from protected organization routes", () => {

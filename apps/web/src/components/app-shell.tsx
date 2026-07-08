@@ -12,15 +12,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bell,
-  DraftingCompass,
-  Puzzle,
-  Search,
-  Settings,
-  Sparkles,
-} from "lucide-react";
+import { Bell, Puzzle, Search, Settings, Sparkles } from "lucide-react";
 
+import { LogoMark } from "@/components/brand/logo";
 import { AccessDenied } from "@/components/shell/access-denied";
 import { EmptyState } from "@/components/shell/empty-state";
 import { MainNav } from "@/components/shell/main-nav";
@@ -306,9 +300,9 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#050B18] text-[#E8EEFF]">
-      <div className="relative min-h-screen lg:grid lg:grid-cols-[313px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col border-r border-[#172139] bg-[#071123] px-[26px] pb-[30px] pt-[30px] lg:flex">
+    <div className="min-h-screen">
+      <div className="relative min-h-screen lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-screen flex-col border-r-[1.5px] border-[color:var(--ink)] bg-[color:var(--paper)] px-[24px] pb-[28px] pt-[28px] lg:flex">
           <ShellBrand activeOrganization={activeOrganization} />
           <div className="mt-6">
             {state.status === "ready" ? (
@@ -323,40 +317,39 @@ export function AppShell({ children }: AppShellProps) {
               <MainNav activeOrganization={activeOrganization} />
             ) : null}
           </div>
-          <div className="mb-[26px] grid gap-[10px] border-t border-[#172139] pt-[27px]">
+          <div className="mb-[24px] grid gap-[8px] border-t border-[color:var(--border-strong)] pt-[24px]">
             {activeOrganization ? (
               <Link
-                className="flex h-[50px] items-center gap-4 rounded-[8px] px-[18px] text-[16px] font-bold text-[#A3AEC5] transition hover:bg-[#121C33] hover:text-[#E8EEFF]"
+                className="flex h-[48px] items-center gap-4 rounded-md px-[16px] text-[15px] font-semibold text-[color:var(--text-muted)] transition hover:bg-[color:var(--rubric-soft)] hover:text-[color:var(--ink)]"
                 href={`/app/${activeOrganization.slug}/integrations`}
               >
-                <Puzzle className="size-[22px] text-[#9AA6BC]" />
+                <Puzzle className="size-[20px] text-[color:var(--text-subtle)]" />
                 <span>Integrations</span>
               </Link>
             ) : null}
             <Link
-              className="flex h-[50px] items-center gap-4 rounded-[8px] px-[18px] text-[16px] font-bold text-[#A3AEC5] transition hover:bg-[#121C33] hover:text-[#E8EEFF]"
+              className="flex h-[48px] items-center gap-4 rounded-md px-[16px] text-[15px] font-semibold text-[color:var(--text-muted)] transition hover:bg-[color:var(--rubric-soft)] hover:text-[color:var(--ink)]"
               href="/app/settings"
             >
-              <Settings className="size-[22px] text-[#9AA6BC]" />
+              <Settings className="size-[20px] text-[color:var(--text-subtle)]" />
               <span>Parametres</span>
             </Link>
           </div>
           <Link
-            className="inline-flex h-[64px] items-center justify-center gap-3 rounded-[12px] bg-[#C3F400] px-5 text-[16px] font-extrabold !text-[#455900] shadow-[0_0_38px_rgba(195,244,0,0.34)] transition hover:bg-[#C3F400] hover:!text-[#455900] [&_*]:!text-[#455900]"
+            className="inline-flex h-[54px] items-center justify-center gap-3 rounded-lg border-[1.5px] border-[color:var(--rubric)] bg-[color:var(--rubric)] px-5 text-[15px] font-bold text-[color:var(--paper-card)] shadow-[4px_4px_0_rgba(23,19,15,0.18)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_rgba(23,19,15,0.18)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             href={
               activeOrganization
                 ? `/app/${activeOrganization.slug}/contents/generate`
                 : "/app/organizations/new"
             }
-            style={{ color: "#455900" }}
           >
-            <Sparkles className="size-4 !text-[#455900]" aria-hidden="true" />
+            <Sparkles className="size-4" aria-hidden="true" />
             Generer avec l'IA
           </Link>
         </aside>
 
         <div className="min-w-0">
-          <header className="sticky top-0 z-30 min-h-[72px] border-b border-[#172139] bg-[#050B18] px-4 py-3 sm:px-5 lg:px-9 lg:py-0">
+          <header className="sticky top-0 z-30 min-h-[72px] border-b-[1.5px] border-[color:var(--ink)] bg-[color:var(--paper)]/85 px-4 py-3 backdrop-blur-md sm:px-5 lg:px-9 lg:py-0">
             <div className="flex min-h-[47px] min-w-0 items-center justify-between gap-4 lg:min-h-[72px]">
               <div className="min-w-0 lg:hidden">
                 <ShellBrand activeOrganization={activeOrganization} />
@@ -367,11 +360,11 @@ export function AppShell({ children }: AppShellProps) {
                 role="search"
               >
                 <Search
-                  className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#6F7B95]"
+                  className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[color:var(--text-subtle)]"
                   aria-hidden="true"
                 />
                 <input
-                  className="h-10 w-full rounded-[20px] border border-transparent bg-[#141D31] pl-11 pr-4 text-[15px] font-medium text-[#E8EEFF] outline-none transition placeholder:text-[#6F7B95] focus:border-[#24314D] focus:ring-2 focus:ring-[#84A4FF]/20"
+                  className="h-10 w-full rounded-full border-[1.5px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] pl-11 pr-4 text-[15px] font-medium text-[color:var(--ink)] outline-none transition placeholder:text-[color:var(--text-subtle)] hover:border-[color:var(--ink)] focus:border-[color:var(--klein)] focus:ring-2 focus:ring-[color:var(--klein)]/20"
                   aria-label="Rechercher dans l'application"
                   autoComplete="off"
                   onChange={(event) => {
@@ -382,33 +375,33 @@ export function AppShell({ children }: AppShellProps) {
                   value={searchQuery}
                 />
                 {searchQuery.trim() ? (
-                  <div className="absolute left-0 top-[48px] z-40 w-full rounded-[14px] border border-[#172139] bg-[#0B1326] p-2 shadow-[0_18px_48px_rgba(0,0,0,0.34)]">
+                  <div className="absolute left-0 top-[48px] z-40 w-full rounded-[14px] border-[1.5px] border-[color:var(--ink)] bg-[color:var(--paper-card)] p-2 shadow-[var(--shadow)]">
                     {searchResults.length > 0 ? (
                       <div className="grid gap-1">
                         {searchResults.map((result) => (
                           <Link
-                            className="grid gap-1 rounded-[10px] px-3 py-2 text-left transition hover:bg-[#121C33]"
+                            className="grid gap-1 rounded-[10px] px-3 py-2 text-left transition hover:bg-[color:var(--paper-2)]"
                             href={result.href}
                             key={result.id}
                             onClick={() => {
                               setSearchQuery("");
                             }}
                           >
-                            <span className="text-[14px] font-extrabold text-[#E8EEFF]">
+                            <span className="text-[14px] font-extrabold text-[color:var(--ink)]">
                               {result.label}
                             </span>
-                            <span className="truncate text-[12px] font-medium text-[#A3AEC5]">
+                            <span className="truncate text-[12px] font-medium text-[color:var(--text-muted)]">
                               {result.description}
                             </span>
                           </Link>
                         ))}
                       </div>
                     ) : isSearching ? (
-                      <p className="px-3 py-2 text-[13px] font-semibold text-[#A3AEC5]">
+                      <p className="px-3 py-2 text-[13px] font-semibold text-[color:var(--text-muted)]">
                         Recherche en cours...
                       </p>
                     ) : (
-                      <p className="px-3 py-2 text-[13px] font-semibold text-[#A3AEC5]">
+                      <p className="px-3 py-2 text-[13px] font-semibold text-[color:var(--text-muted)]">
                         Aucun resultat pour cette recherche.
                       </p>
                     )}
@@ -416,15 +409,17 @@ export function AppShell({ children }: AppShellProps) {
                 ) : null}
               </form>
               <div className="flex shrink-0 items-center gap-5">
-                <button
-                  className="relative hidden size-10 place-items-center rounded-full text-[#A3AEC5] transition hover:bg-[#121C33] hover:text-[#E8EEFF] lg:grid"
-                  type="button"
-                  aria-label="Notifications"
-                >
-                  <Bell className="size-6" aria-hidden="true" />
-                  <span className="absolute right-2 top-2 size-2 rounded-full bg-[#C3F400]" />
-                </button>
-                <span className="hidden h-11 w-px bg-[#172139] lg:block" />
+                {activeOrganization ? (
+                  <Link
+                    className="relative hidden size-10 place-items-center rounded-full text-[color:var(--text-muted)] transition hover:bg-[color:var(--rubric-soft)] hover:text-[color:var(--ink)] lg:grid"
+                    href={`/app/${activeOrganization.slug}/notifications`}
+                    aria-label="Notifications"
+                  >
+                    <Bell className="size-6" aria-hidden="true" />
+                    <span className="absolute right-2 top-2 size-2 rounded-full bg-[color:var(--rubric)]" />
+                  </Link>
+                ) : null}
+                <span className="hidden h-11 w-px bg-[color:var(--border-strong)] lg:block" />
                 {state.status === "ready" ? (
                   <UserMenu user={state.session.user} />
                 ) : null}
@@ -516,21 +511,16 @@ function ShellBrand({
 }) {
   return (
     <Link
-      className="flex min-w-0 items-center gap-3 text-[#E8EEFF]"
+      className="flex min-w-0 items-center gap-3 text-[color:var(--ink)]"
       href={getShellHomeHref(activeOrganization)}
     >
-      <span
-        className="grid size-[46px] shrink-0 place-items-center rounded-[10px] bg-[#84A4FF] text-[#071123] shadow-[0_8px_28px_rgba(132,164,255,0.22)]"
-        aria-hidden="true"
-      >
-        <DraftingCompass className="size-6" />
-      </span>
+      <LogoMark className="shrink-0 text-[color:var(--ink)]" size={42} />
       <span className="min-w-0">
-        <span className="block truncate text-[26px] font-extrabold leading-[1.05] text-[#8FAEFF]">
-          Architect AI
+        <span className="block truncate font-heading text-[21px] font-semibold leading-[1.05] text-[color:var(--ink)]">
+          Projet Annuel<span className="text-[color:var(--rubric)]">.</span>
         </span>
-        <span className="mt-1 block truncate text-[11px] font-extrabold uppercase text-[#A3AEC5]">
-          Edition Premium
+        <span className="mt-1 block truncate font-mono text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-subtle)]">
+          L&apos;atelier editorial
         </span>
       </span>
     </Link>

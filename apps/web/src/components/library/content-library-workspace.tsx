@@ -94,7 +94,7 @@ const STATUS_OPTIONS = CONTENT_ITEM_STATUSES.filter((status) => {
 });
 
 const controlClassName =
-  "h-12 rounded-[14px] border-[#24314D] bg-[#121C33] px-4 text-sm text-[#E8EEFF] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-[#6F7B95] focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20";
+  "h-12 rounded-[14px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm text-[color:var(--ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-[color:var(--text-subtle)] focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/20";
 
 const selectClassName = cn(controlClassName, "w-full appearance-none");
 
@@ -169,26 +169,27 @@ export function ContentLibraryWorkspace({
   }
 
   return (
-    <div className="min-h-[calc(100vh-180px)] rounded-[28px] border border-[#18243A] bg-[#050B18] p-4 text-[#E8EEFF] shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6 lg:p-8">
-      <section className="mb-8 overflow-hidden rounded-[24px] border border-[#24314D] bg-[#0F172A] px-5 py-6 shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-7 lg:px-8">
+    <div className="min-h-[calc(100vh-180px)] rounded-[28px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-4 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] sm:p-6 lg:p-8">
+      <section className="mb-8 overflow-hidden rounded-[24px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-5 py-6 shadow-[0_2px_10px_rgba(23,19,15,0.05)] sm:px-7 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#24314D] bg-[#121C33] px-3 py-1 text-xs font-bold uppercase text-[#A3AEC5]">
-              <Sparkles className="size-3.5 text-[#C3F400]" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 py-1 text-xs font-bold uppercase text-[color:var(--text-muted)]">
+              <Sparkles className="size-3.5 text-[color:var(--rubric)]" />
               Bibliotheque Architect AI
             </div>
-            <h2 className="text-3xl font-extrabold leading-[1.08] text-[#E8EEFF] sm:text-4xl lg:text-5xl">
-              Pilotez vos <span className="text-[#C3F400]">contenus</span>{" "}
+            <h2 className="text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
+              Pilotez vos{" "}
+              <span className="text-[color:var(--rubric)]">contenus</span>{" "}
               depuis une base editoriale premium.
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#A3AEC5]">
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
               Filtrez, qualifiez et retrouvez chaque brouillon, publication ou
               contenu archive sans changer les routes ni les actions existantes.
             </p>
           </div>
 
           <Link
-            className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-2xl bg-[#C3F400] px-5 text-sm font-extrabold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.24)] transition hover:bg-[#C3F400]"
+            className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-2xl bg-[color:var(--rubric)] px-5 text-sm font-extrabold text-[color:var(--paper)] shadow-[0_0_36px_rgba(195,244,0,0.24)] transition hover:bg-[color:var(--rubric)]"
             href={`/app/${organizationSlug}/contents/generate`}
           >
             <Plus className="size-4" />
@@ -198,22 +199,22 @@ export function ContentLibraryWorkspace({
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <Card className="border-[#18243A] bg-[#0F172A] py-0 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <Card className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] py-0 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)]">
           <CardHeader className="gap-3 px-5 py-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                   Filtres
                 </p>
-                <CardTitle className="mt-1 text-2xl font-bold text-[#E8EEFF]">
+                <CardTitle className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
                   Affiner la base
                 </CardTitle>
               </div>
-              <Badge className="border-[#24314D] bg-[#121C33] text-[#C3F400]">
+              <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--rubric)]">
                 {activeFilterCount} actif(s)
               </Badge>
             </div>
-            <CardDescription className="text-sm leading-6 text-[#A3AEC5]">
+            <CardDescription className="text-sm leading-6 text-[color:var(--text-muted)]">
               Recherche, taxonomie, statut et periode conservent les memes
               parametres API.
             </CardDescription>
@@ -223,7 +224,7 @@ export function ContentLibraryWorkspace({
             <form className="grid gap-5" onSubmit={handleSubmit}>
               <FieldLabel label="Recherche">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#6F7B95]" />
+                  <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[color:var(--text-subtle)]" />
                   <Input
                     className={cn(controlClassName, "pl-11")}
                     placeholder="Titre ou corps"
@@ -368,14 +369,14 @@ export function ContentLibraryWorkspace({
 
               <div className="flex flex-col gap-3 pt-1 sm:flex-row">
                 <Button
-                  className="h-12 flex-1 rounded-2xl bg-[#C3F400] font-extrabold text-[#071123] shadow-[0_0_30px_rgba(195,244,0,0.20)] hover:bg-[#C3F400]"
+                  className="h-12 flex-1 rounded-2xl bg-[color:var(--rubric)] font-extrabold text-[color:var(--paper)] shadow-[0_0_30px_rgba(195,244,0,0.20)] hover:bg-[color:var(--rubric)]"
                   type="submit"
                 >
                   <ListFilter className="size-4" />
                   Filtrer
                 </Button>
                 <Button
-                  className="h-12 flex-1 rounded-2xl border-[#24314D] bg-[#121C33] text-[#E8EEFF] hover:bg-[#1A2742]"
+                  className="h-12 flex-1 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                   type="button"
                   variant="outline"
                   onClick={handleReset}
@@ -388,19 +389,19 @@ export function ContentLibraryWorkspace({
           </CardContent>
         </Card>
 
-        <section className="min-w-0 rounded-[24px] border border-[#18243A] bg-[#0F172A] shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)]">
-          <header className="flex flex-col gap-4 border-b border-[#18243A] px-5 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-6">
+        <section className="min-w-0 rounded-[24px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] shadow-[0_2px_10px_rgba(23,19,15,0.05)]">
+          <header className="flex flex-col gap-4 border-b border-[color:var(--border-strong)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-6">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Contenus
               </p>
-              <h3 className="mt-1 text-2xl font-bold text-[#E8EEFF]">
+              <h3 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
                 {library ? `${library.pagination.total} resultat(s)` : ""}
               </h3>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex rounded-2xl border border-[#24314D] bg-[#121C33] p-1">
+              <div className="inline-flex rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
                 <ViewModeButton
                   icon={<Grid3X3 className="size-4" />}
                   isActive={viewMode === "cards"}
@@ -415,10 +416,10 @@ export function ContentLibraryWorkspace({
                 />
               </div>
               <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#24314D] bg-[#121C33] px-4 text-sm font-bold text-[#E8EEFF] transition hover:bg-[#1A2742]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-bold text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
                 href={`/app/${organizationSlug}/contents/generate`}
               >
-                <Plus className="size-4 text-[#C3F400]" />
+                <Plus className="size-4 text-[color:var(--rubric)]" />
                 Generer
               </Link>
             </div>
@@ -455,7 +456,7 @@ export function ContentLibraryWorkspace({
         <PremiumState
           action={
             <Button
-              className="h-11 rounded-2xl bg-[#C3F400] px-5 font-extrabold text-[#071123] hover:bg-[#C3F400]"
+              className="h-11 rounded-2xl bg-[color:var(--rubric)] px-5 font-extrabold text-[color:var(--paper)] hover:bg-[color:var(--rubric)]"
               type="button"
               onClick={handleReset}
             >
@@ -488,9 +489,9 @@ export function ContentLibraryWorkspace({
           />
         )}
 
-        <div className="flex flex-col gap-3 rounded-[20px] border border-[#18243A] bg-[#121C33] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
-            className="h-11 rounded-2xl border-[#24314D] bg-[#0F172A] px-4 text-[#E8EEFF] hover:bg-[#1A2742] disabled:opacity-40"
+            className="h-11 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)] disabled:opacity-40"
             disabled={page <= 1}
             type="button"
             variant="outline"
@@ -499,13 +500,15 @@ export function ContentLibraryWorkspace({
             <ChevronLeft className="size-4" />
             Precedent
           </Button>
-          <span className="text-center text-sm font-bold text-[#A3AEC5]">
+          <span className="text-center text-sm font-bold text-[color:var(--text-muted)]">
             Page{" "}
-            <span className="text-[#C3F400]">{library.pagination.page}</span> /{" "}
-            {library.pagination.totalPages}
+            <span className="text-[color:var(--rubric)]">
+              {library.pagination.page}
+            </span>{" "}
+            / {library.pagination.totalPages}
           </span>
           <Button
-            className="h-11 rounded-2xl border-[#24314D] bg-[#0F172A] px-4 text-[#E8EEFF] hover:bg-[#1A2742] disabled:opacity-40"
+            className="h-11 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)] disabled:opacity-40"
             disabled={page >= library.pagination.totalPages}
             type="button"
             variant="outline"
@@ -533,7 +536,7 @@ function FieldLabel({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+      <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
         {label}
       </span>
       {children}
@@ -557,8 +560,8 @@ function ViewModeButton({
       className={cn(
         "inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-bold transition",
         isActive
-          ? "bg-[#C3F400] text-[#071123]"
-          : "text-[#A3AEC5] hover:bg-[#1A2742] hover:text-[#E8EEFF]",
+          ? "bg-[color:var(--rubric)] text-[color:var(--paper)]"
+          : "text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]",
       )}
       type="button"
       onClick={onClick}
@@ -577,26 +580,26 @@ function LibraryContentCard({
   organizationSlug: string;
 }) {
   return (
-    <article className="group rounded-[24px] border border-[#18243A] bg-[#121C33] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:-translate-y-px hover:border-[#4D80F0]/70 hover:bg-[#15203A]">
+    <article className="group rounded-[24px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:-translate-y-px hover:border-[color:var(--klein)]/70 hover:bg-[color:var(--paper-2)]">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={content.status} />
-          <Badge className="border-[#24314D] bg-[#0F172A] text-[#88A8FF]">
+          <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--klein)]">
             <FileText className="size-3" />
             {CONTENT_FORMAT_LABELS[content.format]}
           </Badge>
           {content.category ? (
-            <Badge className="border-[#24314D] bg-[#0F172A] text-[#E8EEFF]">
+            <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)]">
               {content.category.name}
             </Badge>
           ) : null}
         </div>
 
         <div>
-          <h4 className="line-clamp-2 text-xl font-bold leading-snug text-[#E8EEFF]">
+          <h4 className="line-clamp-2 text-xl font-bold leading-snug text-[color:var(--ink)]">
             {content.title}
           </h4>
-          <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#A3AEC5]">
+          <p className="mt-3 line-clamp-3 text-sm leading-6 text-[color:var(--text-muted)]">
             {createExcerpt(content.body)}
           </p>
         </div>
@@ -605,7 +608,7 @@ function LibraryContentCard({
           <div className="flex flex-wrap gap-2">
             {content.tags.map((tagItem) => (
               <TagBadge
-                color={tagItem.color ?? "#C3F400"}
+                color={tagItem.color ?? "#d8401f"}
                 key={tagItem.id}
                 name={tagItem.name}
               />
@@ -613,13 +616,13 @@ function LibraryContentCard({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 border-t border-[#18243A] pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#6F7B95]">
-            <CalendarDays className="size-4 text-[#88A8FF]" />
+        <div className="flex flex-col gap-3 border-t border-[color:var(--border-strong)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--text-subtle)]">
+            <CalendarDays className="size-4 text-[color:var(--klein)]" />
             {formatContentDate(content.updatedAt)}
           </span>
           <Link
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-[#24314D] bg-[#0F172A] px-4 text-sm font-bold text-[#E8EEFF] transition hover:border-[#C3F400] hover:text-[#C3F400]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-sm font-bold text-[color:var(--ink)] transition hover:border-[color:var(--rubric)] hover:text-[color:var(--rubric)]"
             href={`/app/${organizationSlug}/library/${content.id}`}
           >
             Ouvrir
@@ -639,26 +642,26 @@ function LibraryContentTable({
   organizationSlug: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[20px] border border-[#18243A] bg-[#121C33]">
+    <div className="overflow-hidden rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)]">
       <Table>
-        <TableHeader className="bg-[#0F172A]">
-          <TableRow className="border-[#18243A] hover:bg-[#0F172A]">
-            <TableHead className="px-4 text-xs font-bold uppercase text-[#6F7B95]">
+        <TableHeader className="bg-[color:var(--paper-card)]">
+          <TableRow className="border-[color:var(--border-strong)] hover:bg-[color:var(--paper-card)]">
+            <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Contenu
             </TableHead>
-            <TableHead className="px-4 text-xs font-bold uppercase text-[#6F7B95]">
+            <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Statut
             </TableHead>
-            <TableHead className="px-4 text-xs font-bold uppercase text-[#6F7B95]">
+            <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Format
             </TableHead>
-            <TableHead className="px-4 text-xs font-bold uppercase text-[#6F7B95]">
+            <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Tags
             </TableHead>
-            <TableHead className="px-4 text-xs font-bold uppercase text-[#6F7B95]">
+            <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Maj
             </TableHead>
-            <TableHead className="px-4 text-right text-xs font-bold uppercase text-[#6F7B95]">
+            <TableHead className="px-4 text-right text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Action
             </TableHead>
           </TableRow>
@@ -666,15 +669,15 @@ function LibraryContentTable({
         <TableBody>
           {contents.map((content) => (
             <TableRow
-              className="min-h-[72px] border-[#18243A] hover:bg-[#1A2742]"
+              className="min-h-[72px] border-[color:var(--border-strong)] hover:bg-[color:var(--paper-2)]"
               key={content.id}
             >
               <TableCell className="max-w-[360px] px-4 py-4">
                 <div>
-                  <p className="line-clamp-1 font-bold text-[#E8EEFF]">
+                  <p className="line-clamp-1 font-bold text-[color:var(--ink)]">
                     {content.title}
                   </p>
-                  <p className="mt-1 line-clamp-1 text-sm text-[#A3AEC5]">
+                  <p className="mt-1 line-clamp-1 text-sm text-[color:var(--text-muted)]">
                     {content.category?.name ?? createExcerpt(content.body)}
                   </p>
                 </div>
@@ -682,31 +685,31 @@ function LibraryContentTable({
               <TableCell className="px-4 py-4">
                 <StatusBadge status={content.status} />
               </TableCell>
-              <TableCell className="px-4 py-4 text-sm font-semibold text-[#A3AEC5]">
+              <TableCell className="px-4 py-4 text-sm font-semibold text-[color:var(--text-muted)]">
                 {CONTENT_FORMAT_LABELS[content.format]}
               </TableCell>
               <TableCell className="px-4 py-4">
                 <div className="flex max-w-[220px] flex-wrap gap-1.5">
                   {content.tags.slice(0, 3).map((tagItem) => (
                     <TagBadge
-                      color={tagItem.color ?? "#C3F400"}
+                      color={tagItem.color ?? "#d8401f"}
                       key={tagItem.id}
                       name={tagItem.name}
                     />
                   ))}
                   {content.tags.length > 3 ? (
-                    <Badge className="border-[#24314D] bg-[#0F172A] text-[#A3AEC5]">
+                    <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)]">
                       +{content.tags.length - 3}
                     </Badge>
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell className="px-4 py-4 text-sm font-semibold text-[#A3AEC5]">
+              <TableCell className="px-4 py-4 text-sm font-semibold text-[color:var(--text-muted)]">
                 {formatContentDate(content.updatedAt)}
               </TableCell>
               <TableCell className="px-4 py-4 text-right">
                 <Link
-                  className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-[#24314D] bg-[#0F172A] px-3 text-sm font-bold text-[#E8EEFF] transition hover:border-[#C3F400] hover:text-[#C3F400]"
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-3 text-sm font-bold text-[color:var(--ink)] transition hover:border-[color:var(--rubric)] hover:text-[color:var(--rubric)]"
                   href={`/app/${organizationSlug}/library/${content.id}`}
                 >
                   Ouvrir
@@ -723,12 +726,12 @@ function LibraryContentTable({
 function StatusBadge({ status }: { status: ContentItemStatus }) {
   const statusClassName =
     status === "PUBLISHED"
-      ? "border-[#C3F400]/30 bg-[#C3F400]/10 text-[#C3F400]"
+      ? "border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]"
       : status === "SCHEDULED"
-        ? "border-[#88A8FF]/30 bg-[#4D80F0]/15 text-[#88A8FF]"
+        ? "border-[color:var(--klein)]/30 bg-[color:var(--klein)]/15 text-[color:var(--klein)]"
         : status === "ARCHIVED"
-          ? "border-[#6F7B95]/30 bg-[#6F7B95]/15 text-[#A3AEC5]"
-          : "border-[#9D50FF]/30 bg-[#9D50FF]/15 text-[#D8BDFF]";
+          ? "border-[color:var(--text-subtle)]/30 bg-[color:var(--text-subtle)]/15 text-[color:var(--text-muted)]"
+          : "border-[color:var(--klein)]/30 bg-[color:var(--klein)]/15 text-[color:var(--klein)]";
 
   return (
     <Badge className={cn("font-bold uppercase", statusClassName)}>
@@ -740,7 +743,7 @@ function StatusBadge({ status }: { status: ContentItemStatus }) {
 
 function TagBadge({ color, name }: { color: string; name: string }) {
   return (
-    <Badge className="max-w-full border-[#24314D] bg-[#0F172A] text-[#E8EEFF]">
+    <Badge className="max-w-full border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)]">
       <span
         className="size-2 rounded-full"
         style={{ background: color }}
@@ -763,20 +766,22 @@ function PremiumState({
   tone?: "danger" | "default";
 }) {
   return (
-    <div className="flex min-h-[340px] items-center justify-center rounded-[24px] border border-dashed border-[#24314D] bg-[#121C33] p-6 text-center">
+    <div className="flex min-h-[340px] items-center justify-center rounded-[24px] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-6 text-center">
       <div className="max-w-md">
         <div
           className={cn(
             "mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl border",
             tone === "danger"
-              ? "border-[#F56C7A]/30 bg-[#F56C7A]/10 text-[#F56C7A]"
-              : "border-[#C3F400]/30 bg-[#C3F400]/10 text-[#C3F400]",
+              ? "border-[color:var(--danger)]/30 bg-[color:var(--danger)]/10 text-[color:var(--danger)]"
+              : "border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]",
           )}
         >
           <Sparkles className="size-6" />
         </div>
-        <h4 className="text-2xl font-bold text-[#E8EEFF]">{title}</h4>
-        <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">{description}</p>
+        <h4 className="text-2xl font-bold text-[color:var(--ink)]">{title}</h4>
+        <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
+          {description}
+        </p>
         {action ? <div className="mt-6">{action}</div> : null}
       </div>
     </div>

@@ -6,16 +6,18 @@ import {
   RESOURCE_SUMMARY_RESPONSE_SCHEMA,
 } from "./ai-output.validation";
 import type {
+  BrandVoiceSnapshot,
   BuiltPrompt,
   EditorialContextSnapshot,
   GenerateContentIdeasInput,
   GenerateMarketingContentInput,
+  GenerationSettingsSnapshot,
   SummarizeResourceInput,
 } from "./ai.types";
 
-export const CONTENT_IDEAS_PROMPT_VERSION = "content-ideas.v1";
-export const MARKETING_CONTENT_PROMPT_VERSION = "marketing-content.v1";
-export const RESOURCE_SUMMARY_PROMPT_VERSION = "resource-summary.v1";
+export const CONTENT_IDEAS_PROMPT_VERSION = "content-ideas.v2";
+export const MARKETING_CONTENT_PROMPT_VERSION = "marketing-content.v2";
+export const RESOURCE_SUMMARY_PROMPT_VERSION = "resource-summary.v2";
 
 const SYSTEM_INSTRUCTION = [
   "Tu es le moteur IA de Projet Annuel, une plateforme SaaS de content marketing.",
@@ -27,11 +29,15 @@ const SYSTEM_INSTRUCTION = [
 export function buildContentIdeasPrompt(
   input: GenerateContentIdeasInput,
   context: EditorialContextSnapshot,
+  brandVoice: BrandVoiceSnapshot,
+  settings: GenerationSettingsSnapshot,
 ): BuiltPrompt & { type: "CONTENT_IDEA" } {
   return {
     input: [
       "Objectif: proposer des idees de contenus marketing.",
       formatEditorialContext(context),
+      formatGenerationSettings(settings),
+      formatBrandVoice(brandVoice),
       `Nombre d'idees souhaite: ${input.count ?? 5}.`,
       `Format prefere: ${formatContentFormat(input.format)}.`,
       `Thematique demandee: ${input.topic?.trim() || "Non precisee"}.`,
@@ -43,10 +49,15 @@ export function buildContentIdeasPrompt(
     ].join("\n\n"),
     metadata: {
       count: input.count ?? 5,
+      creativity: settings.creativity,
       format: input.format ?? null,
       hasBrief: Boolean(input.brief?.trim()),
+      hasBrandVoice: Boolean(brandVoice),
       hasEditorialContext: Boolean(context),
+      language: settings.language,
+      targetLength: settings.targetLength,
       topic: input.topic?.trim() || null,
+      toneIntensity: settings.toneIntensity,
     },
     responseSchema: CONTENT_IDEAS_RESPONSE_SCHEMA,
     responseSchemaName: "content_ideas",
@@ -59,11 +70,15 @@ export function buildContentIdeasPrompt(
 export function buildMarketingContentPrompt(
   input: GenerateMarketingContentInput,
   context: EditorialContextSnapshot,
+  brandVoice: BrandVoiceSnapshot,
+  settings: GenerationSettingsSnapshot,
 ): BuiltPrompt & { type: "CONTENT_DRAFT" } {
   return {
     input: [
       "Objectif: rediger un contenu marketing pret a retravailler.",
       formatEditorialContext(context),
+      formatGenerationSettings(settings),
+      formatBrandVoice(brandVoice),
       `Format cible: ${formatContentFormat(input.format)}.`,
       input.idea
         ? `Idee source: ${input.idea.title.trim()} | Angle: ${input.idea.angle.trim()}.`
@@ -75,9 +90,14 @@ export function buildMarketingContentPrompt(
       `Le champ JSON format doit etre exactement "${input.format}".`,
     ].join("\n\n"),
     metadata: {
+      creativity: settings.creativity,
       format: input.format,
+      hasBrandVoice: Boolean(brandVoice),
       hasEditorialContext: Boolean(context),
       hasIdea: Boolean(input.idea),
+      language: settings.language,
+      targetLength: settings.targetLength,
+      toneIntensity: settings.toneIntensity,
     },
     responseSchema: MARKETING_CONTENT_RESPONSE_SCHEMA,
     responseSchemaName: "marketing_content",
@@ -90,11 +110,15 @@ export function buildMarketingContentPrompt(
 export function buildResourceSummaryPrompt(
   input: SummarizeResourceInput,
   context: EditorialContextSnapshot,
+  brandVoice: BrandVoiceSnapshot,
+  settings: GenerationSettingsSnapshot,
 ): BuiltPrompt & { type: "RESOURCE_SUMMARY" } {
   return {
     input: [
       "Objectif: resumer une ressource de veille pour alimenter la curation.",
       formatEditorialContext(context),
+      formatGenerationSettings(settings),
+      formatBrandVoice(brandVoice),
       `Titre ressource: ${input.title.trim()}.`,
       `Source: ${input.source?.trim() || "Non precisee"}.`,
       `URL: ${input.url?.trim() || "Non precisee"}.`,
@@ -105,10 +129,15 @@ export function buildResourceSummaryPrompt(
       "Le resume doit extraire les points utiles a une future production editoriale.",
     ].join("\n\n"),
     metadata: {
+      creativity: settings.creativity,
+      hasBrandVoice: Boolean(brandVoice),
       hasEditorialContext: Boolean(context),
       hasUrl: Boolean(input.url?.trim()),
+      language: settings.language,
       source: input.source?.trim() || null,
+      targetLength: settings.targetLength,
       topic: input.topic?.trim() || null,
+      toneIntensity: settings.toneIntensity,
     },
     responseSchema: RESOURCE_SUMMARY_RESPONSE_SCHEMA,
     responseSchemaName: "resource_summary",
@@ -116,6 +145,54 @@ export function buildResourceSummaryPrompt(
     type: "RESOURCE_SUMMARY",
     version: RESOURCE_SUMMARY_PROMPT_VERSION,
   };
+}
+
+function formatGenerationSettings(
+  settings: GenerationSettingsSnapshot,
+): string {
+  const languageLabel: Record<GenerationSettingsSnapshot["language"], string> =
+    {
+      de: "allemand",
+      en: "anglais",
+      es: "espagnol",
+      fr: "francais",
+    };
+  const lengthLabel: Record<
+    GenerationSettingsSnapshot["targetLength"],
+    string
+  > = {
+    long: "developpee",
+    short: "courte",
+    standard: "standard",
+  };
+
+  return [
+    "Reglages de generation:",
+    `- Langue obligatoire: ${languageLabel[settings.language]}.`,
+    `- Niveau de creativite: ${settings.creativity}/5.`,
+    `- Intensite du ton de marque: ${settings.toneIntensity}/5.`,
+    `- Longueur cible: ${lengthLabel[settings.targetLength]}.`,
+    "Respecte strictement la langue demandee pour tous les champs textuels.",
+  ].join("\n");
+}
+
+function formatBrandVoice(brandVoice: BrandVoiceSnapshot): string {
+  if (!brandVoice) {
+    return "Voix de marque avancee: non configuree.";
+  }
+
+  return [
+    "Voix de marque avancee:",
+    `- Regles de ton: ${brandVoice.toneRules || "non precisees"}`,
+    `- Exemples a imiter: ${
+      brandVoice.examples.length > 0 ? brandVoice.examples.join(" | ") : "aucun"
+    }`,
+    `- Termes interdits: ${
+      brandVoice.forbiddenTerms.length > 0
+        ? brandVoice.forbiddenTerms.join(", ")
+        : "aucun"
+    }`,
+  ].join("\n");
 }
 
 function formatEditorialContext(context: EditorialContextSnapshot): string {

@@ -1521,6 +1521,12 @@ type ContentSource =
 type PublicationChannel =
   "LINKEDIN" | "BLOG" | "EMAIL" | "X" | "FACEBOOK" | "INSTAGRAM" | "OTHER";
 type DbPublicationStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CANCELLED";
+type AdvancedOnboardingStep =
+  | "CHECKLIST"
+  | "PRESET"
+  | "FIRST_IDEA"
+  | "FIRST_CONTENT"
+  | "DONE";
 
 type StoredUser = {
   avatarUrl: string | null;
@@ -1653,6 +1659,29 @@ type StoredPublicationPlan = {
   updatedAt: Date;
 };
 
+type StoredOnboardingProgress = {
+  completedAt: Date | null;
+  completedSteps: AdvancedOnboardingStep[];
+  createdAt: Date;
+  currentStep: AdvancedOnboardingStep;
+  id: string;
+  organizationId: string;
+  skippedAt: Date | null;
+  updatedAt: Date;
+  userId: string;
+};
+
+type StoredBrandVoiceProfile = {
+  creativity: number;
+  examples: string[];
+  forbiddenTerms: string[];
+  language: string;
+  organizationId: string;
+  targetLength: string;
+  toneRules: string;
+  updatedAt: Date;
+};
+
 type Select = Record<string, boolean> | undefined;
 type ContentItemWhere = Record<string, any>;
 type PublicationPlanWhere = Record<string, any>;
@@ -1670,6 +1699,8 @@ class OrganizationFakePrismaService {
   private contentTags: StoredContentTag[] = [];
   private aiGenerationLogs: StoredAiGenerationLog[] = [];
   private publicationPlans: StoredPublicationPlan[] = [];
+  private onboardingProgresses: StoredOnboardingProgress[] = [];
+  private brandVoiceProfiles: StoredBrandVoiceProfile[] = [];
   private sequence = 0;
 
   readonly user = {
@@ -2003,6 +2034,126 @@ class OrganizationFakePrismaService {
       this.editorialContexts.push(createdContext);
 
       return selectRecord(createdContext, args.select);
+    },
+  };
+
+  readonly onboardingProgress = {
+    findUnique: async (args: {
+      select?: Select;
+      where: {
+        userId_organizationId: {
+          organizationId: string;
+          userId: string;
+        };
+      };
+    }) => {
+      const progress = this.onboardingProgresses.find((candidate) => {
+        return (
+          candidate.organizationId ===
+            args.where.userId_organizationId.organizationId &&
+          candidate.userId === args.where.userId_organizationId.userId
+        );
+      });
+
+      return progress ? selectRecord(progress, args.select) : null;
+    },
+    upsert: async (args: {
+      create: Partial<
+        Pick<
+          StoredOnboardingProgress,
+          | "completedAt"
+          | "completedSteps"
+          | "currentStep"
+          | "skippedAt"
+        >
+      > &
+        Pick<StoredOnboardingProgress, "organizationId" | "userId">;
+      select?: Select;
+      update: Partial<
+        Pick<
+          StoredOnboardingProgress,
+          | "completedAt"
+          | "completedSteps"
+          | "currentStep"
+          | "skippedAt"
+        >
+      >;
+      where: {
+        userId_organizationId: {
+          organizationId: string;
+          userId: string;
+        };
+      };
+    }) => {
+      const progress = this.onboardingProgresses.find((candidate) => {
+        return (
+          candidate.organizationId ===
+            args.where.userId_organizationId.organizationId &&
+          candidate.userId === args.where.userId_organizationId.userId
+        );
+      });
+
+      if (progress) {
+        Object.assign(progress, args.update, {
+          updatedAt: new Date("2026-07-02T01:00:00.000Z"),
+        });
+
+        return selectRecord(progress, args.select);
+      }
+
+      const createdProgress: StoredOnboardingProgress = {
+        completedAt: args.create.completedAt ?? null,
+        completedSteps: args.create.completedSteps ?? [],
+        createdAt: new Date("2026-07-02T00:00:00.000Z"),
+        currentStep: args.create.currentStep ?? "CHECKLIST",
+        id: this.nextId(),
+        organizationId: args.create.organizationId,
+        skippedAt: args.create.skippedAt ?? null,
+        updatedAt: new Date("2026-07-02T00:00:00.000Z"),
+        userId: args.create.userId,
+      };
+      this.onboardingProgresses.push(createdProgress);
+
+      return selectRecord(createdProgress, args.select);
+    },
+  };
+
+  readonly brandVoiceProfile = {
+    findUnique: async (args: {
+      select?: Select;
+      where: { organizationId: string };
+    }) => {
+      const profile = this.brandVoiceProfiles.find((candidate) => {
+        return candidate.organizationId === args.where.organizationId;
+      });
+
+      return profile ? selectRecord(profile, args.select) : null;
+    },
+    upsert: async (args: {
+      create: Omit<StoredBrandVoiceProfile, "updatedAt">;
+      select?: Select;
+      update: Partial<StoredBrandVoiceProfile>;
+      where: { organizationId: string };
+    }) => {
+      const profile = this.brandVoiceProfiles.find((candidate) => {
+        return candidate.organizationId === args.where.organizationId;
+      });
+
+      if (profile) {
+        Object.assign(profile, args.update, {
+          updatedAt: new Date("2026-07-02T01:00:00.000Z"),
+        });
+
+        return selectRecord(profile, args.select);
+      }
+
+      const createdProfile: StoredBrandVoiceProfile = {
+        ...args.create,
+        updatedAt: new Date("2026-07-02T00:00:00.000Z"),
+      };
+      this.brandVoiceProfiles.push(createdProfile);
+
+      return selectRecord(createdProfile, args.select);
     },
   };
 
@@ -2613,6 +2764,8 @@ class OrganizationFakePrismaService {
     this.contentTags = [];
     this.aiGenerationLogs = [];
     this.publicationPlans = [];
+    this.onboardingProgresses = [];
+    this.brandVoiceProfiles = [];
     this.sequence = 0;
   }
 

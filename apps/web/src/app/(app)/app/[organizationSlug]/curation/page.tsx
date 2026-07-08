@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
 
-import { EmptyState } from "@/components/shell/empty-state";
+import { CurationWorkspace } from "@/components/curation/curation-workspace";
 
 export const metadata: Metadata = {
   title: "Curation",
 };
 
-export default function CurationPage() {
+type CurationPageProps = {
+  params: Promise<{
+    organizationSlug: string;
+  }>;
+};
+
+export default async function CurationPage({ params }: CurationPageProps) {
+  const { organizationSlug } = await params;
+
   return (
     <>
       <section className="app-title">
-        <p className="eyebrow">Curation</p>
-        <h1>Veille et ressources.</h1>
-        <p>Ce module V2 servira a collecter et resumer les sources externes.</p>
+        <p className="eyebrow">V2</p>
+        <h1>Veille et curation.</h1>
+        <p>
+          Collectez des URLs, importez des flux RSS, resumez les sources et
+          transformez-les en brouillons.
+        </p>
       </section>
-      <EmptyState
-        title="Module bientot disponible"
-        description="La curation sera implementee avec les flux RSS, URLs et resumes IA."
-      />
+      <CurationWorkspace organizationSlug={organizationSlug} />
     </>
   );
 }

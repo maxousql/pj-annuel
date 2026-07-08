@@ -13,6 +13,8 @@ import type {
   ContentIdeaDuplicatePayload,
   ContentIdeaPayload,
   GeneratedContentIdeaSuggestion,
+  GenerationLanguage,
+  GenerationTargetLength,
 } from "@content-ai/shared";
 import {
   Archive,
@@ -66,11 +68,11 @@ const IDEA_FORMATS: ContentFormat[] = [
 ];
 
 const panelClass =
-  "border-[#18243A] bg-[#0F172A]/95 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26)] ring-1 ring-white/[0.03]";
+  "border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/95 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] ring-1 ring-white/[0.03]";
 const fieldClass =
-  "border-[#24314D] bg-[#121C33] text-[#E8EEFF] placeholder:text-[#6F7B95] focus-visible:border-[#4D80F0] focus-visible:ring-[#4D80F0]/25";
+  "border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] placeholder:text-[color:var(--text-subtle)] focus-visible:border-[color:var(--klein)] focus-visible:ring-[color:var(--klein)]/25";
 const selectClass =
-  "h-11 w-full rounded-xl border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] outline-none transition focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20";
+  "h-11 w-full rounded-xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 text-sm font-medium text-[color:var(--ink)] outline-none transition focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/20";
 
 export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
   const [savedIdeas, setSavedIdeas] = useState<ContentIdeaPayload[]>([]);
@@ -81,6 +83,11 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
   const [brief, setBrief] = useState("");
   const [format, setFormat] = useState<ContentFormat>("LINKEDIN_POST");
   const [count, setCount] = useState(5);
+  const [language, setLanguage] = useState<GenerationLanguage>("fr");
+  const [targetLength, setTargetLength] =
+    useState<GenerationTargetLength>("standard");
+  const [creativity, setCreativity] = useState(2);
+  const [toneIntensity, setToneIntensity] = useState(3);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -124,7 +131,11 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
 
     const result = await generateIdeas(organizationSlug, {
       count,
+      creativity,
       format,
+      language,
+      targetLength,
+      toneIntensity,
       ...(topic.trim() ? { topic: topic.trim() } : {}),
       ...(brief.trim() ? { brief: brief.trim() } : {}),
     });
@@ -222,23 +233,23 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
   return (
     <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
       <Card className={cn(panelClass, "rounded-3xl py-0 xl:sticky xl:top-5")}>
-        <CardHeader className="gap-4 border-b border-[#18243A] px-5 py-5">
+        <CardHeader className="gap-4 border-b border-[color:var(--border-strong)] px-5 py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Ideation
               </p>
-              <CardTitle className="mt-2 text-xl font-bold text-[#E8EEFF]">
+              <CardTitle className="mt-2 text-xl font-bold text-[color:var(--ink)]">
                 Brief creatif
               </CardTitle>
-              <CardDescription className="mt-1 text-sm leading-6 text-[#A3AEC5]">
+              <CardDescription className="mt-1 text-sm leading-6 text-[color:var(--text-muted)]">
                 Parametres transmis au generateur d'idees.
               </CardDescription>
             </div>
-            <Lightbulb className="mt-1 size-5 text-[#C3F400]" />
+            <Lightbulb className="mt-1 size-5 text-[color:var(--rubric)]" />
           </div>
           <Link
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] transition hover:bg-[#1A2742]"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 text-sm font-medium text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
             href={`/app/${organizationSlug}/contents/generate`}
           >
             <Plus className="size-4" />
@@ -249,7 +260,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
         <CardContent className="px-5 py-5">
           <form className="grid gap-5" onSubmit={handleGenerate}>
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Thematique
               </span>
               <Input
@@ -261,7 +272,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
             </label>
 
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Format prefere
               </span>
               <select
@@ -280,7 +291,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
             </label>
 
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Nombre d'idees
               </span>
               <Input
@@ -293,8 +304,79 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               />
             </label>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Langue
+                </span>
+                <select
+                  className={selectClass}
+                  value={language}
+                  onChange={(event) =>
+                    setLanguage(event.target.value as GenerationLanguage)
+                  }
+                >
+                  <option value="fr">Francais</option>
+                  <option value="en">Anglais</option>
+                  <option value="es">Espagnol</option>
+                  <option value="de">Allemand</option>
+                </select>
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Longueur
+                </span>
+                <select
+                  className={selectClass}
+                  value={targetLength}
+                  onChange={(event) =>
+                    setTargetLength(
+                      event.target.value as GenerationTargetLength,
+                    )
+                  }
+                >
+                  <option value="short">Courte</option>
+                  <option value="standard">Standard</option>
+                  <option value="long">Longue</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Creativite
+                </span>
+                <Input
+                  className={cn(fieldClass, "h-11 rounded-xl")}
+                  max={5}
+                  min={1}
+                  type="number"
+                  value={creativity}
+                  onChange={(event) =>
+                    setCreativity(Number(event.target.value))
+                  }
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Intensite ton
+                </span>
+                <Input
+                  className={cn(fieldClass, "h-11 rounded-xl")}
+                  max={5}
+                  min={1}
+                  type="number"
+                  value={toneIntensity}
+                  onChange={(event) =>
+                    setToneIntensity(Number(event.target.value))
+                  }
+                />
+              </label>
+            </div>
+
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Brief court
               </span>
               <Textarea
@@ -307,16 +389,16 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
             </label>
 
             {message ? (
-              <Alert className="border-[#F56C7A]/40 bg-[#F56C7A]/10 text-[#FFD7DC]">
+              <Alert className="border-[color:var(--danger)]/40 bg-[color:var(--danger)]/8 text-[color:var(--danger)]">
                 <AlertTitle>Action impossible</AlertTitle>
-                <AlertDescription className="text-[#FFD7DC]/85">
+                <AlertDescription className="text-[color:var(--danger)]/85">
                   {message}
                 </AlertDescription>
               </Alert>
             ) : null}
 
             <Button
-              className="h-12 rounded-2xl bg-[#C3F400] font-bold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
+              className="h-12 rounded-2xl bg-[color:var(--rubric)] font-bold text-[color:var(--paper)] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[color:var(--rubric)]"
               disabled={isGenerating}
               type="submit"
             >
@@ -333,17 +415,17 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
 
       <div className="grid min-w-0 gap-5">
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
-          <CardHeader className="border-b border-[#18243A] px-5 py-5 sm:px-6">
+          <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5 sm:px-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                   Suggestions IA
                 </p>
-                <CardTitle className="mt-2 text-2xl font-bold text-[#E8EEFF]">
+                <CardTitle className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
                   Idees a selectionner
                 </CardTitle>
               </div>
-              <Badge className="h-7 bg-[#121C33] px-3 text-[#A3AEC5] ring-1 ring-[#24314D]">
+              <Badge className="h-7 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
                 {generatedIdeas.length} suggestion
                 {generatedIdeas.length > 1 ? "s" : ""}
               </Badge>
@@ -363,7 +445,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                       action={
                         <>
                           <Button
-                            className="bg-[#C3F400] font-bold text-[#071123] hover:bg-[#C3F400]"
+                            className="bg-[color:var(--rubric)] font-bold text-[color:var(--paper)] hover:bg-[color:var(--rubric)]"
                             disabled={alreadySaved || isSaving}
                             type="button"
                             onClick={() => void handleSave(idea)}
@@ -382,7 +464,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                                 : "Sauvegarder"}
                           </Button>
                           <Button
-                            className="border-[#24314D] bg-transparent text-[#A3AEC5] hover:bg-[#1A2742] hover:text-[#E8EEFF]"
+                            className="border-[color:var(--border-strong)] bg-transparent text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]"
                             type="button"
                             variant="outline"
                             onClick={() => handleDismissGenerated(idea)}
@@ -409,17 +491,17 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
         </Card>
 
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
-          <CardHeader className="border-b border-[#18243A] px-5 py-5 sm:px-6">
+          <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5 sm:px-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                   Historique
                 </p>
-                <CardTitle className="mt-2 text-2xl font-bold text-[#E8EEFF]">
+                <CardTitle className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
                   Idees sauvegardees
                 </CardTitle>
               </div>
-              <Badge className="h-7 bg-[#121C33] px-3 text-[#A3AEC5] ring-1 ring-[#24314D]">
+              <Badge className="h-7 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
                 {savedIdeas.length} en base
               </Badge>
             </div>
@@ -442,14 +524,14 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                       action={
                         <>
                           <Link
-                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-[#4D80F0] px-2.5 text-sm font-medium text-white transition hover:bg-[#88A8FF] hover:text-[#071123]"
+                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-[color:var(--klein)] px-2.5 text-sm font-medium text-white transition hover:bg-[color:var(--klein)] hover:text-[color:var(--paper)]"
                             href={`/app/${organizationSlug}/contents/generate?ideaId=${idea.id}`}
                           >
                             <ArrowRight className="size-4" />
                             Transformer
                           </Link>
                           <Button
-                            className="border-[#24314D] bg-[#121C33] text-[#E8EEFF] hover:bg-[#1A2742]"
+                            className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                             disabled={isUpdating || idea.status === "USED"}
                             type="button"
                             variant="outline"
@@ -461,7 +543,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                               : "Marquer utilisee"}
                           </Button>
                           <Button
-                            className="text-[#A3AEC5] hover:bg-[#1A2742] hover:text-[#E8EEFF]"
+                            className="text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]"
                             disabled={isUpdating}
                             type="button"
                             variant="ghost"
@@ -502,17 +584,19 @@ function EmptyIdeaState({
   title: string;
 }) {
   return (
-    <div className="grid min-h-72 place-items-center rounded-3xl border border-dashed border-[#24314D] bg-[#050B18]/55 p-8 text-center">
+    <div className="grid min-h-72 place-items-center rounded-3xl border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/55 p-8 text-center">
       <div className="max-w-md">
-        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[#4D80F0]/15 text-[#88A8FF] ring-1 ring-[#4D80F0]/25">
+        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[color:var(--klein)]/15 text-[color:var(--klein)] ring-1 ring-[color:var(--klein)]/25">
           {loading ? (
             <Loader2 className="size-7 animate-spin" />
           ) : (
             <Sparkles className="size-7" />
           )}
         </div>
-        <h3 className="text-2xl font-bold text-[#E8EEFF]">{title}</h3>
-        <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">{description}</p>
+        <h3 className="text-2xl font-bold text-[color:var(--ink)]">{title}</h3>
+        <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -537,32 +621,34 @@ function IdeaCard({
   meta?: string;
 }) {
   return (
-    <article className="grid gap-4 rounded-3xl border border-[#18243A] bg-[#121C33] p-5 ring-1 ring-white/[0.03] lg:grid-cols-[minmax(0,1fr)_auto]">
+    <article className="grid gap-4 rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 ring-1 ring-white/[0.03] lg:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
         <div className="mb-4 flex flex-wrap gap-2">
-          <Badge className="bg-[#4D80F0]/15 text-[#88A8FF]">
+          <Badge className="bg-[color:var(--klein)]/15 text-[color:var(--klein)]">
             {CONTENT_FORMAT_LABELS[idea.recommendedFormat]}
           </Badge>
           {idea.category ? (
-            <Badge className="bg-[#9D50FF]/15 text-[#D6B5FF]">
+            <Badge className="bg-[color:var(--klein)]/15 text-[color:var(--klein)]">
               {idea.category}
             </Badge>
           ) : null}
           {idea.status ? (
-            <Badge className="bg-[#C3F400]/15 text-[#C3F400]">
+            <Badge className="bg-[color:var(--rubric)]/15 text-[color:var(--rubric)]">
               {formatIdeaStatus(idea.status)}
             </Badge>
           ) : null}
         </div>
-        <h3 className="text-xl font-bold leading-snug text-[#E8EEFF]">
+        <h3 className="text-xl font-bold leading-snug text-[color:var(--ink)]">
           {idea.title}
         </h3>
-        <p className="mt-3 text-sm leading-6 text-[#E8EEFF]/90">{idea.angle}</p>
-        <small className="mt-3 block text-sm leading-6 text-[#A3AEC5]">
+        <p className="mt-3 text-sm leading-6 text-[color:var(--ink)]/90">
+          {idea.angle}
+        </p>
+        <small className="mt-3 block text-sm leading-6 text-[color:var(--text-muted)]">
           {idea.justification}
         </small>
         {meta ? (
-          <span className="mt-4 block text-xs font-semibold uppercase text-[#6F7B95]">
+          <span className="mt-4 block text-xs font-semibold uppercase text-[color:var(--text-subtle)]">
             {meta}
           </span>
         ) : null}
@@ -587,14 +673,15 @@ function DuplicateNotice({
   return (
     <Alert
       className={cn(
-        "mt-4 border-[#24314D] bg-[#0F172A] text-[#E8EEFF]",
-        duplicate.warning && "border-[#F5C542]/40 bg-[#F5C542]/10",
+        "mt-4 border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)]",
+        duplicate.warning &&
+          "border-[color:var(--warning)]/40 bg-[color:var(--warning)]/10",
       )}
     >
       <AlertTitle>
         {duplicate.warning ? "Idee proche detectee" : "Similarite detectee"}
       </AlertTitle>
-      <AlertDescription className="text-[#A3AEC5]">
+      <AlertDescription className="text-[color:var(--text-muted)]">
         Score {Math.round(duplicate.score * 100)}%
         {duplicate.matchedTitle ? ` avec "${duplicate.matchedTitle}"` : ""}.
       </AlertDescription>

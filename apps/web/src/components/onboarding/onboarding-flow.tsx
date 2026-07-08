@@ -1,6 +1,8 @@
 "use client";
 
 import type {
+  AdvancedOnboardingPayload,
+  AdvancedOnboardingStep,
   EditorialContextPayload,
   OnboardingStatePayload,
   OrganizationSummary,
@@ -10,9 +12,12 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/shell/empty-state";
 import { createOrganization } from "@/lib/organizations/client";
 import {
+  applyOnboardingPreset,
   completeOnboarding,
   fetchOnboardingState,
   saveEditorialContext,
+  skipAdvancedOnboarding,
+  updateAdvancedOnboardingProgress,
 } from "@/lib/onboarding/client";
 
 type OnboardingViewState =
@@ -177,6 +182,64 @@ export function OnboardingFlow() {
     }
   }
 
+  async function handleApplyPreset(presetId: string) {
+    if (!activeOrganization) {
+      return;
+    }
+
+    setSubmission({ message: null, status: "submitting" });
+    const result = await applyOnboardingPreset(
+      activeOrganization.slug,
+      presetId,
+    );
+
+    if (result.error) {
+      setSubmission({ message: result.error.message, status: "idle" });
+      return;
+    }
+
+    setState({ payload: result.data, status: "ready" });
+    setSubmission(initialSubmissionState);
+  }
+
+  async function handleAdvancedStep(step: AdvancedOnboardingStep) {
+    if (!activeOrganization) {
+      return;
+    }
+
+    setSubmission({ message: null, status: "submitting" });
+    const result = await updateAdvancedOnboardingProgress(
+      activeOrganization.slug,
+      step,
+      true,
+    );
+
+    if (result.error) {
+      setSubmission({ message: result.error.message, status: "idle" });
+      return;
+    }
+
+    setState({ payload: result.data, status: "ready" });
+    setSubmission(initialSubmissionState);
+  }
+
+  async function handleSkipAdvanced() {
+    if (!activeOrganization) {
+      return;
+    }
+
+    setSubmission({ message: null, status: "submitting" });
+    const result = await skipAdvancedOnboarding(activeOrganization.slug);
+
+    if (result.error) {
+      setSubmission({ message: result.error.message, status: "idle" });
+      return;
+    }
+
+    setState({ payload: result.data, status: "ready" });
+    setSubmission(initialSubmissionState);
+  }
+
   if (state.status === "loading") {
     return (
       <EmptyState
@@ -269,11 +332,15 @@ export function OnboardingFlow() {
     return (
       <CompletionStep
         context={payload.editorialContext}
+        advanced={payload.advanced}
         isSubmitting={submission.status === "submitting"}
         message={submission.message}
         organization={activeOrganization}
+        onApplyPreset={handleApplyPreset}
         onComplete={handleCompleteOnboarding}
         onEdit={() => setIsEditingContext(true)}
+        onMarkAdvancedStep={handleAdvancedStep}
+        onSkipAdvanced={handleSkipAdvanced}
       />
     );
   }
@@ -456,22 +523,32 @@ function EditorialContextStep({
 }
 
 type CompletionStepProps = {
+  advanced: AdvancedOnboardingPayload | null;
   context: EditorialContextPayload | null;
   isSubmitting: boolean;
   message: string | null;
   organization: OrganizationSummary;
+  onApplyPreset: (presetId: string) => void;
   onComplete: () => void;
   onEdit: () => void;
+  onMarkAdvancedStep: (step: AdvancedOnboardingStep) => void;
+  onSkipAdvanced: () => void;
 };
 
 function CompletionStep({
+  advanced,
   context,
   isSubmitting,
   message,
   organization,
+  onApplyPreset,
   onComplete,
   onEdit,
+  onMarkAdvancedStep,
+  onSkipAdvanced,
 }: CompletionStepProps) {
+  const completedSteps = new Set(advanced?.completedSteps ?? []);
+
   return (
     <div className="onboarding-section">
       <div>
@@ -503,6 +580,57 @@ function CompletionStep({
         </dl>
       ) : null}
 
+      {advanced ? (
+        <div className="onboarding-section">
+          <div>
+            <h2>Checklist de prise en main V2</h2>
+            <p className="muted">
+              Le parcours avance peut etre ignore, repris ou complete par
+              petites etapes.
+            </p>
+          </div>
+
+          <div className="choice-list" aria-label="Presets sectoriels">
+            {advanced.presets.map((preset) => (
+              <button
+                className="organization-choice"
+                disabled={isSubmitting}
+                type="button"
+                key={preset.id}
+                onClick={() => onApplyPreset(preset.id)}
+              >
+                <span>
+                  <strong>{preset.sector}</strong>
+                  <small>{preset.tone}</small>
+                </span>
+                <span aria-hidden="true">Appliquer</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="choice-list" aria-label="Checklist avancee">
+            <AdvancedStepButton
+              completed={completedSteps.has("CHECKLIST")}
+              disabled={isSubmitting}
+              label="Verifier le contexte"
+              onClick={() => onMarkAdvancedStep("CHECKLIST")}
+            />
+            <AdvancedStepButton
+              completed={completedSteps.has("FIRST_IDEA")}
+              disabled={isSubmitting}
+              label="Generer une premiere idee"
+              onClick={() => onMarkAdvancedStep("FIRST_IDEA")}
+            />
+            <AdvancedStepButton
+              completed={completedSteps.has("FIRST_CONTENT")}
+              disabled={isSubmitting}
+              label="Generer un premier contenu"
+              onClick={() => onMarkAdvancedStep("FIRST_CONTENT")}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {message ? (
         <p className="form-error" role="alert">
           {message}
@@ -520,8 +648,43 @@ function CompletionStep({
         <button className="button-secondary" type="button" onClick={onEdit}>
           Modifier le contexte
         </button>
+        <button
+          className="button-secondary"
+          type="button"
+          onClick={onSkipAdvanced}
+          disabled={isSubmitting}
+        >
+          Ignorer le parcours avance
+        </button>
       </div>
     </div>
+  );
+}
+
+function AdvancedStepButton({
+  completed,
+  disabled,
+  label,
+  onClick,
+}: {
+  completed: boolean;
+  disabled: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className="organization-choice"
+      disabled={disabled || completed}
+      type="button"
+      onClick={onClick}
+    >
+      <span>
+        <strong>{label}</strong>
+        <small>{completed ? "Termine" : "A faire"}</small>
+      </span>
+      <span aria-hidden="true">{completed ? "OK" : "Valider"}</span>
+    </button>
   );
 }
 

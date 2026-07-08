@@ -68,7 +68,7 @@ const STATUS_OPTIONS = CONTENT_ITEM_STATUSES.filter((status) => {
 });
 
 const controlClassName =
-  "h-12 rounded-[14px] border-[#24314D] bg-[#121C33] px-4 text-sm text-[#E8EEFF] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-[#6F7B95] focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20";
+  "h-12 rounded-[14px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm text-[color:var(--ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-[color:var(--text-subtle)] focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/20";
 
 const selectClassName = cn(controlClassName, "w-full appearance-none");
 
@@ -87,7 +87,7 @@ export function ContentLibraryDetail({
   const [categoryId, setCategoryId] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#2f6fef");
+  const [newTagColor, setNewTagColor] = useState("#2733d6");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -291,7 +291,7 @@ export function ContentLibraryDetail({
         }
         action={
           <Link
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#24314D] bg-[#121C33] px-4 text-sm font-bold text-[#E8EEFF] transition hover:bg-[#1A2742]"
+            className="inline-flex h-11 items-center justify-center rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-bold text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
             href={`/app/${organizationSlug}/library`}
           >
             Revenir a la bibliotheque
@@ -302,12 +302,12 @@ export function ContentLibraryDetail({
   }
 
   return (
-    <div className="min-h-[calc(100vh-180px)] rounded-[28px] border border-[#18243A] bg-[#050B18] p-4 text-[#E8EEFF] shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6 lg:p-8">
-      <section className="mb-6 rounded-[24px] border border-[#24314D] bg-[#0F172A] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-7">
+    <div className="min-h-[calc(100vh-180px)] rounded-[28px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-4 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] sm:p-6 lg:p-8">
+      <section className="mb-6 rounded-[24px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-5 shadow-[0_2px_10px_rgba(23,19,15,0.05)] sm:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <Link
-              className="mb-5 inline-flex h-10 items-center gap-2 rounded-2xl border border-[#24314D] bg-[#121C33] px-4 text-sm font-bold text-[#A3AEC5] transition hover:text-[#C3F400]"
+              className="mb-5 inline-flex h-10 items-center gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-bold text-[color:var(--text-muted)] transition hover:text-[color:var(--rubric)]"
               href={`/app/${organizationSlug}/library`}
             >
               <ArrowLeft className="size-4" />
@@ -315,44 +315,46 @@ export function ContentLibraryDetail({
             </Link>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={content.status} />
-              <Badge className="border-[#24314D] bg-[#121C33] text-[#88A8FF]">
+              <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--klein)]">
                 <FileText className="size-3" />
                 {CONTENT_FORMAT_LABELS[content.format]}
               </Badge>
             </div>
-            <h2 className="mt-4 max-w-4xl text-3xl font-extrabold leading-[1.08] text-[#E8EEFF] sm:text-4xl lg:text-5xl">
+            <h2 className="mt-4 max-w-4xl text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               {content.title}
             </h2>
-            <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold text-[#A3AEC5]">
-              <CalendarDays className="size-4 text-[#88A8FF]" />
+            <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--text-muted)]">
+              <CalendarDays className="size-4 text-[color:var(--klein)]" />
               Mis a jour le {formatContentDate(content.updatedAt)}
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-[#24314D] bg-[#121C33] p-4">
-            <p className="text-xs font-bold uppercase text-[#6F7B95]">
+          <div className="rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
+            <p className="text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Selection
             </p>
-            <p className="mt-2 text-3xl font-extrabold text-[#C3F400]">
+            <p className="mt-2 text-3xl font-extrabold text-[color:var(--rubric)]">
               {selectedTagIds.length}
             </p>
-            <p className="text-sm text-[#A3AEC5]">tag(s) associe(s)</p>
+            <p className="text-sm text-[color:var(--text-muted)]">
+              tag(s) associe(s)
+            </p>
           </div>
         </div>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="min-w-0 border-[#18243A] bg-[#0F172A] py-0 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)]">
-          <CardHeader className="gap-3 border-b border-[#18243A] px-5 py-5 sm:px-6">
+        <Card className="min-w-0 border-[color:var(--border-strong)] bg-[color:var(--paper-card)] py-0 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)]">
+          <CardHeader className="gap-3 border-b border-[color:var(--border-strong)] px-5 py-5 sm:px-6">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Edition
               </p>
-              <CardTitle className="mt-1 text-2xl font-bold text-[#E8EEFF]">
+              <CardTitle className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
                 Detail contenu
               </CardTitle>
             </div>
-            <CardDescription className="text-sm leading-6 text-[#A3AEC5]">
+            <CardDescription className="text-sm leading-6 text-[color:var(--text-muted)]">
               Les champs ci-dessous alimentent directement le payload de mise a
               jour existant.
             </CardDescription>
@@ -370,7 +372,7 @@ export function ContentLibraryDetail({
 
               <FieldLabel label="Corps">
                 <Textarea
-                  className="min-h-[460px] resize-y rounded-[18px] border-[#24314D] bg-[#121C33] px-4 py-4 text-sm leading-7 text-[#E8EEFF] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none placeholder:text-[#6F7B95] focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20"
+                  className="min-h-[460px] resize-y rounded-[18px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 py-4 text-sm leading-7 text-[color:var(--ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none placeholder:text-[color:var(--text-subtle)] focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/20"
                   rows={22}
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
@@ -436,23 +438,23 @@ export function ContentLibraryDetail({
                 </FieldLabel>
               </div>
 
-              <div className="rounded-[22px] border border-[#18243A] bg-[#121C33] p-4">
+              <div className="rounded-[22px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase text-[#A3AEC5]">
+                    <p className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                       Tags
                     </p>
-                    <p className="mt-1 text-sm text-[#6F7B95]">
+                    <p className="mt-1 text-sm text-[color:var(--text-subtle)]">
                       Cochez les tags editoriaux associes au contenu.
                     </p>
                   </div>
-                  <Badge className="border-[#C3F400]/30 bg-[#C3F400]/10 text-[#C3F400]">
+                  <Badge className="border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]">
                     {selectedTagIds.length} selectionne(s)
                   </Badge>
                 </div>
 
                 {tags.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-[#24314D] bg-[#0F172A] p-4 text-sm text-[#A3AEC5]">
+                  <p className="rounded-2xl border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-4 text-sm text-[color:var(--text-muted)]">
                     Aucun tag disponible.
                   </p>
                 ) : (
@@ -465,8 +467,8 @@ export function ContentLibraryDetail({
                           className={cn(
                             "flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-bold transition",
                             isSelected
-                              ? "border-[#C3F400]/50 bg-[#C3F400]/10 text-[#E8EEFF]"
-                              : "border-[#24314D] bg-[#0F172A] text-[#A3AEC5] hover:bg-[#1A2742]",
+                              ? "border-[color:var(--rubric)]/50 bg-[color:var(--rubric)]/10 text-[color:var(--ink)]"
+                              : "border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)]",
                           )}
                           key={tagItem.id}
                         >
@@ -478,12 +480,12 @@ export function ContentLibraryDetail({
                           />
                           <span
                             className="size-2.5 shrink-0 rounded-full"
-                            style={{ background: tagItem.color ?? "#C3F400" }}
+                            style={{ background: tagItem.color ?? "#d8401f" }}
                             aria-hidden="true"
                           />
                           <span className="truncate">{tagItem.name}</span>
                           {isSelected ? (
-                            <Check className="ml-auto size-4 shrink-0 text-[#C3F400]" />
+                            <Check className="ml-auto size-4 shrink-0 text-[color:var(--rubric)]" />
                           ) : null}
                         </label>
                       );
@@ -493,14 +495,14 @@ export function ContentLibraryDetail({
               </div>
 
               {message ? (
-                <p className="rounded-2xl border border-[#24314D] bg-[#121C33] px-4 py-3 text-sm font-bold text-[#C3F400]">
+                <p className="rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 py-3 text-sm font-bold text-[color:var(--rubric)]">
                   {message}
                 </p>
               ) : null}
 
-              <div className="flex flex-col gap-3 border-t border-[#18243A] pt-5 sm:flex-row">
+              <div className="flex flex-col gap-3 border-t border-[color:var(--border-strong)] pt-5 sm:flex-row">
                 <Button
-                  className="h-12 rounded-2xl bg-[#C3F400] px-5 font-extrabold text-[#071123] shadow-[0_0_30px_rgba(195,244,0,0.20)] hover:bg-[#C3F400]"
+                  className="h-12 rounded-2xl bg-[color:var(--rubric)] px-5 font-extrabold text-[color:var(--paper)] shadow-[0_0_30px_rgba(195,244,0,0.20)] hover:bg-[color:var(--rubric)]"
                   disabled={isSaving}
                   type="submit"
                 >
@@ -509,7 +511,7 @@ export function ContentLibraryDetail({
                 </Button>
                 {content.status === "ARCHIVED" ? (
                   <Button
-                    className="h-12 rounded-2xl border-[#24314D] bg-[#121C33] px-5 text-[#E8EEFF] hover:bg-[#1A2742]"
+                    className="h-12 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-5 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                     disabled={isSaving}
                     type="button"
                     variant="outline"
@@ -520,7 +522,7 @@ export function ContentLibraryDetail({
                   </Button>
                 ) : (
                   <Button
-                    className="h-12 rounded-2xl border-[#24314D] bg-[#121C33] px-5 text-[#E8EEFF] hover:bg-[#1A2742]"
+                    className="h-12 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-5 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                     disabled={isSaving}
                     type="button"
                     variant="outline"
@@ -536,26 +538,26 @@ export function ContentLibraryDetail({
         </Card>
 
         <aside className="grid gap-6">
-          <Card className="border-[#18243A] bg-[#0F172A] py-0 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <Card className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] py-0 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)]">
             <CardHeader className="gap-3 px-5 py-5">
-              <div className="flex size-12 items-center justify-center rounded-2xl border border-[#C3F400]/30 bg-[#C3F400]/10 text-[#C3F400]">
+              <div className="flex size-12 items-center justify-center rounded-2xl border border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]">
                 <Sparkles className="size-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase text-[#88A8FF]">
+                <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                   Organisation
                 </p>
-                <CardTitle className="mt-1 text-2xl font-bold text-[#E8EEFF]">
+                <CardTitle className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
                   Tags et categories
                 </CardTitle>
               </div>
-              <CardDescription className="text-sm leading-6 text-[#A3AEC5]">
+              <CardDescription className="text-sm leading-6 text-[color:var(--text-muted)]">
                 Creez une taxonomie locale puis associez-la au contenu courant.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="grid gap-5 px-5 pb-5">
-              <div className="rounded-[22px] border border-[#18243A] bg-[#121C33] p-4">
+              <div className="rounded-[22px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
                 <FieldLabel label="Nouveau tag">
                   <Input
                     className={controlClassName}
@@ -566,7 +568,7 @@ export function ContentLibraryDetail({
                 <div className="mt-4 grid grid-cols-[1fr_64px] gap-3">
                   <FieldLabel label="Couleur">
                     <Input
-                      className="h-12 rounded-[14px] border-[#24314D] bg-[#0F172A] p-1"
+                      className="h-12 rounded-[14px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-1"
                       type="color"
                       value={newTagColor}
                       onChange={(event) => setNewTagColor(event.target.value)}
@@ -574,25 +576,25 @@ export function ContentLibraryDetail({
                   </FieldLabel>
                   <div className="flex items-end">
                     <span
-                      className="block size-12 rounded-2xl border border-[#24314D]"
+                      className="block size-12 rounded-2xl border border-[color:var(--border-strong)]"
                       style={{ background: newTagColor }}
                       aria-hidden="true"
                     />
                   </div>
                 </div>
                 <Button
-                  className="mt-4 h-11 w-full rounded-2xl border-[#24314D] bg-[#0F172A] text-[#E8EEFF] hover:bg-[#1A2742]"
+                  className="mt-4 h-11 w-full rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                   disabled={isSaving || !newTagName.trim()}
                   type="button"
                   variant="outline"
                   onClick={handleCreateTag}
                 >
-                  <Tag className="size-4 text-[#C3F400]" />
+                  <Tag className="size-4 text-[color:var(--rubric)]" />
                   Creer le tag
                 </Button>
               </div>
 
-              <div className="rounded-[22px] border border-[#18243A] bg-[#121C33] p-4">
+              <div className="rounded-[22px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
                 <FieldLabel label="Nouvelle categorie">
                   <Input
                     className={controlClassName}
@@ -601,13 +603,13 @@ export function ContentLibraryDetail({
                   />
                 </FieldLabel>
                 <Button
-                  className="mt-4 h-11 w-full rounded-2xl border-[#24314D] bg-[#0F172A] text-[#E8EEFF] hover:bg-[#1A2742]"
+                  className="mt-4 h-11 w-full rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                   disabled={isSaving || !newCategoryName.trim()}
                   type="button"
                   variant="outline"
                   onClick={handleCreateCategory}
                 >
-                  <FolderPlus className="size-4 text-[#C3F400]" />
+                  <FolderPlus className="size-4 text-[color:var(--rubric)]" />
                   Creer la categorie
                 </Button>
               </div>
@@ -628,7 +630,7 @@ function FieldLabel({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+      <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
         {label}
       </span>
       {children}
@@ -639,12 +641,12 @@ function FieldLabel({
 function StatusBadge({ status }: { status: ContentItemStatus }) {
   const statusClassName =
     status === "PUBLISHED"
-      ? "border-[#C3F400]/30 bg-[#C3F400]/10 text-[#C3F400]"
+      ? "border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]"
       : status === "SCHEDULED"
-        ? "border-[#88A8FF]/30 bg-[#4D80F0]/15 text-[#88A8FF]"
+        ? "border-[color:var(--klein)]/30 bg-[color:var(--klein)]/15 text-[color:var(--klein)]"
         : status === "ARCHIVED"
-          ? "border-[#6F7B95]/30 bg-[#6F7B95]/15 text-[#A3AEC5]"
-          : "border-[#9D50FF]/30 bg-[#9D50FF]/15 text-[#D8BDFF]";
+          ? "border-[color:var(--text-subtle)]/30 bg-[color:var(--text-subtle)]/15 text-[color:var(--text-muted)]"
+          : "border-[color:var(--klein)]/30 bg-[color:var(--klein)]/15 text-[color:var(--klein)]";
 
   return (
     <Badge className={cn("font-bold uppercase", statusClassName)}>

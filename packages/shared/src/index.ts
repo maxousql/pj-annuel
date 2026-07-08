@@ -122,6 +122,27 @@ export type ResourceSummaryPayload = {
   suggestedTopic: string | null;
 };
 
+export const GENERATION_LANGUAGES = ["fr", "en", "es", "de"] as const;
+export type GenerationLanguage = (typeof GENERATION_LANGUAGES)[number];
+
+export const GENERATION_TARGET_LENGTHS = ["short", "standard", "long"] as const;
+export type GenerationTargetLength = (typeof GENERATION_TARGET_LENGTHS)[number];
+
+export type GenerationSettingsPayload = {
+  creativity: number;
+  language: GenerationLanguage;
+  targetLength: GenerationTargetLength;
+  toneIntensity: number;
+};
+
+export type BrandVoiceProfilePayload = GenerationSettingsPayload & {
+  examples: string[];
+  forbiddenTerms: string[];
+  organizationId: string;
+  toneRules: string;
+  updatedAt: string | null;
+};
+
 export const CONTENT_IDEA_STATUSES = [
   "DRAFT",
   "SAVED",
@@ -158,6 +179,20 @@ export const CONTENT_SOURCES = [
   "NOTION",
 ] as const;
 export type ContentSource = (typeof CONTENT_SOURCES)[number];
+
+export const RESOURCE_TYPES = ["URL", "RSS", "MANUAL", "NOTION"] as const;
+export type ResourceType = (typeof RESOURCE_TYPES)[number];
+
+export const RESOURCE_STATUSES = [
+  "NEW",
+  "SUMMARIZED",
+  "USED",
+  "ARCHIVED",
+] as const;
+export type ResourceStatus = (typeof RESOURCE_STATUSES)[number];
+
+export const SOURCE_FEED_STATUSES = ["ACTIVE", "PAUSED", "ERROR"] as const;
+export type SourceFeedStatus = (typeof SOURCE_FEED_STATUSES)[number];
 
 export const PUBLICATION_CHANNELS = [
   "LINKEDIN",
@@ -314,6 +349,53 @@ export type PublicationPlansPayload = {
 
 export type PublicationPlanMutationPayload = {
   plan: PublicationPlanPayload;
+};
+
+export type CuratedResourcePayload = {
+  createdAt: string;
+  description: string | null;
+  id: string;
+  keyPoints: string[];
+  organizationId: string;
+  publishedAt: string | null;
+  sourceFeedId: string | null;
+  sourceName: string | null;
+  status: ResourceStatus;
+  summary: string | null;
+  tags: ContentTagPayload[];
+  title: string;
+  topic: string | null;
+  type: ResourceType;
+  updatedAt: string;
+  url: string;
+};
+
+export type SourceFeedPayload = {
+  createdAt: string;
+  id: string;
+  lastError: string | null;
+  lastFetchedAt: string | null;
+  organizationId: string;
+  status: SourceFeedStatus;
+  title: string;
+  updatedAt: string;
+  url: string;
+};
+
+export type CurationPayload = {
+  canEdit: boolean;
+  feeds: SourceFeedPayload[];
+  resources: CuratedResourcePayload[];
+  tags: ContentTagPayload[];
+};
+
+export type CurationResourceMutationPayload = {
+  resource: CuratedResourcePayload;
+};
+
+export type CurationFeedMutationPayload = {
+  feed: SourceFeedPayload;
+  importedCount: number;
 };
 
 export type ContentDraftPayload = MarketingContentPayload & {
@@ -488,6 +570,7 @@ export type MembersListPayload = {
 };
 
 export type OnboardingStatePayload = {
+  advanced: AdvancedOnboardingPayload | null;
   activeOrganization: OrganizationSummary | null;
   completed: boolean;
   editorialContext: EditorialContextPayload | null;
@@ -496,6 +579,93 @@ export type OnboardingStatePayload = {
   user: {
     onboardingCompletedAt: string | null;
   };
+};
+
+export const ADVANCED_ONBOARDING_STEPS = [
+  "CHECKLIST",
+  "PRESET",
+  "FIRST_IDEA",
+  "FIRST_CONTENT",
+  "DONE",
+] as const;
+export type AdvancedOnboardingStep = (typeof ADVANCED_ONBOARDING_STEPS)[number];
+
+export type OnboardingPresetPayload = {
+  briefExample: string;
+  id: string;
+  positioning: string;
+  sector: string;
+  targetAudience: string;
+  themes: string[];
+  tone: string;
+  version: string;
+};
+
+export type AdvancedOnboardingPayload = {
+  completedAt: string | null;
+  completedSteps: AdvancedOnboardingStep[];
+  currentStep: AdvancedOnboardingStep;
+  presets: OnboardingPresetPayload[];
+  skippedAt: string | null;
+};
+
+export const AUTOMATION_RULE_TYPES = [
+  "PUBLICATION_REMINDER",
+  "EDITORIAL_RECOMMENDATION",
+] as const;
+export type AutomationRuleType = (typeof AUTOMATION_RULE_TYPES)[number];
+
+export const AUTOMATION_RULE_STATUSES = ["ACTIVE", "PAUSED"] as const;
+export type AutomationRuleStatus = (typeof AUTOMATION_RULE_STATUSES)[number];
+
+export const RECOMMENDATION_STATUSES = [
+  "OPEN",
+  "DISMISSED",
+  "APPLIED",
+] as const;
+export type RecommendationStatus = (typeof RECOMMENDATION_STATUSES)[number];
+
+export const NOTIFICATION_STATUSES = ["UNREAD", "READ"] as const;
+export type NotificationStatus = (typeof NOTIFICATION_STATUSES)[number];
+
+export type AutomationRulePayload = {
+  id: string;
+  parameters: Record<string, unknown>;
+  status: AutomationRuleStatus;
+  type: AutomationRuleType;
+  updatedAt: string;
+};
+
+export type RecommendationPayload = {
+  createdAt: string;
+  id: string;
+  message: string;
+  status: RecommendationStatus;
+  targetId: string | null;
+  targetType: string | null;
+  type: string;
+};
+
+export type NotificationPayload = {
+  body: string;
+  createdAt: string;
+  id: string;
+  readAt: string | null;
+  status: NotificationStatus;
+  title: string;
+};
+
+export type NotificationPreferencePayload = {
+  emailEnabled: boolean;
+  inAppEnabled: boolean;
+};
+
+export type AutomationsPayload = {
+  canEdit: boolean;
+  notifications: NotificationPayload[];
+  preferences: NotificationPreferencePayload;
+  recommendations: RecommendationPayload[];
+  rules: AutomationRulePayload[];
 };
 
 export function ok<TData>(

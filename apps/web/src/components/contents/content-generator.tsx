@@ -7,6 +7,8 @@ import type {
   ContentGenerationFormat,
   ContentIdeaOption,
   ContentSaveStatus,
+  GenerationLanguage,
+  GenerationTargetLength,
 } from "@content-ai/shared";
 import {
   AlertCircle,
@@ -56,11 +58,11 @@ const GENERATION_FORMATS: ContentGenerationFormat[] = [
 ];
 
 const panelClass =
-  "border-[#18243A] bg-[#0F172A]/95 text-[#E8EEFF] shadow-[0_18px_48px_rgba(0,0,0,0.26)] ring-1 ring-white/[0.03]";
+  "border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/95 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] ring-1 ring-white/[0.03]";
 const fieldClass =
-  "border-[#24314D] bg-[#121C33] text-[#E8EEFF] placeholder:text-[#6F7B95] focus-visible:border-[#4D80F0] focus-visible:ring-[#4D80F0]/25";
+  "border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] placeholder:text-[color:var(--text-subtle)] focus-visible:border-[color:var(--klein)] focus-visible:ring-[color:var(--klein)]/25";
 const selectClass =
-  "h-11 w-full rounded-xl border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] outline-none transition focus:border-[#4D80F0] focus:ring-4 focus:ring-[#4D80F0]/20 disabled:cursor-not-allowed disabled:opacity-60";
+  "h-11 w-full rounded-xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 text-sm font-medium text-[color:var(--ink)] outline-none transition focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function ContentGenerator({
   initialIdeaId,
@@ -70,6 +72,11 @@ export function ContentGenerator({
   const [ideasLoading, setIdeasLoading] = useState(true);
   const [format, setFormat] =
     useState<ContentGenerationFormat>("LINKEDIN_POST");
+  const [language, setLanguage] = useState<GenerationLanguage>("fr");
+  const [targetLength, setTargetLength] =
+    useState<GenerationTargetLength>("standard");
+  const [creativity, setCreativity] = useState(2);
+  const [toneIntensity, setToneIntensity] = useState(3);
   const [brief, setBrief] = useState("");
   const [ideaId, setIdeaId] = useState(initialIdeaId ?? "");
   const [title, setTitle] = useState("");
@@ -130,8 +137,12 @@ export function ContentGenerator({
     setIsGenerating(true);
     const result = await generateContent(organizationSlug, {
       ...(brief.trim() ? { brief: brief.trim() } : {}),
+      creativity,
       format,
       ...(ideaId ? { ideaId } : {}),
+      language,
+      targetLength,
+      toneIntensity,
     });
     setIsGenerating(false);
 
@@ -202,23 +213,23 @@ export function ContentGenerator({
   return (
     <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)_300px]">
       <Card className={cn(panelClass, "rounded-3xl py-0")}>
-        <CardHeader className="gap-4 border-b border-[#18243A] px-5 py-5">
+        <CardHeader className="gap-4 border-b border-[color:var(--border-strong)] px-5 py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Generation
               </p>
-              <CardTitle className="mt-2 text-xl font-bold text-[#E8EEFF]">
+              <CardTitle className="mt-2 text-xl font-bold text-[color:var(--ink)]">
                 Configurer
               </CardTitle>
-              <CardDescription className="mt-1 text-sm leading-6 text-[#A3AEC5]">
+              <CardDescription className="mt-1 text-sm leading-6 text-[color:var(--text-muted)]">
                 Format, source et brief avant appel IA.
               </CardDescription>
             </div>
-            <Sparkles className="mt-1 size-5 text-[#C3F400]" />
+            <Sparkles className="mt-1 size-5 text-[color:var(--rubric)]" />
           </div>
           <Link
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#24314D] bg-[#121C33] px-3 text-sm font-medium text-[#E8EEFF] transition hover:bg-[#1A2742]"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 text-sm font-medium text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
             href={`/app/${organizationSlug}/contents`}
           >
             <ArrowLeft className="size-4" />
@@ -229,7 +240,7 @@ export function ContentGenerator({
         <CardContent className="px-5 py-5">
           <form className="grid gap-5" onSubmit={handleGenerate}>
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Format
               </span>
               <select
@@ -247,8 +258,79 @@ export function ContentGenerator({
               </select>
             </label>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Langue
+                </span>
+                <select
+                  className={selectClass}
+                  value={language}
+                  onChange={(event) =>
+                    setLanguage(event.target.value as GenerationLanguage)
+                  }
+                >
+                  <option value="fr">Francais</option>
+                  <option value="en">Anglais</option>
+                  <option value="es">Espagnol</option>
+                  <option value="de">Allemand</option>
+                </select>
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Longueur
+                </span>
+                <select
+                  className={selectClass}
+                  value={targetLength}
+                  onChange={(event) =>
+                    setTargetLength(
+                      event.target.value as GenerationTargetLength,
+                    )
+                  }
+                >
+                  <option value="short">Courte</option>
+                  <option value="standard">Standard</option>
+                  <option value="long">Longue</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Creativite
+                </span>
+                <Input
+                  className={cn(fieldClass, "h-11 rounded-xl")}
+                  max={5}
+                  min={1}
+                  type="number"
+                  value={creativity}
+                  onChange={(event) =>
+                    setCreativity(Number(event.target.value))
+                  }
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
+                  Intensite ton
+                </span>
+                <Input
+                  className={cn(fieldClass, "h-11 rounded-xl")}
+                  max={5}
+                  min={1}
+                  type="number"
+                  value={toneIntensity}
+                  onChange={(event) =>
+                    setToneIntensity(Number(event.target.value))
+                  }
+                />
+              </label>
+            </div>
+
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Idee source
               </span>
               <select
@@ -269,26 +351,26 @@ export function ContentGenerator({
             </label>
 
             {selectedIdea ? (
-              <div className="rounded-2xl border border-[#24314D] bg-[#121C33] p-4">
+              <div className="rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <Badge className="bg-[#4D80F0]/15 text-[#88A8FF]">
+                  <Badge className="bg-[color:var(--klein)]/15 text-[color:var(--klein)]">
                     Source active
                   </Badge>
-                  <Badge className="bg-[#9D50FF]/15 text-[#D6B5FF]">
+                  <Badge className="bg-[color:var(--klein)]/15 text-[color:var(--klein)]">
                     {CONTENT_FORMAT_LABELS[selectedIdea.recommendedFormat]}
                   </Badge>
                 </div>
-                <strong className="block text-sm text-[#E8EEFF]">
+                <strong className="block text-sm text-[color:var(--ink)]">
                   {selectedIdea.title}
                 </strong>
-                <span className="mt-2 block text-sm leading-6 text-[#A3AEC5]">
+                <span className="mt-2 block text-sm leading-6 text-[color:var(--text-muted)]">
                   {selectedIdea.angle}
                 </span>
               </div>
             ) : null}
 
             <label className="grid gap-2">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Brief
               </span>
               <Textarea
@@ -301,17 +383,17 @@ export function ContentGenerator({
             </label>
 
             {message ? (
-              <Alert className="border-[#F56C7A]/40 bg-[#F56C7A]/10 text-[#FFD7DC]">
+              <Alert className="border-[color:var(--danger)]/40 bg-[color:var(--danger)]/8 text-[color:var(--danger)]">
                 <AlertCircle className="size-4" />
                 <AlertTitle>Action impossible</AlertTitle>
-                <AlertDescription className="text-[#FFD7DC]/85">
+                <AlertDescription className="text-[color:var(--danger)]/85">
                   {message}
                 </AlertDescription>
               </Alert>
             ) : null}
 
             <Button
-              className="h-12 rounded-2xl bg-[#C3F400] font-bold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
+              className="h-12 rounded-2xl bg-[color:var(--rubric)] font-bold text-[color:var(--paper)] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[color:var(--rubric)]"
               disabled={isGenerating}
               type="submit"
             >
@@ -327,17 +409,17 @@ export function ContentGenerator({
       </Card>
 
       <Card className={cn(panelClass, "min-w-0 rounded-3xl py-0")}>
-        <CardHeader className="border-b border-[#18243A] px-5 py-5 sm:px-6">
+        <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Brouillon
               </p>
-              <CardTitle className="mt-2 text-2xl font-bold text-[#E8EEFF]">
+              <CardTitle className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
                 Edition avant sauvegarde
               </CardTitle>
             </div>
-            <Badge className="h-7 bg-[#121C33] px-3 text-[#A3AEC5] ring-1 ring-[#24314D]">
+            <Badge className="h-7 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
               {hasDraft ? `${bodyWordCount} mots` : "En attente"}
             </Badge>
           </div>
@@ -347,7 +429,7 @@ export function ContentGenerator({
           {hasDraft ? (
             <form className="grid gap-5" onSubmit={handleSave}>
               <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                   Titre
                 </span>
                 <Input
@@ -358,7 +440,7 @@ export function ContentGenerator({
               </label>
 
               <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                   Corps
                 </span>
                 <Textarea
@@ -374,7 +456,7 @@ export function ContentGenerator({
 
               <div className="grid gap-4 md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
                 <label className="grid gap-2">
-                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                     Statut
                   </span>
                   <select
@@ -393,7 +475,7 @@ export function ContentGenerator({
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                     Sujet
                   </span>
                   <Input
@@ -408,7 +490,7 @@ export function ContentGenerator({
 
               <div className="flex justify-end">
                 <Button
-                  className="h-12 rounded-2xl bg-[#C3F400] px-6 font-bold text-[#071123] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
+                  className="h-12 rounded-2xl bg-[color:var(--rubric)] px-6 font-bold text-[color:var(--paper)] shadow-[0_0_36px_rgba(195,244,0,0.22)] hover:bg-[color:var(--rubric)]"
                   disabled={isSaving}
                   type="submit"
                 >
@@ -422,15 +504,15 @@ export function ContentGenerator({
               </div>
             </form>
           ) : (
-            <div className="grid min-h-[520px] place-items-center rounded-3xl border border-dashed border-[#24314D] bg-[#050B18]/55 p-8 text-center">
+            <div className="grid min-h-[520px] place-items-center rounded-3xl border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/55 p-8 text-center">
               <div className="max-w-md">
-                <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[#4D80F0]/15 text-[#88A8FF] ring-1 ring-[#4D80F0]/25">
+                <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[color:var(--klein)]/15 text-[color:var(--klein)] ring-1 ring-[color:var(--klein)]/25">
                   <FileText className="size-7" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#E8EEFF]">
+                <h3 className="text-2xl font-bold text-[color:var(--ink)]">
                   Aucun brouillon
                 </h3>
-                <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">
+                <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
                   Generez un contenu depuis un brief ou une idee sauvegardee
                   pour ouvrir l'espace d'edition.
                 </p>
@@ -443,16 +525,18 @@ export function ContentGenerator({
       <aside className="grid gap-5 xl:sticky xl:top-5">
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
           <CardHeader className="px-5 py-5">
-            <CardTitle className="flex items-center gap-2 text-lg font-bold text-[#E8EEFF]">
-              <Library className="size-5 text-[#88A8FF]" />
+            <CardTitle className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)]">
+              <Library className="size-5 text-[color:var(--klein)]" />
               Contexte
             </CardTitle>
-            <CardDescription className="text-[#A3AEC5]">
+            <CardDescription className="text-[color:var(--text-muted)]">
               Parametres transmis ou prepares pour le contenu.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 px-5 pb-5">
             <ContextRow label="Format" value={CONTENT_FORMAT_LABELS[format]} />
+            <ContextRow label="Langue" value={language.toUpperCase()} />
+            <ContextRow label="Longueur" value={targetLength} />
             <ContextRow
               label="Source"
               value={selectedIdea ? selectedIdea.title : "Brief libre"}
@@ -467,12 +551,12 @@ export function ContentGenerator({
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-[#24314D] bg-[#050B18] py-0 text-[#E8EEFF] ring-1 ring-[#4D80F0]/20">
+        <Card className="rounded-3xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] py-0 text-[color:var(--ink)] ring-1 ring-[color:var(--klein)]/20">
           <CardContent className="p-5">
-            <p className="text-xs font-bold uppercase text-[#C3F400]">
+            <p className="text-xs font-bold uppercase text-[color:var(--rubric)]">
               Flux IA/API
             </p>
-            <p className="mt-3 text-sm leading-6 text-[#A3AEC5]">
+            <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
               La generation reste declenchee par le formulaire de gauche. La
               sauvegarde utilise les champs edites au centre.
             </p>
@@ -485,11 +569,11 @@ export function ContentGenerator({
 
 function ContextRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#18243A] bg-[#121C33] p-3">
-      <span className="text-[11px] font-bold uppercase text-[#6F7B95]">
+    <div className="rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3">
+      <span className="text-[11px] font-bold uppercase text-[color:var(--text-subtle)]">
         {label}
       </span>
-      <strong className="mt-1 block overflow-hidden text-ellipsis text-sm text-[#E8EEFF]">
+      <strong className="mt-1 block overflow-hidden text-ellipsis text-sm text-[color:var(--ink)]">
         {value}
       </strong>
     </div>
@@ -508,15 +592,16 @@ function DuplicateNotice({
   return (
     <Alert
       className={cn(
-        "border-[#24314D] bg-[#121C33] text-[#E8EEFF]",
-        duplicate.warning && "border-[#F5C542]/40 bg-[#F5C542]/10",
+        "border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)]",
+        duplicate.warning &&
+          "border-[color:var(--warning)]/40 bg-[color:var(--warning)]/10",
       )}
     >
-      <AlertCircle className="size-4 text-[#F5C542]" />
+      <AlertCircle className="size-4 text-[color:var(--warning)]" />
       <AlertTitle>
         {duplicate.warning ? "Doublon potentiel" : "Similarite detectee"}
       </AlertTitle>
-      <AlertDescription className="text-[#A3AEC5]">
+      <AlertDescription className="text-[color:var(--text-muted)]">
         Score {Math.round(duplicate.score * 100)}%
         {duplicate.matchedTitle ? ` avec "${duplicate.matchedTitle}"` : ""}.
       </AlertDescription>

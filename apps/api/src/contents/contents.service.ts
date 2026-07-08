@@ -105,6 +105,12 @@ export class ContentsService {
       format: input.format,
       history,
       organizationId: organizationContext.organization.id,
+      settings: {
+        ...(input.creativity ? { creativity: input.creativity } : {}),
+        ...(input.language ? { language: input.language } : {}),
+        ...(input.targetLength ? { targetLength: input.targetLength } : {}),
+        ...(input.toneIntensity ? { toneIntensity: input.toneIntensity } : {}),
+      },
       userId,
     };
 

@@ -80,7 +80,7 @@ const EMPTY_FILTERS: FilterState = {
 };
 
 const inputClassName =
-  "h-11 rounded-[12px] border-[#24314D] bg-[#121C33] px-3 text-sm text-[#E8EEFF] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none placeholder:text-[#6F7B95] focus-visible:border-[#4D80F0] focus-visible:ring-[#4D80F0]/25";
+  "h-11 rounded-[12px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 text-sm text-[color:var(--ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none placeholder:text-[color:var(--text-subtle)] focus-visible:border-[color:var(--klein)] focus-visible:ring-[color:var(--klein)]/25";
 
 const selectClassName = cn(
   inputClassName,
@@ -88,7 +88,7 @@ const selectClassName = cn(
 );
 
 const panelClassName =
-  "rounded-[24px] border border-[#18243A] bg-[#0F172A] shadow-[0_18px_48px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.04)]";
+  "rounded-[24px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] shadow-[0_2px_10px_rgba(23,19,15,0.05)]";
 
 export function EditorialCalendarWorkspace({
   organizationSlug,
@@ -283,18 +283,18 @@ export function EditorialCalendarWorkspace({
   const editableContentCount = calendar?.contentOptions.length ?? 0;
 
   return (
-    <div className="grid gap-6 text-[#E8EEFF] xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 text-[color:var(--ink)] xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className={cn(panelClassName, "min-w-0 overflow-hidden")}>
-        <header className="flex flex-col gap-5 border-b border-[#18243A] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:p-6">
+        <header className="flex flex-col gap-5 border-b border-[color:var(--border-strong)] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:p-6">
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase text-[#88A8FF]">
+            <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
               Calendrier editorial
             </p>
             <div className="mt-2 flex min-w-0 flex-wrap items-end gap-3">
-              <h2 className="truncate text-2xl font-bold leading-tight text-[#E8EEFF] sm:text-3xl">
+              <h2 className="truncate text-2xl font-bold leading-tight text-[color:var(--ink)] sm:text-3xl">
                 {formatMonthLabel(monthCursor)}
               </h2>
-              <Badge className="border-[#24314D] bg-[#121C33] text-[#A3AEC5]">
+              <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--text-muted)]">
                 {calendar ? `${plannedCount} publication(s)` : "Chargement"}
               </Badge>
             </div>
@@ -302,7 +302,7 @@ export function EditorialCalendarWorkspace({
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              className="size-10 rounded-full border-[#24314D] bg-[#121C33] text-[#E8EEFF] hover:bg-[#1A2742]"
+              className="size-10 rounded-full border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
               size="icon"
               type="button"
               variant="outline"
@@ -312,7 +312,7 @@ export function EditorialCalendarWorkspace({
               <ChevronLeft className="size-4" />
             </Button>
             <Button
-              className="h-10 rounded-[14px] border-[#24314D] bg-[#121C33] px-4 text-[#E8EEFF] hover:bg-[#1A2742]"
+              className="h-10 rounded-[14px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
               type="button"
               variant="outline"
               onClick={() => setMonthCursor(startOfMonth(new Date()))}
@@ -320,7 +320,7 @@ export function EditorialCalendarWorkspace({
               Aujourd'hui
             </Button>
             <Button
-              className="size-10 rounded-full border-[#24314D] bg-[#121C33] text-[#E8EEFF] hover:bg-[#1A2742]"
+              className="size-10 rounded-full border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
               size="icon"
               type="button"
               variant="outline"
@@ -332,10 +332,10 @@ export function EditorialCalendarWorkspace({
           </div>
         </header>
 
-        <div className="flex flex-col gap-4 border-b border-[#18243A] bg-[#071123]/35 p-4 sm:p-5 lg:flex-row lg:items-end lg:justify-between lg:p-6">
+        <div className="flex flex-col gap-4 border-b border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/35 p-4 sm:p-5 lg:flex-row lg:items-end lg:justify-between lg:p-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:w-[520px]">
             <label className="grid gap-2 text-sm">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Canal
               </span>
               <select
@@ -358,7 +358,7 @@ export function EditorialCalendarWorkspace({
             </label>
 
             <label className="grid gap-2 text-sm">
-              <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+              <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                 Statut
               </span>
               <select
@@ -405,38 +405,42 @@ export function EditorialCalendarWorkspace({
         <div className="flex flex-col gap-4 p-4 sm:p-5 lg:p-6">
           <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="grid grid-cols-3 gap-2 text-sm sm:min-w-[360px]">
-              <div className="rounded-[16px] border border-[#18243A] bg-[#121C33] p-3">
-                <span className="block text-xs text-[#6F7B95]">Plans</span>
-                <strong className="text-lg text-[#C3F400]">
+              <div className="rounded-[16px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3">
+                <span className="block text-xs text-[color:var(--text-subtle)]">
+                  Plans
+                </span>
+                <strong className="text-lg text-[color:var(--rubric)]">
                   {plannedCount}
                 </strong>
               </div>
-              <div className="rounded-[16px] border border-[#18243A] bg-[#121C33] p-3">
-                <span className="block text-xs text-[#6F7B95]">Conflits</span>
-                <strong className="text-lg text-[#F56C7A]">
+              <div className="rounded-[16px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3">
+                <span className="block text-xs text-[color:var(--text-subtle)]">
+                  Conflits
+                </span>
+                <strong className="text-lg text-[color:var(--danger)]">
                   {conflictCount}
                 </strong>
               </div>
-              <div className="rounded-[16px] border border-[#18243A] bg-[#121C33] p-3">
-                <span className="block text-xs text-[#6F7B95]">
+              <div className="rounded-[16px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3">
+                <span className="block text-xs text-[color:var(--text-subtle)]">
                   Disponibles
                 </span>
-                <strong className="text-lg text-[#88A8FF]">
+                <strong className="text-lg text-[color:var(--klein)]">
                   {editableContentCount}
                 </strong>
               </div>
             </div>
 
             <div
-              className="inline-flex w-fit rounded-full border border-[#24314D] bg-[#121C33] p-1"
+              className="inline-flex w-fit rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1"
               role="tablist"
             >
               <Button
                 className={cn(
                   "h-9 rounded-full px-4",
                   viewMode === "month"
-                    ? "bg-[#C3F400] text-[#071123] shadow-[0_0_24px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
-                    : "bg-transparent text-[#A3AEC5] hover:bg-[#1A2742] hover:text-[#E8EEFF]",
+                    ? "bg-[color:var(--rubric)] text-[color:var(--paper)] shadow-[0_0_24px_rgba(195,244,0,0.22)] hover:bg-[color:var(--rubric)]"
+                    : "bg-transparent text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]",
                 )}
                 type="button"
                 variant="ghost"
@@ -448,8 +452,8 @@ export function EditorialCalendarWorkspace({
                 className={cn(
                   "h-9 rounded-full px-4",
                   viewMode === "list"
-                    ? "bg-[#C3F400] text-[#071123] shadow-[0_0_24px_rgba(195,244,0,0.22)] hover:bg-[#C3F400]"
-                    : "bg-transparent text-[#A3AEC5] hover:bg-[#1A2742] hover:text-[#E8EEFF]",
+                    ? "bg-[color:var(--rubric)] text-[color:var(--paper)] shadow-[0_0_24px_rgba(195,244,0,0.22)] hover:bg-[color:var(--rubric)]"
+                    : "bg-transparent text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]",
                 )}
                 type="button"
                 variant="ghost"
@@ -468,14 +472,14 @@ export function EditorialCalendarWorkspace({
         <section className={cn(panelClassName, "p-4 sm:p-5")}>
           <header className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Planifier
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#E8EEFF]">
+              <h2 className="mt-1 text-xl font-bold text-[color:var(--ink)]">
                 {editingPlanId ? "Edition" : "Nouveau slot"}
               </h2>
             </div>
-            <span className="flex size-10 items-center justify-center rounded-full bg-[#C3F400] text-[#071123] shadow-[0_0_28px_rgba(195,244,0,0.28)]">
+            <span className="flex size-10 items-center justify-center rounded-full bg-[color:var(--rubric)] text-[color:var(--paper)] shadow-[0_0_28px_rgba(195,244,0,0.28)]">
               <Plus className="size-5" />
             </span>
           </header>
@@ -483,7 +487,7 @@ export function EditorialCalendarWorkspace({
           {calendar?.canEdit ? (
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm">
-                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                   Contenu
                 </span>
                 <select
@@ -507,7 +511,7 @@ export function EditorialCalendarWorkspace({
               </label>
 
               <label className="grid gap-2 text-sm">
-                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                   Date
                 </span>
                 <Input
@@ -526,7 +530,7 @@ export function EditorialCalendarWorkspace({
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <label className="grid gap-2 text-sm">
-                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                     Canal
                   </span>
                   <select
@@ -548,7 +552,7 @@ export function EditorialCalendarWorkspace({
                 </label>
 
                 <label className="grid gap-2 text-sm">
-                  <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                  <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                     Statut
                   </span>
                   <select
@@ -571,7 +575,7 @@ export function EditorialCalendarWorkspace({
               </div>
 
               <label className="grid gap-2 text-sm">
-                <span className="text-xs font-bold uppercase text-[#A3AEC5]">
+                <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
                   Notes
                 </span>
                 <Textarea
@@ -589,7 +593,7 @@ export function EditorialCalendarWorkspace({
 
               {errorMessage ? (
                 <p
-                  className="rounded-[14px] border border-[#F56C7A]/30 bg-[#F56C7A]/10 px-3 py-2 text-sm text-[#F56C7A]"
+                  className="rounded-[14px] border border-[color:var(--danger)]/30 bg-[color:var(--danger)]/10 px-3 py-2 text-sm text-[color:var(--danger)]"
                   role="alert"
                 >
                   {errorMessage}
@@ -597,7 +601,7 @@ export function EditorialCalendarWorkspace({
               ) : null}
               {successMessage ? (
                 <p
-                  className="rounded-[14px] border border-[#C3F400]/25 bg-[#C3F400]/10 px-3 py-2 text-sm text-[#C3F400]"
+                  className="rounded-[14px] border border-[color:var(--rubric)]/25 bg-[color:var(--rubric)]/10 px-3 py-2 text-sm text-[color:var(--rubric)]"
                   role="status"
                 >
                   {successMessage}
@@ -606,7 +610,7 @@ export function EditorialCalendarWorkspace({
 
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button
-                  className="h-11 rounded-[16px] bg-[#C3F400] px-5 font-bold text-[#071123] shadow-[0_0_32px_rgba(195,244,0,0.28)] hover:bg-[#C3F400]"
+                  className="h-11 rounded-[16px] bg-[color:var(--rubric)] px-5 font-bold text-[color:var(--paper)] shadow-[0_0_32px_rgba(195,244,0,0.28)] hover:bg-[color:var(--rubric)]"
                   type="submit"
                   disabled={isSaving || !calendar.contentOptions.length}
                 >
@@ -614,7 +618,7 @@ export function EditorialCalendarWorkspace({
                   {editingPlanId ? "Mettre a jour" : "Planifier"}
                 </Button>
                 <Button
-                  className="h-11 rounded-[16px] border-[#24314D] bg-[#121C33] px-4 text-[#E8EEFF] hover:bg-[#1A2742]"
+                  className="h-11 rounded-[16px] border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                   type="button"
                   variant="outline"
                   onClick={resetForm}
@@ -625,14 +629,14 @@ export function EditorialCalendarWorkspace({
               </div>
 
               {!calendar.contentOptions.length ? (
-                <p className="text-sm leading-6 text-[#A3AEC5]">
+                <p className="text-sm leading-6 text-[color:var(--text-muted)]">
                   Aucun contenu planifiable. Creez un contenu depuis la
                   bibliotheque.
                 </p>
               ) : null}
             </form>
           ) : (
-            <div className="rounded-[20px] border border-[#18243A] bg-[#121C33] p-4">
+            <div className="rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
               <EmptyState
                 title="Lecture seule"
                 description="Votre role permet de consulter le calendrier sans modifier les planifications."
@@ -644,14 +648,14 @@ export function EditorialCalendarWorkspace({
         <section className={cn(panelClassName, "p-4 sm:p-5")}>
           <header className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase text-[#88A8FF]">
+              <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                 Backlog
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#E8EEFF]">
+              <h2 className="mt-1 text-xl font-bold text-[color:var(--ink)]">
                 Contenus non planifies
               </h2>
             </div>
-            <Library className="size-5 text-[#C3F400]" />
+            <Library className="size-5 text-[color:var(--rubric)]" />
           </header>
 
           {calendar && calendar.contentOptions.length > 0 ? (
@@ -659,8 +663,9 @@ export function EditorialCalendarWorkspace({
               {calendar.contentOptions.map((content) => (
                 <button
                   className={cn(
-                    "group grid gap-2 rounded-[18px] border border-[#18243A] bg-[#121C33] p-3 text-left transition hover:border-[#4D80F0]/70 hover:bg-[#1A2742]",
-                    form.contentId === content.id && "border-[#C3F400]/60",
+                    "group grid gap-2 rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3 text-left transition hover:border-[color:var(--klein)]/70 hover:bg-[color:var(--paper-2)]",
+                    form.contentId === content.id &&
+                      "border-[color:var(--rubric)]/60",
                   )}
                   key={content.id}
                   type="button"
@@ -671,17 +676,17 @@ export function EditorialCalendarWorkspace({
                     }))
                   }
                 >
-                  <strong className="line-clamp-2 text-sm leading-5 text-[#E8EEFF]">
+                  <strong className="line-clamp-2 text-sm leading-5 text-[color:var(--ink)]">
                     {content.title}
                   </strong>
-                  <span className="text-xs font-medium text-[#A3AEC5]">
+                  <span className="text-xs font-medium text-[color:var(--text-muted)]">
                     Pret a planifier
                   </span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="rounded-[18px] border border-[#18243A] bg-[#121C33] p-4 text-sm leading-6 text-[#A3AEC5]">
+            <p className="rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4 text-sm leading-6 text-[color:var(--text-muted)]">
               Aucun contenu disponible pour la planification.
             </p>
           )}
@@ -718,11 +723,11 @@ export function EditorialCalendarWorkspace({
     }
 
     return (
-      <div className="overflow-x-auto rounded-[20px] border border-[#18243A] bg-[#071123]">
+      <div className="overflow-x-auto rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)]">
         <div className="grid min-w-[860px] grid-cols-7">
           {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
             <div
-              className="border-b border-r border-[#18243A] bg-[#0B1528] px-3 py-3 text-xs font-bold uppercase text-[#6F7B95] last:border-r-0"
+              className="border-b border-r border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-3 py-3 text-xs font-bold uppercase text-[color:var(--text-subtle)] last:border-r-0"
               key={day}
             >
               {day}
@@ -735,20 +740,20 @@ export function EditorialCalendarWorkspace({
             return (
               <article
                 className={cn(
-                  "min-h-[148px] border-b border-r border-[#18243A] bg-[#0F172A] p-3 transition last:border-r-0 hover:bg-[#121C33]",
+                  "min-h-[148px] border-b border-r border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-3 transition last:border-r-0 hover:bg-[color:var(--paper-2)]",
                   day.getMonth() !== monthCursor.getMonth() &&
-                    "bg-[#071123] text-[#6F7B95]",
+                    "bg-[color:var(--paper-card)] text-[color:var(--text-subtle)]",
                 )}
                 data-outside-month={day.getMonth() !== monthCursor.getMonth()}
                 key={key}
               >
                 <header className="mb-3 flex items-center justify-between gap-2">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-[#121C33] text-sm font-bold text-[#E8EEFF]">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-[color:var(--paper-2)] text-sm font-bold text-[color:var(--ink)]">
                     {day.getDate()}
                   </span>
                   {calendar.canEdit ? (
                     <Button
-                      className="size-8 rounded-full bg-transparent text-[#88A8FF] hover:bg-[#1A2742] hover:text-[#C3F400]"
+                      className="size-8 rounded-full bg-transparent text-[color:var(--klein)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--rubric)]"
                       size="icon"
                       type="button"
                       variant="ghost"
@@ -777,15 +782,17 @@ export function EditorialCalendarWorkspace({
                         <Clock3 className="size-3" />
                         {formatPlanTime(plan.scheduledAt)}
                       </span>
-                      <strong className="line-clamp-2 text-xs leading-4 text-[#E8EEFF]">
+                      <strong className="line-clamp-2 text-xs leading-4 text-[color:var(--ink)]">
                         {plan.content.title}
                       </strong>
-                      <span className="flex items-center justify-between gap-2 text-[11px] text-[#A3AEC5]">
+                      <span className="flex items-center justify-between gap-2 text-[11px] text-[color:var(--text-muted)]">
                         <span className="truncate">
                           {CHANNEL_LABELS[plan.channel]}
                         </span>
                         {plan.conflictCount > 0 ? (
-                          <em className="not-italic text-[#F56C7A]">Conflit</em>
+                          <em className="not-italic text-[color:var(--danger)]">
+                            Conflit
+                          </em>
                         ) : null}
                       </span>
                     </button>
@@ -807,7 +814,7 @@ export function EditorialCalendarWorkspace({
           description="Cette periode ne contient pas encore de publication planifiee."
           action={
             <Link
-              className="inline-flex h-10 items-center justify-center rounded-[14px] border border-[#24314D] bg-[#121C33] px-4 text-sm font-medium text-[#E8EEFF] transition hover:bg-[#1A2742]"
+              className="inline-flex h-10 items-center justify-center rounded-[14px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-medium text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
               href={`/app/${organizationSlug}/library`}
             >
               Ouvrir la bibliotheque
@@ -821,7 +828,7 @@ export function EditorialCalendarWorkspace({
       <div className="grid gap-3">
         {plans.map((plan) => (
           <article
-            className="grid gap-4 rounded-[20px] border border-[#18243A] bg-[#121C33] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
+            className="grid gap-4 rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
             key={plan.id}
           >
             <div className="min-w-0">
@@ -835,29 +842,29 @@ export function EditorialCalendarWorkspace({
                   />
                   {PLAN_STATUS_LABELS[plan.status]}
                 </Badge>
-                <Badge className="border-[#24314D] bg-[#0F172A] text-[#A3AEC5]">
+                <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)]">
                   {formatPlanDateTime(plan.scheduledAt)}
                 </Badge>
-                <Badge className="border-[#24314D] bg-[#0F172A] text-[#A3AEC5]">
+                <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)]">
                   {CHANNEL_LABELS[plan.channel]}
                 </Badge>
-                <Badge className="border-[#24314D] bg-[#0F172A] text-[#A3AEC5]">
+                <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)]">
                   {CONTENT_FORMAT_LABELS[plan.content.format]}
                 </Badge>
-                <Badge className="border-[#24314D] bg-[#0F172A] text-[#A3AEC5]">
+                <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--text-muted)]">
                   {CONTENT_STATUS_LABELS[plan.content.status]}
                 </Badge>
               </div>
-              <h3 className="truncate text-lg font-bold text-[#E8EEFF]">
+              <h3 className="truncate text-lg font-bold text-[color:var(--ink)]">
                 {plan.content.title}
               </h3>
               {plan.notes ? (
-                <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#A3AEC5]">
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-[color:var(--text-muted)]">
                   {plan.notes}
                 </p>
               ) : null}
               {plan.conflictCount > 0 ? (
-                <small className="mt-2 block text-sm font-medium text-[#F56C7A]">
+                <small className="mt-2 block text-sm font-medium text-[color:var(--danger)]">
                   {plan.conflictCount} autre publication est prevue le meme jour
                   sur ce canal.
                 </small>
@@ -865,7 +872,7 @@ export function EditorialCalendarWorkspace({
             </div>
             <div className="flex flex-wrap gap-2 md:justify-end">
               <Button
-                className="h-10 rounded-[14px] border-[#24314D] bg-[#0F172A] px-4 text-[#E8EEFF] hover:bg-[#1A2742]"
+                className="h-10 rounded-[14px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
                 type="button"
                 variant="outline"
                 onClick={() => selectPlan(plan)}
@@ -875,7 +882,7 @@ export function EditorialCalendarWorkspace({
               </Button>
               {canEdit ? (
                 <Button
-                  className="h-10 rounded-[14px] px-4 text-[#F56C7A] hover:bg-[#F56C7A]/10"
+                  className="h-10 rounded-[14px] px-4 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10"
                   type="button"
                   variant="ghost"
                   onClick={() => void handleDelete(plan.id)}
@@ -895,38 +902,38 @@ export function EditorialCalendarWorkspace({
 
 function getStatusPillClassName(status: PublicationStatus): string {
   if (status === "PUBLISHED") {
-    return "border-[#C3F400]/25 bg-[#C3F400]/15 text-[#C3F400]";
+    return "border-[color:var(--rubric)]/25 bg-[color:var(--rubric)]/15 text-[color:var(--rubric)]";
   }
 
   if (status === "CANCELLED") {
-    return "border-[#F56C7A]/25 bg-[#F56C7A]/15 text-[#F56C7A]";
+    return "border-[color:var(--danger)]/25 bg-[color:var(--danger)]/15 text-[color:var(--danger)]";
   }
 
-  return "border-[#4D80F0]/30 bg-[#4D80F0]/15 text-[#88A8FF]";
+  return "border-[color:var(--klein)]/30 bg-[color:var(--klein)]/15 text-[color:var(--klein)]";
 }
 
 function getStatusDotClassName(status: PublicationStatus): string {
   if (status === "PUBLISHED") {
-    return "bg-[#C3F400]";
+    return "bg-[color:var(--rubric)]";
   }
 
   if (status === "CANCELLED") {
-    return "bg-[#F56C7A]";
+    return "bg-[color:var(--danger)]";
   }
 
-  return "bg-[#88A8FF]";
+  return "bg-[color:var(--klein)]";
 }
 
 function getStatusCardClassName(status: PublicationStatus): string {
   if (status === "PUBLISHED") {
-    return "border-[#C3F400]/25 bg-[#C3F400]/10 text-[#C3F400] hover:border-[#C3F400]/50";
+    return "border-[color:var(--rubric)]/25 bg-[color:var(--rubric)]/10 text-[color:var(--rubric)] hover:border-[color:var(--rubric)]/50";
   }
 
   if (status === "CANCELLED") {
-    return "border-[#F56C7A]/25 bg-[#F56C7A]/10 text-[#F56C7A] hover:border-[#F56C7A]/50";
+    return "border-[color:var(--danger)]/25 bg-[color:var(--danger)]/10 text-[color:var(--danger)] hover:border-[color:var(--danger)]/50";
   }
 
-  return "border-[#4D80F0]/25 bg-[#4D80F0]/10 text-[#88A8FF] hover:border-[#4D80F0]/50";
+  return "border-[color:var(--klein)]/25 bg-[color:var(--klein)]/10 text-[color:var(--klein)] hover:border-[color:var(--klein)]/50";
 }
 
 function createEmptyForm(contentId = ""): PlanFormState {

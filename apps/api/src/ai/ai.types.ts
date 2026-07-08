@@ -2,6 +2,8 @@ import type {
   AiGenerationType,
   ContentFormat,
   ContentIdeasPayload,
+  GenerationLanguage,
+  GenerationTargetLength,
   MarketingContentPayload,
   ResourceSummaryPayload,
 } from "@content-ai/shared";
@@ -55,10 +57,24 @@ export type EditorialContextSnapshot = {
   resourceNotes: string | null;
 } | null;
 
+export type GenerationSettingsSnapshot = {
+  creativity: number;
+  language: GenerationLanguage;
+  targetLength: GenerationTargetLength;
+  toneIntensity: number;
+};
+
+export type BrandVoiceSnapshot = {
+  examples: string[];
+  forbiddenTerms: string[];
+  toneRules: string;
+} | null;
+
 export type GenerationBaseInput = {
   organizationId: string;
   userId?: string | null;
   history?: string[] | undefined;
+  settings?: Partial<GenerationSettingsSnapshot> | undefined;
   resultId?: string | null;
   resultContentIdeaId?: string | null;
   resultContentItemId?: string | null;

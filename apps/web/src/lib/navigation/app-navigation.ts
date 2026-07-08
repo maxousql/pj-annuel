@@ -10,6 +10,7 @@ export type AppNavigationItem = {
     | "history"
     | "calendar"
     | "curation"
+    | "automation"
     | "integrations"
     | "settings";
   label: string;
@@ -67,11 +68,19 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
     minimumRole: "READER",
   },
   {
-    availability: "soon",
-    description: "Veille et ressources V2.",
+    availability: "available",
+    description: "Veille, URLs, RSS et resumes IA.",
     href: (organizationSlug) => `/app/${organizationSlug}/curation`,
     id: "curation",
     label: "Veille",
+    minimumRole: "EDITOR",
+  },
+  {
+    availability: "available",
+    description: "Rappels, recommandations et notifications V2.",
+    href: (organizationSlug) => `/app/${organizationSlug}/automation`,
+    id: "automation",
+    label: "Automatisation",
     minimumRole: "EDITOR",
   },
   {

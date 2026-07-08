@@ -2,6 +2,14 @@ import {
   buildContentIdeasPrompt,
   buildMarketingContentPrompt,
 } from "./prompt-templates";
+import type { GenerationSettingsSnapshot } from "./ai.types";
+
+const DEFAULT_SETTINGS: GenerationSettingsSnapshot = {
+  creativity: 2,
+  language: "fr",
+  targetLength: "standard",
+  toneIntensity: 3,
+};
 
 describe("AI prompt templates", () => {
   it("injects the editorial context in the content ideas prompt", () => {
@@ -22,10 +30,12 @@ describe("AI prompt templates", () => {
         themes: ["IA", "content marketing"],
         tone: "Clair et direct",
       },
+      null,
+      DEFAULT_SETTINGS,
     );
 
     expect(prompt.type).toBe("CONTENT_IDEA");
-    expect(prompt.version).toBe("content-ideas.v1");
+    expect(prompt.version).toBe("content-ideas.v2");
     expect(prompt.responseSchemaName).toBe("content_ideas");
     expect(prompt.input).toContain("Secteur: SaaS B2B");
     expect(prompt.input).toContain("Cible: CMO et founders");
@@ -54,6 +64,8 @@ describe("AI prompt templates", () => {
         themes: ["IA", "content marketing"],
         tone: "Clair et direct",
       },
+      null,
+      DEFAULT_SETTINGS,
     );
 
     expect(prompt.type).toBe("CONTENT_DRAFT");

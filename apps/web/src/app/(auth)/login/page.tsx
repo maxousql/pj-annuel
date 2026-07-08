@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth-form";
+import { BrandLockup } from "@/components/brand/logo";
 
 export const metadata: Metadata = {
   title: "Connexion",
@@ -12,12 +13,11 @@ export default function LoginPage() {
       <div className="auth-layout">
         <section className="auth-copy">
           <Link className="brand" href="/">
-            <span className="brand-mark" aria-hidden="true">
-              PA
-            </span>
-            <span>Projet Annuel</span>
+            <BrandLockup />
           </Link>
-          <h1>Connexion a votre espace de travail.</h1>
+          <h1>
+            Reprenez votre <em>plume</em>.
+          </h1>
           <p>
             Retrouvez vos contenus, vos idees et votre planning editorial dans
             un espace organise par equipe.

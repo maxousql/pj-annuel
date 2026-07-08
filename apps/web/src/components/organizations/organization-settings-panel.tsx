@@ -113,6 +113,30 @@ export function OrganizationSettingsPanel({
       <article className="settings-panel">
         <header>
           <div>
+            <p className="eyebrow">Profil IA V2</p>
+            <h2>Voix de marque</h2>
+          </div>
+        </header>
+        <p className="muted">
+          Langue, longueur, creativite, exemples et termes interdits utilises
+          par les prompts versionnes.
+        </p>
+        {state.role === "ADMIN" ? (
+          <div className="form-footer">
+            <Link
+              className="button-secondary"
+              href={`/app/${organizationSlug}/settings/ai`}
+            >
+              Configurer l'IA
+            </Link>
+          </div>
+        ) : (
+          <p className="muted">Reserve aux administrateurs.</p>
+        )}
+      </article>
+      <article className="settings-panel">
+        <header>
+          <div>
             <p className="eyebrow">Identite</p>
             <h2>{state.organizationName}</h2>
           </div>

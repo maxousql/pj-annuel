@@ -6,6 +6,8 @@ import type {
   AiGenerationErrorCode,
   AiGenerationType,
   ContentIdeasPayload,
+  GenerationLanguage,
+  GenerationTargetLength,
   MarketingContentPayload,
   ResourceSummaryPayload,
 } from "@content-ai/shared";
@@ -28,12 +30,14 @@ import {
 } from "./prompt-templates";
 import type {
   AiProvider,
+  BrandVoiceSnapshot,
   BuiltPrompt,
   ContentGenerationResultByType,
   EditorialContextSnapshot,
   GenerateContentIdeasInput,
   GenerateMarketingContentInput,
   GenerationBaseInput,
+  GenerationSettingsSnapshot,
   SummarizeResourceInput,
 } from "./ai.types";
 import { PrismaService } from "../database/prisma.service";
@@ -41,6 +45,15 @@ import { PrismaService } from "../database/prisma.service";
 type Validator<TGenerationType extends AiGenerationType> = (
   rawText: string,
 ) => ContentGenerationResultByType[TGenerationType];
+
+type BrandVoiceProfileSnapshot = {
+  creativity: number;
+  examples: string[];
+  forbiddenTerms: string[];
+  language: GenerationLanguage;
+  targetLength: GenerationTargetLength;
+  toneRules: string;
+} | null;
 
 @Injectable()
 export class ContentGenerationService {
@@ -53,13 +66,21 @@ export class ContentGenerationService {
   async generateContentIdeas(
     input: GenerateContentIdeasInput,
   ): Promise<ContentIdeasPayload> {
-    const context = await this.loadEditorialContext(input.organizationId);
-    const prompt = buildContentIdeasPrompt(input, context);
+    const { brandVoice, context, settings } =
+      await this.loadPromptContext(input);
+    const prompt = buildContentIdeasPrompt(
+      input,
+      context,
+      brandVoice,
+      settings,
+    );
 
     return this.executeGeneration(
       input,
       prompt,
       context,
+      brandVoice,
+      settings,
       validateContentIdeasOutput,
     );
   }
@@ -67,13 +88,21 @@ export class ContentGenerationService {
   async generateMarketingContent(
     input: GenerateMarketingContentInput,
   ): Promise<MarketingContentPayload> {
-    const context = await this.loadEditorialContext(input.organizationId);
-    const prompt = buildMarketingContentPrompt(input, context);
+    const { brandVoice, context, settings } =
+      await this.loadPromptContext(input);
+    const prompt = buildMarketingContentPrompt(
+      input,
+      context,
+      brandVoice,
+      settings,
+    );
 
     return this.executeGeneration(
       input,
       prompt,
       context,
+      brandVoice,
+      settings,
       validateMarketingContentOutput,
     );
   }
@@ -81,13 +110,21 @@ export class ContentGenerationService {
   async summarizeResource(
     input: SummarizeResourceInput,
   ): Promise<ResourceSummaryPayload> {
-    const context = await this.loadEditorialContext(input.organizationId);
-    const prompt = buildResourceSummaryPrompt(input, context);
+    const { brandVoice, context, settings } =
+      await this.loadPromptContext(input);
+    const prompt = buildResourceSummaryPrompt(
+      input,
+      context,
+      brandVoice,
+      settings,
+    );
 
     return this.executeGeneration(
       input,
       prompt,
       context,
+      brandVoice,
+      settings,
       validateResourceSummaryOutput,
     );
   }
@@ -96,9 +133,11 @@ export class ContentGenerationService {
     input: GenerationBaseInput,
     prompt: BuiltPrompt & { type: TGenerationType },
     context: EditorialContextSnapshot,
+    brandVoice: BrandVoiceSnapshot,
+    settings: GenerationSettingsSnapshot,
     validate: Validator<TGenerationType>,
   ): Promise<ContentGenerationResultByType[TGenerationType]> {
-    const inputHash = hashGenerationInput(prompt, input, context);
+    const inputHash = hashGenerationInput(prompt, input, context, settings);
 
     try {
       const providerResponse = await this.provider.generateStructuredOutput({
@@ -122,6 +161,7 @@ export class ContentGenerationService {
         errorMessage: null,
         input,
         inputHash,
+        brandVoice,
         model: providerResponse.model,
         prompt,
         status: "SUCCEEDED",
@@ -136,6 +176,7 @@ export class ContentGenerationService {
         errorMessage: exception.message,
         input,
         inputHash,
+        brandVoice,
         model: this.provider.model,
         prompt,
         status: "FAILED",
@@ -168,6 +209,7 @@ export class ContentGenerationService {
   private async logGeneration(input: {
     errorCode: AiGenerationErrorCode | null;
     errorMessage: string | null;
+    brandVoice: BrandVoiceSnapshot;
     input: GenerationBaseInput;
     inputHash: string;
     model: string;
@@ -182,6 +224,7 @@ export class ContentGenerationService {
         model: input.model,
         organizationId: input.input.organizationId,
         promptMetadata: {
+          brandVoiceConfigured: Boolean(input.brandVoice),
           inputHash: input.inputHash,
           provider: this.provider.name,
           responseSchema: input.prompt.responseSchemaName,
@@ -207,12 +250,61 @@ export class ContentGenerationService {
       ? parsedValue
       : fallback;
   }
+
+  private async loadPromptContext(input: GenerationBaseInput): Promise<{
+    brandVoice: BrandVoiceSnapshot;
+    context: EditorialContextSnapshot;
+    settings: GenerationSettingsSnapshot;
+  }> {
+    const [context, profile] = await Promise.all([
+      this.loadEditorialContext(input.organizationId),
+      this.loadBrandVoice(input.organizationId),
+    ]);
+
+    return {
+      brandVoice: profile,
+      context,
+      settings: resolveGenerationSettings(input.settings, profile),
+    };
+  }
+
+  private async loadBrandVoice(
+    organizationId: string,
+  ): Promise<BrandVoiceProfileSnapshot> {
+    const profile = await this.prisma.brandVoiceProfile.findUnique({
+      select: {
+        creativity: true,
+        examples: true,
+        forbiddenTerms: true,
+        language: true,
+        targetLength: true,
+        toneRules: true,
+      },
+      where: {
+        organizationId,
+      },
+    });
+
+    if (!profile) {
+      return null;
+    }
+
+    return {
+      creativity: profile.creativity,
+      examples: profile.examples,
+      forbiddenTerms: profile.forbiddenTerms,
+      language: normalizeLanguage(profile.language),
+      targetLength: normalizeTargetLength(profile.targetLength),
+      toneRules: profile.toneRules,
+    };
+  }
 }
 
 function hashGenerationInput(
   prompt: BuiltPrompt,
   input: GenerationBaseInput,
   context: EditorialContextSnapshot,
+  settings: GenerationSettingsSnapshot,
 ): string {
   return createHash("sha256")
     .update(
@@ -220,8 +312,46 @@ function hashGenerationInput(
         context,
         input,
         promptVersion: prompt.version,
+        settings,
         type: prompt.type,
       }),
     )
     .digest("hex");
+}
+
+function resolveGenerationSettings(
+  inputSettings: Partial<GenerationSettingsSnapshot> | undefined,
+  profile: BrandVoiceProfileSnapshot,
+): GenerationSettingsSnapshot {
+  return {
+    creativity: clampInteger(
+      inputSettings?.creativity,
+      profile ? profile.creativity : 2,
+    ),
+    language: inputSettings?.language ?? (profile ? profile.language : "fr"),
+    targetLength:
+      inputSettings?.targetLength ??
+      (profile ? profile.targetLength : "standard"),
+    toneIntensity: clampInteger(inputSettings?.toneIntensity, 3),
+  };
+}
+
+function clampInteger(value: number | undefined, fallback: number): number {
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    return fallback;
+  }
+
+  return Math.min(Math.max(value, 1), 5);
+}
+
+function normalizeLanguage(value: string): GenerationLanguage {
+  return ["fr", "en", "es", "de"].includes(value)
+    ? (value as GenerationLanguage)
+    : "fr";
+}
+
+function normalizeTargetLength(value: string): GenerationTargetLength {
+  return ["short", "standard", "long"].includes(value)
+    ? (value as GenerationTargetLength)
+    : "standard";
 }

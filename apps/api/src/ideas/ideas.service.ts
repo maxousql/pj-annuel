@@ -58,6 +58,12 @@ export class IdeasService {
       ...(input.format ? { format: input.format } : {}),
       history,
       organizationId,
+      settings: {
+        ...(input.creativity ? { creativity: input.creativity } : {}),
+        ...(input.language ? { language: input.language } : {}),
+        ...(input.targetLength ? { targetLength: input.targetLength } : {}),
+        ...(input.toneIntensity ? { toneIntensity: input.toneIntensity } : {}),
+      },
       ...(input.topic ? { topic: input.topic } : {}),
       userId,
     });
