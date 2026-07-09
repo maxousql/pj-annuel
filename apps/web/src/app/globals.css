@@ -12,6 +12,11 @@
 
 :root {
   color-scheme: light;
+  --font-text: "Inter Variable";
+  --font-sans: "Inter Variable";
+  --font-heading: "Manrope Variable";
+  --font-title: "Manrope Variable";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Matières */
   --ink: #17130f;

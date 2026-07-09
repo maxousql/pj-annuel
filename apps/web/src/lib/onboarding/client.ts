@@ -64,11 +64,12 @@ export async function completeOnboarding(
 export async function applyOnboardingPreset(
   organizationSlug: string,
   presetId: string,
+  confirmOverwrite = false,
 ): Promise<ApiResponse<OnboardingStatePayload>> {
   const response = await fetch(
     `${getApiBaseUrl()}/api/onboarding/organizations/${organizationSlug}/presets/apply`,
     {
-      body: JSON.stringify({ presetId }),
+      body: JSON.stringify({ confirmOverwrite, presetId }),
       credentials: "include",
       headers: {
         "content-type": "application/json",

@@ -1,10 +1,14 @@
 .agents
+.claude
 node_modules
 .next
 dist
 coverage
+playwright-report
+test-results
 apps/api/src/generated
 docs/cahier_des_charges.md
+docs/implementation
 package-lock.json
 apps/web/.next
 apps/**/dist

@@ -2,11 +2,11 @@
 
 import type {
   AdvancedOnboardingPayload,
-  AdvancedOnboardingStep,
   EditorialContextPayload,
   OnboardingStatePayload,
   OrganizationSummary,
 } from "@content-ai/shared";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shell/empty-state";
@@ -17,7 +17,6 @@ import {
   fetchOnboardingState,
   saveEditorialContext,
   skipAdvancedOnboarding,
-  updateAdvancedOnboardingProgress,
 } from "@/lib/onboarding/client";
 
 type OnboardingViewState =
@@ -187,31 +186,19 @@ export function OnboardingFlow() {
       return;
     }
 
+    const confirmOverwrite = payload?.editorialContext
+      ? window.confirm(
+          "Ce preset remplacera le contexte editorial actuel. Continuer ?",
+        )
+      : false;
+
+    if (payload?.editorialContext && !confirmOverwrite) return;
+
     setSubmission({ message: null, status: "submitting" });
     const result = await applyOnboardingPreset(
       activeOrganization.slug,
       presetId,
-    );
-
-    if (result.error) {
-      setSubmission({ message: result.error.message, status: "idle" });
-      return;
-    }
-
-    setState({ payload: result.data, status: "ready" });
-    setSubmission(initialSubmissionState);
-  }
-
-  async function handleAdvancedStep(step: AdvancedOnboardingStep) {
-    if (!activeOrganization) {
-      return;
-    }
-
-    setSubmission({ message: null, status: "submitting" });
-    const result = await updateAdvancedOnboardingProgress(
-      activeOrganization.slug,
-      step,
-      true,
+      confirmOverwrite,
     );
 
     if (result.error) {
@@ -305,18 +292,9 @@ export function OnboardingFlow() {
       );
     }
 
-    if (!canEditContext) {
-      return (
-        <EmptyState
-          title="Role insuffisant"
-          description="Demandez a un administrateur ou a un editeur de finaliser le contexte editorial de cette organisation."
-        />
-      );
-    }
-
     if (
-      payload.nextStep === "CONFIGURE_EDITORIAL_CONTEXT" ||
-      isEditingContext
+      canEditContext &&
+      (payload.nextStep === "CONFIGURE_EDITORIAL_CONTEXT" || isEditingContext)
     ) {
       return (
         <EditorialContextStep
@@ -333,13 +311,13 @@ export function OnboardingFlow() {
       <CompletionStep
         context={payload.editorialContext}
         advanced={payload.advanced}
+        canEditContext={canEditContext}
         isSubmitting={submission.status === "submitting"}
         message={submission.message}
         organization={activeOrganization}
         onApplyPreset={handleApplyPreset}
         onComplete={handleCompleteOnboarding}
         onEdit={() => setIsEditingContext(true)}
-        onMarkAdvancedStep={handleAdvancedStep}
         onSkipAdvanced={handleSkipAdvanced}
       />
     );
@@ -524,6 +502,7 @@ function EditorialContextStep({
 
 type CompletionStepProps = {
   advanced: AdvancedOnboardingPayload | null;
+  canEditContext: boolean;
   context: EditorialContextPayload | null;
   isSubmitting: boolean;
   message: string | null;
@@ -531,12 +510,12 @@ type CompletionStepProps = {
   onApplyPreset: (presetId: string) => void;
   onComplete: () => void;
   onEdit: () => void;
-  onMarkAdvancedStep: (step: AdvancedOnboardingStep) => void;
   onSkipAdvanced: () => void;
 };
 
 function CompletionStep({
   advanced,
+  canEditContext,
   context,
   isSubmitting,
   message,
@@ -544,7 +523,6 @@ function CompletionStep({
   onApplyPreset,
   onComplete,
   onEdit,
-  onMarkAdvancedStep,
   onSkipAdvanced,
 }: CompletionStepProps) {
   const completedSteps = new Set(advanced?.completedSteps ?? []);
@@ -552,10 +530,15 @@ function CompletionStep({
   return (
     <div className="onboarding-section">
       <div>
-        <h2>{organization.name} est pret pour le MVP.</h2>
+        <h2>
+          {context
+            ? `${organization.name} est pret pour le MVP.`
+            : `Checklist de ${organization.name}.`}
+        </h2>
         <p className="muted">
-          Le dashboard devient accessible et la generation d'idees pourra
-          utiliser ce contexte.
+          {context
+            ? "Le dashboard devient accessible et la generation d'idees pourra utiliser ce contexte."
+            : "Vous pouvez consulter l'espace pendant qu'un editeur finalise le contexte editorial."}
         </p>
       </div>
 
@@ -590,43 +573,48 @@ function CompletionStep({
             </p>
           </div>
 
-          <div className="choice-list" aria-label="Presets sectoriels">
-            {advanced.presets.map((preset) => (
-              <button
-                className="organization-choice"
-                disabled={isSubmitting}
-                type="button"
-                key={preset.id}
-                onClick={() => onApplyPreset(preset.id)}
-              >
-                <span>
-                  <strong>{preset.sector}</strong>
-                  <small>{preset.tone}</small>
-                </span>
-                <span aria-hidden="true">Appliquer</span>
-              </button>
-            ))}
-          </div>
+          {advanced.availableSteps.includes("PRESET") ? (
+            <div className="choice-list" aria-label="Presets sectoriels">
+              {advanced.presets.map((preset) => (
+                <button
+                  className="organization-choice"
+                  disabled={isSubmitting}
+                  type="button"
+                  key={preset.id}
+                  onClick={() => onApplyPreset(preset.id)}
+                >
+                  <span>
+                    <strong>{preset.sector}</strong>
+                    <small>{preset.tone}</small>
+                  </span>
+                  <span aria-hidden="true">Appliquer</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="choice-list" aria-label="Checklist avancee">
-            <AdvancedStepButton
-              completed={completedSteps.has("CHECKLIST")}
-              disabled={isSubmitting}
-              label="Verifier le contexte"
-              onClick={() => onMarkAdvancedStep("CHECKLIST")}
-            />
-            <AdvancedStepButton
-              completed={completedSteps.has("FIRST_IDEA")}
-              disabled={isSubmitting}
-              label="Generer une premiere idee"
-              onClick={() => onMarkAdvancedStep("FIRST_IDEA")}
-            />
-            <AdvancedStepButton
-              completed={completedSteps.has("FIRST_CONTENT")}
-              disabled={isSubmitting}
-              label="Generer un premier contenu"
-              onClick={() => onMarkAdvancedStep("FIRST_CONTENT")}
-            />
+            {advanced.availableSteps.includes("CHECKLIST") ? (
+              <AdvancedStepButton
+                completed={completedSteps.has("CHECKLIST")}
+                href={`/app/${organization.slug}/settings/editorial-context`}
+                label="Verifier le contexte"
+              />
+            ) : null}
+            {advanced.availableSteps.includes("FIRST_IDEA") ? (
+              <AdvancedStepButton
+                completed={completedSteps.has("FIRST_IDEA")}
+                href={`/app/${organization.slug}/ideas/generate`}
+                label="Generer une premiere idee"
+              />
+            ) : null}
+            {advanced.availableSteps.includes("FIRST_CONTENT") ? (
+              <AdvancedStepButton
+                completed={completedSteps.has("FIRST_CONTENT")}
+                href={`/app/${organization.slug}/contents/generate`}
+                label="Generer un premier contenu"
+              />
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -637,17 +625,25 @@ function CompletionStep({
         </p>
       ) : null}
       <div className="form-footer">
-        <button
-          className="button"
-          type="button"
-          onClick={onComplete}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Ouverture..." : "Terminer et ouvrir le dashboard"}
-        </button>
-        <button className="button-secondary" type="button" onClick={onEdit}>
-          Modifier le contexte
-        </button>
+        {canEditContext && context ? (
+          <button
+            className="button"
+            type="button"
+            onClick={onComplete}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Ouverture..." : "Terminer et ouvrir le dashboard"}
+          </button>
+        ) : (
+          <Link className="button" href={`/app/${organization.slug}/dashboard`}>
+            Ouvrir le dashboard
+          </Link>
+        )}
+        {canEditContext ? (
+          <button className="button-secondary" type="button" onClick={onEdit}>
+            Modifier le contexte
+          </button>
+        ) : null}
         <button
           className="button-secondary"
           type="button"
@@ -663,28 +659,33 @@ function CompletionStep({
 
 function AdvancedStepButton({
   completed,
-  disabled,
+  href,
   label,
-  onClick,
 }: {
   completed: boolean;
-  disabled: boolean;
+  href: string;
   label: string;
-  onClick: () => void;
 }) {
+  if (completed) {
+    return (
+      <div className="organization-choice" data-status="done">
+        <span>
+          <strong>{label}</strong>
+          <small>Termine</small>
+        </span>
+        <span aria-hidden="true">OK</span>
+      </div>
+    );
+  }
+
   return (
-    <button
-      className="organization-choice"
-      disabled={disabled || completed}
-      type="button"
-      onClick={onClick}
-    >
+    <Link className="organization-choice" href={href}>
       <span>
         <strong>{label}</strong>
-        <small>{completed ? "Termine" : "A faire"}</small>
+        <small>A faire</small>
       </span>
-      <span aria-hidden="true">{completed ? "OK" : "Valider"}</span>
-    </button>
+      <span aria-hidden="true">Ouvrir</span>
+    </Link>
   );
 }
 

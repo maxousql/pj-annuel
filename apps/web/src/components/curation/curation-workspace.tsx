@@ -478,6 +478,7 @@ export function CurationWorkspace({
               <ResourceCard
                 busyKey={busyKey}
                 canEdit={canEdit}
+                organizationSlug={organizationSlug}
                 resource={resource}
                 key={resource.id}
                 onSummarize={handleSummarize}
@@ -539,12 +540,14 @@ export function CurationWorkspace({
 function ResourceCard({
   busyKey,
   canEdit,
+  organizationSlug,
   onSummarize,
   onUse,
   resource,
 }: {
   busyKey: string | null;
   canEdit: boolean;
+  organizationSlug: string;
   onSummarize: (resourceId: string) => void;
   onUse: (resourceId: string) => void;
   resource: CuratedResourcePayload;
@@ -559,7 +562,9 @@ function ResourceCard({
             {resource.topic ? <Badge>{resource.topic}</Badge> : null}
           </div>
           <h3 className="text-xl font-bold leading-tight text-[color:var(--ink)]">
-            {resource.title}
+            <Link href={`/app/${organizationSlug}/curation/${resource.id}`}>
+              {resource.title}
+            </Link>
           </h3>
           <a
             className="mt-2 block truncate text-sm font-medium text-[color:var(--klein)]"

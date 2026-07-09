@@ -206,6 +206,29 @@ enum NotificationStatus {
   @@map("notification_status")
 }
 
+enum NotionSyncEntityType {
+  CONTENT
+  RESOURCE
+
+  @@map("notion_sync_entity_type")
+}
+
+enum NotionSyncStatus {
+  SUCCEEDED
+  PARTIAL
+  FAILED
+
+  @@map("notion_sync_status")
+}
+
+enum ScheduledJobStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+
+  @@map("scheduled_job_status")
+}
+
 model User {
   id                      String                   @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
   email                   String                   @unique
@@ -227,6 +250,7 @@ model User {
   onboardingProgresses    OnboardingProgress[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  qualityEvaluations      AiQualityEvaluation[]      @relation("AiQualityEvaluationCreator")
 
   @@map("users")
 }
@@ -276,6 +300,12 @@ model Organization {
   recommendations         Recommendation[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  notionDatabaseMapping   NotionDatabaseMapping?
+  notionSyncStates        NotionSyncState[]
+  notionSyncLogs          NotionSyncLog[]
+  auditLogs               OrganizationAuditLog[]
+  similarityChecks        SimilarityCheck[]
+  qualityEvaluations      AiQualityEvaluation[]
 
   @@index([ownerId])
   @@map("organizations")
@@ -389,6 +419,7 @@ model ContentItem {
   contentTags      ContentTag[]
   publicationPlans PublicationPlan[]
   aiGenerationLogs AiGenerationLog[] @relation("AiGenerationContentResult")
+  qualityEvaluations AiQualityEvaluation[]
 
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
@@ -482,6 +513,8 @@ model SourceFeed {
   status         SourceFeedStatus  @default(ACTIVE)
   lastFetchedAt  DateTime?         @map("last_fetched_at") @db.Timestamptz(6)
   lastError      String?           @map("last_error")
+  nextFetchAt    DateTime?         @map("next_fetch_at") @db.Timestamptz(6)
+  failureCount   Int               @default(0) @map("failure_count")
   createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -489,6 +522,7 @@ model SourceFeed {
 
   @@unique([organizationId, url])
   @@index([organizationId, status])
+  @@index([status, nextFetchAt])
   @@map("source_feeds")
 }
 
@@ -608,6 +642,7 @@ model Recommendation {
 
   @@index([organizationId, status])
   @@index([organizationId, type])
+  @@unique([organizationId, type, targetType, targetId])
   @@map("recommendations")
 }
 
@@ -627,6 +662,7 @@ model Notification {
 
   @@index([userId, status])
   @@index([organizationId, createdAt])
+  @@unique([userId, reminderId])
   @@map("notifications")
 }
 
@@ -660,6 +696,124 @@ model IntegrationCredential {
   @@unique([organizationId, provider])
   @@index([organizationId, status])
   @@map("integration_credentials")
+}
+
+model NotionDatabaseMapping {
+  id                 String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId     String       @unique @map("organization_id") @db.Uuid
+  databaseId         String       @map("database_id")
+  databaseName       String       @map("database_name")
+  propertyMapping    Json         @default("{}") @map("property_mapping")
+  conflictStrategy   String       @default("NEWEST_WINS") @map("conflict_strategy")
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("notion_database_mappings")
+}
+
+model NotionSyncState {
+  id                 String               @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId     String               @map("organization_id") @db.Uuid
+  entityType         NotionSyncEntityType @map("entity_type")
+  entityId           String               @map("entity_id") @db.Uuid
+  notionPageId       String               @map("notion_page_id")
+  lastLocalHash      String?              @map("last_local_hash")
+  lastRemoteEditedAt DateTime?            @map("last_remote_edited_at") @db.Timestamptz(6)
+  lastSyncedAt       DateTime             @default(now()) @map("last_synced_at") @db.Timestamptz(6)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, entityType, entityId])
+  @@unique([organizationId, notionPageId])
+  @@index([organizationId, lastSyncedAt])
+  @@map("notion_sync_states")
+}
+
+model NotionSyncLog {
+  id             String           @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  triggeredById  String?          @map("triggered_by_id") @db.Uuid
+  operation      String
+  status         NotionSyncStatus
+  processedCount Int              @default(0) @map("processed_count")
+  failedCount    Int              @default(0) @map("failed_count")
+  durationMs     Int              @default(0) @map("duration_ms")
+  errorCode      String?          @map("error_code")
+  errorMessage   String?          @map("error_message")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("notion_sync_logs")
+}
+
+model OrganizationAuditLog {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  actorUserId    String?      @map("actor_user_id") @db.Uuid
+  action         String
+  targetType     String       @map("target_type")
+  targetId       String?      @map("target_id")
+  metadata       Json         @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action])
+  @@map("organization_audit_logs")
+}
+
+model ScheduledJobRun {
+  id         String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  jobKey     String             @map("job_key")
+  bucketAt   DateTime           @map("bucket_at") @db.Timestamptz(6)
+  status     ScheduledJobStatus @default(RUNNING)
+  instanceId String             @map("instance_id")
+  startedAt  DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime?          @map("finished_at") @db.Timestamptz(6)
+  leaseExpiresAt DateTime       @map("lease_expires_at") @db.Timestamptz(6)
+  error      String?
+
+  @@unique([jobKey, bucketAt])
+  @@index([status, startedAt])
+  @@map("scheduled_job_runs")
+}
+
+model SimilarityCheck {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  sourceType     String       @map("source_type")
+  sourceId       String?      @map("source_id") @db.Uuid
+  targetType     String       @map("target_type")
+  targetId       String?      @map("target_id") @db.Uuid
+  score          Float
+  method         String
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("similarity_checks")
+}
+
+model AiQualityEvaluation {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  contentItemId  String       @map("content_item_id") @db.Uuid
+  format         ContentFormat
+  score          Int
+  feedback       String?
+  createdById    String?      @map("created_by_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentItem    ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  createdBy      User?        @relation("AiQualityEvaluationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, contentItemId, createdById])
+  @@index([organizationId, format])
+  @@map("ai_quality_evaluations")
 }
 
 model AiGenerationLog {

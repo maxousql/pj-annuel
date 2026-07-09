@@ -26,6 +26,13 @@ export type HealthPayload = {
   version: string;
 };
 
+export type ReadinessPayload = HealthPayload & {
+  dependencies: {
+    database: "ok";
+    migration: string;
+  };
+};
+
 export const AUTH_PROVIDERS = ["CREDENTIALS", "GOOGLE"] as const;
 export type AuthProvider = (typeof AUTH_PROVIDERS)[number];
 
@@ -569,6 +576,38 @@ export type MembersListPayload = {
   members: MembershipSummary[];
 };
 
+export type InvitationSummaryPayload = {
+  createdAt: string;
+  email: string;
+  expiresAt: string;
+  id: string;
+  role: OrganizationRole;
+  status: InvitationStatus;
+};
+
+export type InvitationsPayload = {
+  invitations: InvitationSummaryPayload[];
+  members: MembershipSummary[];
+};
+
+export type InvitationPreviewPayload = {
+  email: string;
+  expiresAt: string;
+  organizationName: string;
+  organizationSlug: string;
+  role: OrganizationRole;
+  status: InvitationStatus;
+};
+
+export type InvitationMutationPayload = {
+  invitation: InvitationSummaryPayload;
+  previewUrl?: string;
+};
+
+export type MemberMutationPayload = {
+  member: MembershipSummary;
+};
+
 export type OnboardingStatePayload = {
   advanced: AdvancedOnboardingPayload | null;
   activeOrganization: OrganizationSummary | null;
@@ -602,6 +641,7 @@ export type OnboardingPresetPayload = {
 };
 
 export type AdvancedOnboardingPayload = {
+  availableSteps: AdvancedOnboardingStep[];
   completedAt: string | null;
   completedSteps: AdvancedOnboardingStep[];
   currentStep: AdvancedOnboardingStep;
@@ -666,6 +706,111 @@ export type AutomationsPayload = {
   preferences: NotificationPreferencePayload;
   recommendations: RecommendationPayload[];
   rules: AutomationRulePayload[];
+};
+
+export const NOTION_CONFLICT_STRATEGIES = [
+  "LOCAL_WINS",
+  "NOTION_WINS",
+  "NEWEST_WINS",
+] as const;
+export type NotionConflictStrategy =
+  (typeof NOTION_CONFLICT_STRATEGIES)[number];
+
+export type NotionPropertyMappingPayload = {
+  channel: string;
+  date: string;
+  entityType: string;
+  sourceUrl: string;
+  status: string;
+  title: string;
+};
+
+export type NotionPropertyTypeMappingPayload = {
+  channel: "select";
+  date: "date";
+  entityType: "select";
+  sourceUrl: "url";
+  status: "select" | "status";
+  title: "title";
+};
+
+export type NotionDatabasePayload = {
+  id: string;
+  name: string;
+  properties: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
+};
+
+export type NotionMappingPayload = {
+  conflictStrategy: NotionConflictStrategy;
+  databaseId: string;
+  databaseName: string;
+  propertyMapping: NotionPropertyMappingPayload;
+  propertyTypes: NotionPropertyTypeMappingPayload;
+  updatedAt: string;
+};
+
+export type NotionSyncLogPayload = {
+  createdAt: string;
+  durationMs: number;
+  errorCode: string | null;
+  errorMessage: string | null;
+  failedCount: number;
+  id: string;
+  operation: string;
+  processedCount: number;
+  status: "SUCCEEDED" | "PARTIAL" | "FAILED";
+};
+
+export type NotionIntegrationPayload = {
+  canConfigure: boolean;
+  canSync: boolean;
+  connected: boolean;
+  connection: {
+    status: "ACTIVE" | "DISABLED" | "ERROR";
+    workspaceName: string | null;
+  } | null;
+  logs: NotionSyncLogPayload[];
+  mapping: NotionMappingPayload | null;
+};
+
+export type NotionConnectPayload = {
+  authorizationUrl: string;
+};
+
+export type NotionDatabasesPayload = {
+  databases: NotionDatabasePayload[];
+};
+
+export type NotionSyncResultPayload = {
+  failedCount: number;
+  message: string | null;
+  processedCount: number;
+  status: "SUCCEEDED" | "PARTIAL" | "FAILED";
+};
+
+export type CuratedResourceDetailPayload = {
+  canEdit: boolean;
+  resource: CuratedResourcePayload;
+};
+
+export type AiQualitySummaryPayload = {
+  formats: Array<{
+    averageScore: number;
+    count: number;
+    format: ContentFormat;
+  }>;
+};
+
+export type AiQualityEvaluationPayload = {
+  contentItemId: string;
+  feedback: string | null;
+  format: ContentFormat;
+  score: number;
+  updatedAt: string;
 };
 
 export function ok<TData>(

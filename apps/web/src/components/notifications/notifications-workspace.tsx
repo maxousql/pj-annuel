@@ -26,12 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   fetchAutomations,
   markAllNotificationsAsRead,
@@ -322,7 +317,9 @@ function NotificationRow({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={notification.status === "UNREAD" ? "default" : "outline"}>
+            <Badge
+              variant={notification.status === "UNREAD" ? "default" : "outline"}
+            >
               {notification.status === "UNREAD" ? "Non lue" : "Lue"}
             </Badge>
             <span className="text-xs text-[color:var(--text-muted)]">

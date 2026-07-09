@@ -1522,11 +1522,7 @@ type PublicationChannel =
   "LINKEDIN" | "BLOG" | "EMAIL" | "X" | "FACEBOOK" | "INSTAGRAM" | "OTHER";
 type DbPublicationStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CANCELLED";
 type AdvancedOnboardingStep =
-  | "CHECKLIST"
-  | "PRESET"
-  | "FIRST_IDEA"
-  | "FIRST_CONTENT"
-  | "DONE";
+  "CHECKLIST" | "PRESET" | "FIRST_IDEA" | "FIRST_CONTENT" | "DONE";
 
 type StoredUser = {
   avatarUrl: string | null;
@@ -2061,10 +2057,7 @@ class OrganizationFakePrismaService {
       create: Partial<
         Pick<
           StoredOnboardingProgress,
-          | "completedAt"
-          | "completedSteps"
-          | "currentStep"
-          | "skippedAt"
+          "completedAt" | "completedSteps" | "currentStep" | "skippedAt"
         >
       > &
         Pick<StoredOnboardingProgress, "organizationId" | "userId">;
@@ -2072,10 +2065,7 @@ class OrganizationFakePrismaService {
       update: Partial<
         Pick<
           StoredOnboardingProgress,
-          | "completedAt"
-          | "completedSteps"
-          | "currentStep"
-          | "skippedAt"
+          "completedAt" | "completedSteps" | "currentStep" | "skippedAt"
         >
       >;
       where: {
@@ -2158,6 +2148,46 @@ class OrganizationFakePrismaService {
   };
 
   readonly contentIdea = {
+    count: async (args: {
+      where: {
+        archivedAt?: null;
+        createdById?: string;
+        organizationId?: string;
+        status?: { in?: ContentIdeaStatus[] };
+      };
+    }) => {
+      return this.contentIdeas.filter((candidate) => {
+        if (
+          args.where.organizationId &&
+          candidate.organizationId !== args.where.organizationId
+        ) {
+          return false;
+        }
+
+        if (
+          args.where.createdById &&
+          candidate.createdById !== args.where.createdById
+        ) {
+          return false;
+        }
+
+        if (
+          "archivedAt" in args.where &&
+          candidate.archivedAt !== args.where.archivedAt
+        ) {
+          return false;
+        }
+
+        if (
+          args.where.status?.in &&
+          !args.where.status.in.includes(candidate.status)
+        ) {
+          return false;
+        }
+
+        return true;
+      }).length;
+    },
     create: async (args: {
       data: Pick<
         StoredContentIdea,

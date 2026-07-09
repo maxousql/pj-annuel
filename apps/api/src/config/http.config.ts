@@ -19,7 +19,7 @@ export function buildCorsOptions(frontendUrl?: string | undefined) {
 
   return {
     credentials: true,
-    origin: origins.length > 0 ? origins : true,
+    origin: origins.length > 0 ? origins : false,
   };
 }
 

@@ -1,6 +1,8 @@
 import {
   DEFAULT_DUPLICATE_WARNING_THRESHOLD,
   computeSimilarity,
+  computeSemanticSimilarity,
+  findBestHybridSimilarityMatch,
   findBestSimilarityMatch,
   matchesSearchQuery,
   tokenize,
@@ -10,6 +12,7 @@ describe("history similarity", () => {
   it("normalizes accents, casing and insignificant punctuation", () => {
     expect([...tokenize("Éditorial: IA, acquisition!")]).toEqual([
       "editorial",
+      "ia",
       "acquisition",
     ]);
   });
@@ -20,7 +23,7 @@ describe("history similarity", () => {
         "Production contenu IA pour acquisition",
         "Acquisition par contenu ia",
       ),
-    ).toBe(0.4);
+    ).toBe(0.5);
   });
 
   it("selects the closest candidate", () => {
@@ -56,5 +59,45 @@ describe("history similarity", () => {
 
   it("documents the default warning threshold", () => {
     expect(DEFAULT_DUPLICATE_WARNING_THRESHOLD).toBe(0.72);
+  });
+
+  it("recognizes marketing concepts expressed with different vocabulary", () => {
+    expect(
+      computeSemanticSimilarity(
+        "Ameliorer l'acquisition et la fidelisation client",
+        "Accelerer la croissance et la retention de l'audience",
+      ),
+    ).toBeGreaterThan(0.7);
+  });
+
+  it("keeps the short IA token in semantic comparisons", () => {
+    expect([...tokenize("IA pour les ventes")]).toContain("ia");
+    expect(
+      computeSemanticSimilarity("IA marketing", "intelligence marketing"),
+    ).toBeGreaterThan(0.5);
+  });
+
+  it("computes the hybrid score per candidate before choosing the maximum", () => {
+    const match = findBestHybridSimilarityMatch(
+      "activation onboarding produit croissance acquisition",
+      "Guide de lancement",
+      [
+        {
+          id: "semantic",
+          text: "activation onboarding produit",
+          title: "Activation",
+          type: "CONTENT",
+        },
+        {
+          id: "title",
+          text: "veille concurrentielle",
+          title: "Guide de lancement",
+          type: "IDEA",
+        },
+      ],
+    );
+
+    expect(match.candidate?.id).toBe("title");
+    expect(match.score).toBe(1);
   });
 });

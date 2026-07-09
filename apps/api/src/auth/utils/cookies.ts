@@ -12,6 +12,7 @@ import {
 type SameSite = "lax" | "strict" | "none";
 
 type CookieOptions = {
+  domain?: string;
   httpOnly: boolean;
   maxAge?: number;
   path: string;
@@ -77,10 +78,19 @@ export function readCookie(request: Request, name: string): string | undefined {
 }
 
 function baseCookieOptions(): CookieOptions {
+  const configuredSameSite = process.env.AUTH_COOKIE_SAME_SITE?.toLowerCase();
+  const sameSite: SameSite =
+    configuredSameSite === "strict" || configuredSameSite === "none"
+      ? configuredSameSite
+      : "lax";
+
   return {
+    ...(process.env.AUTH_COOKIE_DOMAIN
+      ? { domain: process.env.AUTH_COOKIE_DOMAIN }
+      : {}),
     httpOnly: true,
     path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite,
+    secure: process.env.NODE_ENV === "production" || sameSite === "none",
   };
 }

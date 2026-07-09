@@ -103,6 +103,10 @@ export function AutomationsWorkspace({
     const result = await updateAutomationRule(organizationSlug, type, {
       reminderHoursBefore: type === "PUBLICATION_REMINDER" ? 48 : undefined,
       status: nextStatus,
+      timezone:
+        type === "PUBLICATION_REMINDER"
+          ? Intl.DateTimeFormat().resolvedOptions().timeZone
+          : undefined,
     });
     setBusyKey(null);
 
@@ -245,8 +249,8 @@ export function AutomationsWorkspace({
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
             <CardTitle>Jobs planifies</CardTitle>
             <CardDescription>
-              Les automatisations tournent en arriere-plan quand les regles
-              sont actives.
+              Les automatisations tournent en arriere-plan quand les regles sont
+              actives.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 px-5 py-5">

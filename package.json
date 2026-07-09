@@ -20,16 +20,21 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,css,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,css,md,yml,yaml}\"",
     "test": "npm run build -w @content-ai/shared && npm run test -w @content-ai/api && npm run test -w @content-ai/web",
-    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "E2E_SMOKE_ONLY=true playwright test e2e/responsive.spec.ts",
+    "test:e2e:install": "playwright install chromium",
     "typecheck": "npm run build -w @content-ai/shared && npm run typecheck -w @content-ai/api && npm run typecheck -w @content-ai/web",
     "env:check": "node tools/check-env.mjs .env.example",
     "env:check:local": "node tools/check-env.mjs .env.local",
     "db:generate": "npm run db:generate -w @content-ai/api",
     "db:validate": "npm run db:validate -w @content-ai/api",
     "db:migrate": "npm run db:migrate -w @content-ai/api",
-    "db:seed": "npm run db:seed -w @content-ai/api"
+    "db:verify-upgrade": "node tools/verify-migration-upgrade.mjs",
+    "db:seed": "npm run db:seed -w @content-ai/api",
+    "smoke": "node tools/smoke.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "concurrently": "^9.1.2",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2"

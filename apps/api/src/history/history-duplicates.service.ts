@@ -8,7 +8,7 @@ import type {
 import { PrismaService } from "../database/prisma.service";
 import {
   DEFAULT_DUPLICATE_WARNING_THRESHOLD,
-  findBestSimilarityMatch,
+  findBestHybridSimilarityMatch,
 } from "./history-similarity";
 
 type DuplicateInput = {
@@ -103,8 +103,27 @@ export class HistoryDuplicatesService {
           };
         }),
     ];
-    const match = findBestSimilarityMatch(buildHistoryText(input), candidates);
+    const match = findBestHybridSimilarityMatch(
+      buildHistoryText(input),
+      input.title,
+      candidates,
+    );
+    const score = match.score;
     const threshold = this.resolveThreshold();
+
+    if (match.candidate && this.prisma.similarityCheck) {
+      await this.prisma.similarityCheck.create({
+        data: {
+          method: "HYBRID_CONCEPT_COSINE_V1",
+          organizationId,
+          score,
+          sourceId: input.excludedId ?? null,
+          sourceType: input.targetType,
+          targetId: match.candidate.id,
+          targetType: match.candidate.type,
+        },
+      });
+    }
 
     return {
       matchedId: match.candidate && match.score > 0 ? match.candidate.id : null,
@@ -112,10 +131,10 @@ export class HistoryDuplicatesService {
         match.candidate && match.score > 0 ? match.candidate.title : null,
       matchedType:
         match.candidate && match.score > 0 ? match.candidate.type : null,
-      score: match.score,
+      score,
       targetType: input.targetType,
       threshold,
-      warning: match.score >= threshold,
+      warning: score >= threshold,
     };
   }
 

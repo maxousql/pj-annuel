@@ -6,6 +6,7 @@ import { DatabaseModule } from "../database/database.module";
 import { HistoryModule } from "../history/history.module";
 import { OrganizationsModule } from "../organizations/organizations.module";
 import { CurationController } from "./curation.controller";
+import { CurationScheduler } from "./curation.scheduler";
 import { CurationService } from "./curation.service";
 
 @Module({
@@ -17,6 +18,6 @@ import { CurationService } from "./curation.service";
     HistoryModule,
     OrganizationsModule,
   ],
-  providers: [CurationService],
+  providers: [CurationService, CurationScheduler],
 })
 export class CurationModule {}

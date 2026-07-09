@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsIn, IsInt, IsOptional, Max, Min } from "class-validator";
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import {
   AUTOMATION_RULE_STATUSES,
   AUTOMATION_RULE_TYPES,
@@ -26,4 +26,8 @@ export class UpdateAutomationRuleDto {
   @Max(168)
   @IsOptional()
   reminderHoursBefore?: number;
+
+  @IsString()
+  @IsOptional()
+  timezone?: string;
 }
