@@ -72,6 +72,9 @@ jobs:
       - name: Verify upgrade with pre-existing duplicate data
         run: npm run db:verify-upgrade
 
+      - name: Check migration status
+        run: npm run db:status
+
       - name: Check formatting and types
         run: npm run lint
 

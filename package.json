@@ -9,7 +9,7 @@
     "apps/web"
   ],
   "scripts": {
-    "dev": "npm run env:check:local && concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev": "npm run env:check:local && npm run db:status && concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "dev:web": "npm run dev -w @content-ai/web",
     "dev:api": "npm run start:dev -w @content-ai/api",
     "build": "npm run build -w @content-ai/shared && npm run build -w @content-ai/api && npm run build -w @content-ai/web",
@@ -28,6 +28,7 @@
     "env:check:local": "node tools/check-env.mjs .env.local",
     "db:generate": "npm run db:generate -w @content-ai/api",
     "db:validate": "npm run db:validate -w @content-ai/api",
+    "db:status": "npm run db:status -w @content-ai/api",
     "db:migrate": "npm run db:migrate -w @content-ai/api",
     "db:verify-upgrade": "node tools/verify-migration-upgrade.mjs",
     "db:seed": "npm run db:seed -w @content-ai/api",

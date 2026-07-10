@@ -24,6 +24,21 @@ npm run dev
 
 Par defaut, le web ecoute sur `http://localhost:3000`, l'API sur `http://localhost:4000`, la liveness sur `/health` et la readiness PostgreSQL sur `/health/ready`.
 
+`npm run dev` valide `.env.local`, puis execute `npm run db:status` avant de lancer les serveurs. Ce preflight Prisma est en lecture seule : il compare les migrations versionnees a leur historique en base, n'applique aucun SQL et bloque le demarrage si la base est inaccessible ou en retard.
+
+### Depannage des migrations locales
+
+Si le preflight echoue, verifier d'abord dans `.env.local` que l'hote et le nom de base de `DATABASE_URL` ciblent bien l'environnement voulu, sans copier ni journaliser l'URL complete. Inspecter ensuite les migrations en attente avant de les appliquer volontairement :
+
+```bash
+npm run db:status
+npm run db:migrate
+npm run db:status
+npm run dev
+```
+
+`npm run db:migrate` est une action explicite et distincte du demarrage. Si Prisma signale un historique divergent ou une migration echouee, arreter la procedure : ne pas utiliser `db push`, `migrate reset` ou `migrate resolve` comme raccourci, et suivre le [runbook de migrations et rollback](docs/operations/migrations-and-rollback.md).
+
 ## Authentification et organisations
 
 Les sessions sont des JWT signes dans le cookie HTTP-only `app_session`. Les controles multi-tenant et RBAC `ADMIN`, `EDITOR`, `READER` sont appliques par l'API. Google OAuth est active uniquement lorsque ses identifiants sont fournis.

@@ -100,7 +100,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <p className="eyebrow">Acces securise</p>
         <h1 id={`${mode}-title`}>{config.title}</h1>
       </div>
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form" method="post" onSubmit={handleSubmit}>
         {isRegister ? (
           <label className="field">
             <span>Nom complet</span>
