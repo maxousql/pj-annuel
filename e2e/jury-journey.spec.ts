@@ -64,6 +64,6 @@ test("jury journey: account to planned content", async ({ page }) => {
     .toISOString()
     .slice(0, 16);
   await page.getByLabel("Date").fill(scheduledAt);
-  await page.getByRole("button", { name: "Planifier" }).click();
+  await page.getByRole("button", { name: "Planifier", exact: true }).click();
   await expect(page.getByText("Planification creee.")).toBeVisible();
 });
