@@ -10,6 +10,7 @@ const buttonVariants = cva(
       variant: {
         default:
           "border-[var(--rubric)] bg-[var(--rubric)] text-[var(--paper-card)] shadow-[3px_3px_0_rgba(23,19,15,0.18)] hover:-translate-x-px hover:-translate-y-px hover:bg-[var(--rubric)] hover:shadow-[4px_4px_0_rgba(23,19,15,0.18)] active:translate-x-px active:translate-y-px active:shadow-none",
+        sage: "border-[var(--sage)] bg-[var(--sage)] text-[var(--paper-card)] shadow-[3px_3px_0_rgba(23,19,15,0.16)] hover:-translate-x-px hover:-translate-y-px hover:bg-[var(--sage)] hover:shadow-[4px_4px_0_rgba(23,19,15,0.16)] active:translate-x-px active:translate-y-px active:shadow-none",
         outline:
           "border-border bg-[var(--surface-muted)] text-foreground hover:bg-[var(--surface-accent)] hover:text-foreground aria-expanded:bg-[var(--surface-accent)] aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

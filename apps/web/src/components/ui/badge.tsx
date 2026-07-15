@@ -11,6 +11,7 @@ const badgeVariants = cva(
       variant: {
         default:
           "border-[rgba(216,64,31,0.22)] bg-[var(--rubric-soft)] text-[var(--rubric)] [a]:hover:bg-[rgba(216,64,31,0.14)]",
+        sage: "border-[color:var(--sage)]/25 bg-[color:var(--sage)]/10 text-[color:var(--sage)] [a]:hover:bg-[color:var(--sage)]/15",
         secondary:
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
