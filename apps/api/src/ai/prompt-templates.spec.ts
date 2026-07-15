@@ -41,7 +41,7 @@ describe("AI prompt templates", () => {
     expect(prompt.input).toContain("Cible: CMO et founders");
     expect(prompt.input).toContain("Ton: Clair et direct");
     expect(prompt.input).toContain("Positionnement: Expert pragmatique");
-    expect(prompt.input).toContain("Thematiques: IA, content marketing");
+    expect(prompt.input).toContain("Thématiques: IA, content marketing");
     expect(prompt.input).toContain(
       "Brief utilisateur: Trouver des angles pratiques.",
     );
@@ -73,7 +73,7 @@ describe("AI prompt templates", () => {
     expect(prompt.input).toContain("Format cible: EMAIL.");
     expect(prompt.input).toContain("Le titre doit pouvoir servir d'objet");
     expect(prompt.input).toContain(
-      'Le champ JSON format doit etre exactement "EMAIL".',
+      'Le champ JSON format doit être exactement "EMAIL".',
     );
     expect(prompt.input).toContain("Ancienne campagne a eviter");
   });
