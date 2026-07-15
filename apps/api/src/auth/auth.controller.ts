@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Patch,
   Post,
@@ -83,6 +84,18 @@ export class AuthController {
     const user = await this.authService.updateProfile(request.user.id, dto);
 
     return successResponse({ user });
+  }
+
+  @Delete("me")
+  @UseGuards(AuthGuard)
+  async deleteAccount(
+    @Req() request: AuthenticatedRequest,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.deleteAccount(request.user.id);
+    clearAuthCookie(response);
+
+    return successResponse({ ok: true });
   }
 
   @Get("google")

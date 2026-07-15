@@ -40,3 +40,14 @@ export function getSafeNextPath(): string {
 
   return nextPath;
 }
+
+export function getInvitationTokenFromUrl(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const nextPath = new URLSearchParams(window.location.search).get("next");
+  const inviteMatch = nextPath?.match(/^\/invite\/(.+)$/);
+
+  return inviteMatch?.[1] ?? null;
+}
