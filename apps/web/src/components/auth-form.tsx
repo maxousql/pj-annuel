@@ -168,6 +168,7 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
             type="password"
             autoComplete={isRegister ? "new-password" : "current-password"}
             minLength={isRegister ? 10 : undefined}
+            maxLength={isRegister ? 72 : undefined}
             pattern={isRegister ? "(?=.*[A-Za-z])(?=.*\\d).{10,}" : undefined}
             aria-describedby={isRegister ? "password-help" : undefined}
             required

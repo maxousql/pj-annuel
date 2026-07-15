@@ -124,6 +124,61 @@ describe("Auth API", () => {
     expect(extractSessionCookie(loginResponse)).toContain("app_session=");
   });
 
+  it("changes a credentials password after verifying the current one", async () => {
+    const registerResponse = await request(app.getHttpServer())
+      .post("/api/auth/register")
+      .send({
+        email: "password@example.com",
+        name: "Password User",
+        password: "Password123",
+      })
+      .expect(201);
+    const cookie = extractSessionCookie(registerResponse);
+
+    await request(app.getHttpServer())
+      .patch("/api/auth/me/password")
+      .set("Cookie", cookie)
+      .send({
+        currentPassword: "WrongPassword123",
+        newPassword: "NewPassword456",
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch("/api/auth/me/password")
+      .set("Cookie", cookie)
+      .send({
+        currentPassword: "Password123",
+        newPassword: "weak",
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch("/api/auth/me/password")
+      .set("Cookie", cookie)
+      .send({
+        currentPassword: "Password123",
+        newPassword: "NewPassword456",
+      })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({
+        email: "password@example.com",
+        password: "Password123",
+      })
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({
+        email: "password@example.com",
+        password: "NewPassword456",
+      })
+      .expect(201);
+  });
+
   it("rejects weak passwords and unauthenticated profile access", async () => {
     const weakPasswordResponse = await request(app.getHttpServer())
       .post("/api/auth/register")
@@ -139,7 +194,7 @@ describe("Auth API", () => {
       error: {
         code: "VALIDATION_ERROR",
         message:
-          "Le mot de passe doit contenir au moins 10 caracteres, une lettre et un chiffre.",
+          "Le mot de passe doit contenir au moins 10 caracteres, une lettre et un chiffre, sans dépasser la limite de sécurité.",
       },
     });
 
@@ -328,6 +383,55 @@ class FakePrismaService {
           : {}),
       };
     },
+    findFirst: async (args: {
+      select?: Select;
+      where: { provider?: StoredAuthAccount["provider"]; userId?: string };
+    }) => {
+      const account = this.authAccounts.find((candidate) => {
+        return (
+          (!args.where.provider ||
+            candidate.provider === args.where.provider) &&
+          (!args.where.userId || candidate.userId === args.where.userId)
+        );
+      });
+
+      return account ? selectAuthAccount(account, args.select) : null;
+    },
+    update: async (args: {
+      data: Partial<Pick<StoredAuthAccount, "passwordHash">>;
+      select?: Select;
+      where: { id: string };
+    }) => {
+      const account = this.authAccounts.find(
+        (candidate) => candidate.id === args.where.id,
+      );
+
+      if (!account) {
+        throw new Error("Auth account not found");
+      }
+
+      account.passwordHash = args.data.passwordHash ?? account.passwordHash;
+      return selectAuthAccount(account, args.select);
+    },
+    updateMany: async (args: {
+      data: Partial<Pick<StoredAuthAccount, "passwordHash">>;
+      where: { id: string; passwordHash?: string | null };
+    }) => {
+      const account = this.authAccounts.find((candidate) => {
+        return (
+          candidate.id === args.where.id &&
+          (args.where.passwordHash === undefined ||
+            candidate.passwordHash === args.where.passwordHash)
+        );
+      });
+
+      if (!account) {
+        return { count: 0 };
+      }
+
+      account.passwordHash = args.data.passwordHash ?? account.passwordHash;
+      return { count: 1 };
+    },
     upsert: async (args: {
       create: Omit<StoredAuthAccount, "id" | "passwordHash"> & {
         passwordHash?: string | null;
@@ -398,6 +502,19 @@ function selectUser<TUser extends StoredUser | undefined>(
     Object.entries(select)
       .filter(([, enabled]) => enabled)
       .map(([key]) => [key, user[key as keyof StoredUser]]),
+  );
+}
+
+function selectAuthAccount(
+  account: StoredAuthAccount,
+  select?: Select,
+): StoredAuthAccount | Partial<StoredAuthAccount> {
+  if (!select) return account;
+
+  return Object.fromEntries(
+    Object.entries(select)
+      .filter(([, enabled]) => enabled)
+      .map(([key]) => [key, account[key as keyof StoredAuthAccount]]),
   );
 }
 

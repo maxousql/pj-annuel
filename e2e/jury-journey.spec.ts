@@ -36,6 +36,25 @@ test("jury journey: account to planned content", async ({ page }) => {
     new RegExp(`/app/${organizationSlug}/dashboard`),
   );
 
+  const accountLink = page.getByRole("link", {
+    name: "Ouvrir les paramètres du compte",
+  });
+  await expect(accountLink.getByText("Administrateur")).toBeVisible();
+  await accountLink.click();
+  await expect(page).toHaveURL(/\/app\/settings$/);
+  await expect(
+    page.getByRole("heading", { name: "Votre espace, à votre image." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Votre empreinte éditoriale" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Sécurité du compte" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Organisation Jury", { exact: true }),
+  ).toBeVisible();
+
   await page.goto(`/app/${organizationSlug}/notifications`);
   await expectTabsInsideTrack(page.getByRole("tablist"), page.getByRole("tab"));
 

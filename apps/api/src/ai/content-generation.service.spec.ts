@@ -43,6 +43,7 @@ describe("ContentGenerationService", () => {
         inputHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         model: "stub-model",
         organizationId: "organization-id",
+        promptMetadata: expect.objectContaining({ resultCount: 1 }),
         promptVersion: CONTENT_IDEAS_PROMPT_VERSION,
         status: "SUCCEEDED",
         type: "CONTENT_IDEA",

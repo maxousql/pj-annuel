@@ -4,6 +4,7 @@ import {
   getNavigationItemsForRole,
   getOrganizationSlugFromPath,
   isNavigationItemEnabled,
+  resolveActiveOrganization,
 } from "./app-navigation";
 
 describe("app navigation", () => {
@@ -65,4 +66,26 @@ describe("app navigation", () => {
     expect(getOrganizationSlugFromPath("/app/onboarding")).toBeUndefined();
     expect(getOrganizationSlugFromPath("/app/settings")).toBeUndefined();
   });
+
+  it("keeps the organization used before opening personal settings", () => {
+    const organizations = [
+      buildOrganization("first", "ADMIN"),
+      buildOrganization("second", "EDITOR"),
+    ];
+
+    expect(resolveActiveOrganization(organizations, undefined, "second")).toBe(
+      organizations[1],
+    );
+  });
 });
+
+function buildOrganization(slug: string, role: "ADMIN" | "EDITOR" | "READER") {
+  return {
+    createdAt: "2026-01-01T00:00:00.000Z",
+    id: `${slug}-id`,
+    name: slug,
+    ownerId: "owner-id",
+    role,
+    slug,
+  };
+}

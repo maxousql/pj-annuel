@@ -570,6 +570,38 @@ export type AuthSessionPayload = {
   user: AuthUser;
 };
 
+export type AccountMembershipPayload = {
+  joinedAt: string;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  role: OrganizationRole;
+};
+
+export type AccountActivityStatsPayload = {
+  aiGenerations: number;
+  contentIdeasGenerated: number;
+  contentIdeasSaved: number;
+  contentItemsCreated: number;
+  discoveryFeedbacks: {
+    disliked: number;
+    liked: number;
+    skipped: number;
+  };
+};
+
+export type AccountProfilePayload = {
+  credentialsEnabled: boolean;
+  memberships: AccountMembershipPayload[];
+  providers: AuthProvider[];
+  stats: AccountActivityStatsPayload;
+  user: AuthUser & {
+    createdAt: string;
+  };
+};
+
 export const ONBOARDING_STEPS = [
   "CREATE_ORGANIZATION",
   "CONFIGURE_EDITORIAL_CONTEXT",

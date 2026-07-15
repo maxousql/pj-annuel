@@ -1,4 +1,4 @@
-import type { OrganizationRole } from "@content-ai/shared";
+import type { OrganizationRole, OrganizationSummary } from "@content-ai/shared";
 
 export type NavigationAvailability = "available" | "soon";
 
@@ -119,6 +119,20 @@ export function isNavigationItemEnabled(item: AppNavigationItem): boolean {
 
 export function getDefaultOrganizationHref(organizationSlug: string): string {
   return `/app/${organizationSlug}/dashboard`;
+}
+
+export function resolveActiveOrganization(
+  organizations: OrganizationSummary[],
+  requestedOrganizationSlug?: string,
+  recentOrganizationSlug?: string,
+): OrganizationSummary | undefined {
+  const preferredOrganizationSlug =
+    requestedOrganizationSlug ?? recentOrganizationSlug;
+  const preferredOrganization = preferredOrganizationSlug
+    ? organizations.find(({ slug }) => slug === preferredOrganizationSlug)
+    : undefined;
+
+  return preferredOrganization ?? organizations[0];
 }
 
 export function getOrganizationSlugFromPath(
