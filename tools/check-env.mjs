@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 const requiredKeys = [
+  "NODE_ENV",
   "SUPABASE_PROJECT_ID",
   "SUPABASE_URL",
   "SUPABASE_PUBLISHABLE_KEY",
@@ -9,13 +10,18 @@ const requiredKeys = [
   "DATABASE_URL",
   "FRONTEND_URL",
   "NEXT_PUBLIC_API_URL",
+  "API_PUBLIC_URL",
   "API_PORT",
   "WEB_PORT",
   "AUTH_SECRET",
+  "AUTH_COOKIE_SAME_SITE",
+  "APP_REPLICA_COUNT",
+  "RATE_LIMIT_MODE",
   "AI_PROVIDER",
   "AI_MODEL",
   "AI_TIMEOUT_MS",
   "AI_MAX_RETRIES",
+  "DUPLICATE_WARNING_THRESHOLD",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "OPENAI_API_KEY",
@@ -23,6 +29,19 @@ const requiredKeys = [
   "NOTION_CLIENT_ID",
   "NOTION_CLIENT_SECRET",
   "NOTION_REDIRECT_URI",
+  "NOTION_API_VERSION",
+  "NOTION_OAUTH_STATE_SECRET",
+  "INTEGRATION_ENCRYPTION_KEY",
+  "INVITATION_TTL_DAYS",
+  "INVITATION_EMAIL_PROVIDER",
+  "INVITATION_EMAIL_FROM",
+  "RESEND_API_KEY",
+  "DISABLE_SCHEDULED_JOBS",
+  "EXPECTED_DATABASE_MIGRATION",
+  "SEED_DEMO_DATA",
+  "ALLOW_DEMO_SEED",
+  "DEMO_USER_EMAIL",
+  "DEMO_USER_PASSWORD",
 ];
 
 const runtimeRequiredKeys = [
@@ -52,7 +71,9 @@ if (!existsSync(envPath)) {
 }
 
 const values = parseEnv(readFileSync(envPath, "utf8"));
-const missingKeys = requiredKeys.filter((key) => !(key in values));
+const missingKeys = (isExampleFile ? requiredKeys : runtimeRequiredKeys).filter(
+  (key) => !(key in values),
+);
 const emptyRuntimeKeys = runtimeRequiredKeys.filter((key) => {
   return key in values && values[key]?.trim() === "";
 });

@@ -15,6 +15,7 @@ import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
 export type UpdateAutomationRuleInput = {
   reminderHoursBefore?: number;
   status?: AutomationRuleStatus;
+  timezone?: string;
 };
 
 export async function fetchAutomations(

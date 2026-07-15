@@ -17,14 +17,19 @@
       "industry": "B2B SaaS",
       "targetAudience": "Responsables marketing",
       "tone": "Professionnel, clair et concret",
-      "topics": ["content marketing", "IA", "planning editorial"]
+      "topics": ["content marketing", "IA", "planning editorial"],
+      "positioning": "L'atelier editorial qui aide les equipes B2B a publier avec regularite.",
+      "resourceNotes": "Privilegier les exemples concrets, les chiffres explicites et les appels a l'action sobres."
     }
   ],
   "ideas": [
     {
       "organizationSlug": "acme",
       "title": "Comment structurer un calendrier editorial avec l'IA",
-      "format": "LINKEDIN_POST"
+      "format": "LINKEDIN_POST",
+      "angle": "Une methode en cinq etapes pour passer des objectifs au planning.",
+      "category": "Planification",
+      "justification": "Le sujet relie directement IA, organisation et regularite editoriale."
     }
   ],
   "contents": [
@@ -32,7 +37,17 @@
       "organizationSlug": "acme",
       "title": "Premier brouillon de demonstration",
       "format": "BLOG_ARTICLE",
-      "status": "DRAFT"
+      "status": "READY",
+      "topic": "planning editorial",
+      "body": "Un calendrier editorial utile commence par des objectifs clairs. Listez les audiences, choisissez les formats adaptes, puis attribuez une date et un responsable a chaque contenu.\n\nL'intelligence artificielle accelere l'ideation et la redaction, mais la priorisation reste une decision d'equipe. Relisez chaque proposition dans le contexte de la marque avant de la planifier."
+    },
+    {
+      "organizationSlug": "acme",
+      "title": "Trois usages responsables de l'IA marketing",
+      "format": "LINKEDIN_POST",
+      "status": "DRAFT",
+      "topic": "IA",
+      "body": "L'IA aide a explorer des angles, structurer un premier brouillon et decliner un message. La qualite finale vient toujours du contexte, de la verification et de la voix de marque."
     }
   ]
 }

@@ -1,114 +1,79 @@
 # Content AI SaaS
 
-Plateforme SaaS de content marketing assistée par IA.
+Plateforme multi-organisation de content marketing assistee par IA : ideation, redaction, bibliotheque, calendrier, curation, automatisations, invitations et synchronisation Notion.
 
 ## Stack
 
-- Frontend : Next.js App Router
-- Backend : NestJS
-- Base de données cible : PostgreSQL hébergé sur Supabase
-- Monorepo : npm workspaces
+- Next.js App Router (`apps/web`)
+- NestJS (`apps/api`)
+- PostgreSQL et Prisma
+- npm workspaces (`packages/shared` pour les contrats)
 
-## Structure
+## Installation locale
 
-```text
-apps/
-  web/       Frontend Next.js
-  api/       Backend NestJS
-packages/
-  shared/    Types et helpers partagés
-docs/specs/  Specs fonctionnelles et techniques
-```
-
-## Installation
+Prérequis : Node.js 22+, npm 10+ et une base PostgreSQL.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
 npm run env:check:local
-```
-
-Remplir au minimum les URLs, ports et secrets requis dans `.env.local`.
-
-## Base de données Supabase
-
-Projet Supabase : `bompwwdnqtexdqrjoyqy`
-
-La base PostgreSQL n'est pas lancée en local. Renseigner `DATABASE_URL`, `SUPABASE_URL` et les clés Supabase dans `.env.local`.
-
-```bash
+npm run db:generate
 npm run db:migrate
-npm run db:seed
-```
-
-Les migrations Prisma sont versionnées dans `apps/api/prisma/migrations`.
-La migration initiale est aussi appliquée sur le projet Supabase via MCP.
-
-## Authentification
-
-Le backend NestJS expose les endpoints sous `/api/auth` :
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `PATCH /api/auth/me`
-- `GET /api/auth/google`
-- `GET /api/auth/google/callback`
-
-Les sessions applicatives utilisent un JWT signé dans un cookie HTTP-only
-`app_session`. Renseigner un `AUTH_SECRET` long dans `.env.local`.
-
-Pour Google OAuth, configurer `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`.
-Le callback par défaut est calculé depuis `NEXT_PUBLIC_API_URL` :
-`/api/auth/google/callback`.
-
-## Organisations et RBAC
-
-Le backend NestJS expose les endpoints sous `/api/organizations` :
-
-- `GET /api/organizations`
-- `POST /api/organizations`
-- `GET /api/organizations/:organizationSlug`
-- `POST /api/organizations/:organizationSlug/switch`
-- `GET /api/organizations/:organizationSlug/members`
-
-La création d'organisation ajoute automatiquement le créateur comme membre
-`ADMIN`. Les accès par organisation sont résolus côté backend depuis la session
-et le membership actif. Les rôles disponibles sont `ADMIN`, `EDITOR`, `READER`.
-
-Pages disponibles côté Next.js :
-
-- `/app`
-- `/app/organizations/new`
-- `/app/:organizationSlug/dashboard`
-- `/app/:organizationSlug/settings/members`
-- `/app/settings`
-
-## Développement
-
-```bash
 npm run dev
 ```
 
-Commandes ciblées :
+Par defaut, le web ecoute sur `http://localhost:3000`, l'API sur `http://localhost:4000`, la liveness sur `/health` et la readiness PostgreSQL sur `/health/ready`.
+
+`npm run dev` valide `.env.local`, puis execute `npm run db:status` avant de lancer les serveurs. Ce preflight Prisma est en lecture seule : il compare les migrations versionnees a leur historique en base, n'applique aucun SQL et bloque le demarrage si la base est inaccessible ou en retard.
+
+### Depannage des migrations locales
+
+Si le preflight echoue, verifier d'abord dans `.env.local` que l'hote et le nom de base de `DATABASE_URL` ciblent bien l'environnement voulu, sans copier ni journaliser l'URL complete. Inspecter ensuite les migrations en attente avant de les appliquer volontairement :
 
 ```bash
-npm run dev:web
-npm run dev:api
+npm run db:status
+npm run db:migrate
+npm run db:status
+npm run dev
 ```
 
-Par défaut :
+`npm run db:migrate` est une action explicite et distincte du demarrage. Si Prisma signale un historique divergent ou une migration echouee, arreter la procedure : ne pas utiliser `db push`, `migrate reset` ou `migrate resolve` comme raccourci, et suivre le [runbook de migrations et rollback](docs/operations/migrations-and-rollback.md).
 
-- Frontend : `http://localhost:3000`
-- Backend : `http://localhost:4000`
-- Healthcheck API : `http://localhost:4000/health`
+## Authentification et organisations
 
-## Vérification
+Les sessions sont des JWT signes dans le cookie HTTP-only `app_session`. Les controles multi-tenant et RBAC `ADMIN`, `EDITOR`, `READER` sont appliques par l'API. Google OAuth est active uniquement lorsque ses identifiants sont fournis.
+
+Un administrateur peut inviter, relancer et revoquer une invitation, modifier les roles et retirer un membre. Les tokens d'invitation sont opaques et uniquement hashes en base ; le dernier administrateur est protege.
+
+## Notion
+
+L'ecran `/app/:organizationSlug/integrations` permet la connexion OAuth, le choix de base, le mapping des proprietes, l'export et la synchronisation bidirectionnelle. Les credentials sont chiffres ; voir [le runbook integrations](docs/operations/integrations.md).
+
+## Mode demonstration
 
 ```bash
-npm run typecheck
+SEED_DEMO_DATA=true ALLOW_DEMO_SEED=true npm run db:seed
+```
+
+Le compte local par defaut est documente dans [docs/operations/demo.md](docs/operations/demo.md). Le seed exige deux opt-ins et accepte uniquement une base loopback dont le nom contient `demo`, `dev`, `test` ou `local`.
+
+## Verification
+
+```bash
+npm run env:check
+npm run db:generate
+npm run db:validate
 npm run lint
-npm run build
 npm run test
+npm run test:e2e
+npm run build
+npm audit --omit=dev
 ```
+
+Playwright demarre toujours ses propres serveurs web/API et refuse les cibles distantes. `npm run test:e2e` exige `E2E_DATABASE_URL` vers une base loopback explicitement nommee `test` ou `e2e`. `npm run test:e2e:smoke` reste disponible sans base pour la verification responsive permissive. La CI fournit PostgreSQL et execute les parcours jury et invitation complets.
+
+## Production
+
+Les images sont definies par `Dockerfile.api` et `Dockerfile.web`. `docker-compose.production.yml` sert de reference reproductible ; il n'embarque pas PostgreSQL. Les workflows de publication d'images et de migration sont manuels et separes.
+
+Lire [docs/operations/README.md](docs/operations/README.md) avant toute migration, configuration de secrets ou mise en ligne.

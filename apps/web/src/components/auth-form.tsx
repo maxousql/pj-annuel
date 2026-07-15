@@ -3,7 +3,7 @@
 import type { AuthSessionPayload } from "@content-ai/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import {
   getApiBaseUrl,
@@ -40,6 +40,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alternateNextPath, setAlternateNextPath] = useState("/app");
+
+  useEffect(() => {
+    setAlternateNextPath(getSafeNextPath());
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,7 +75,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      router.push(isRegister ? "/app/onboarding" : getSafeNextPath());
+      const nextPath = getSafeNextPath();
+      router.push(
+        isRegister && nextPath === "/app" ? "/app/onboarding" : nextPath,
+      );
       router.refresh();
     } catch {
       setError("Authentification impossible.");
@@ -84,13 +92,15 @@ export function AuthForm({ mode }: AuthFormProps) {
     window.location.href = `${getApiBaseUrl()}/api/auth/google?next=${nextPath}`;
   }
 
+  const alternateHref = `${config.alternateHref}?next=${encodeURIComponent(alternateNextPath)}`;
+
   return (
     <section className="auth-panel" aria-labelledby={`${mode}-title`}>
       <div>
         <p className="eyebrow">Acces securise</p>
         <h1 id={`${mode}-title`}>{config.title}</h1>
       </div>
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form" method="post" onSubmit={handleSubmit}>
         {isRegister ? (
           <label className="field">
             <span>Nom complet</span>
@@ -129,7 +139,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           </button>
           <span className="muted">
             {config.alternateText}{" "}
-            <Link href={config.alternateHref}>{config.alternateLabel}</Link>
+            <Link href={alternateHref}>{config.alternateLabel}</Link>
           </span>
         </div>
       </form>

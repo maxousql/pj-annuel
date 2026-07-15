@@ -40,5 +40,8 @@ describe("GET /health", () => {
       error: null,
     });
     expect(Number.isNaN(Date.parse(response.body.data.timestamp))).toBe(false);
+    expect(response.headers["x-content-type-options"]).toBe("nosniff");
+    expect(response.headers["x-frame-options"]).toBe("DENY");
+    expect(response.headers["x-request-id"]).toEqual(expect.any(String));
   });
 });

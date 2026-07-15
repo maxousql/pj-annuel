@@ -68,7 +68,7 @@ export class OnboardingController {
   }
 
   @Post("organizations/:organizationSlug/presets/apply")
-  @Roles("EDITOR")
+  @Roles("ADMIN")
   @UseGuards(OrganizationGuard)
   async applyPreset(
     @Req() request: OrganizationRequest,

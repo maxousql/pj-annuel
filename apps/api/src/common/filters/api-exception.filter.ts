@@ -4,29 +4,91 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 
 import { fail } from "@content-ai/shared";
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ApiExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const http = host.switchToHttp();
+    const response = http.getResponse<Response>();
+    const request = http.getRequest<
+      Request & {
+        requestId?: string;
+        user?: { id?: string };
+        organizationContext?: { organization?: { id?: string } };
+      }
+    >();
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const code = resolveErrorCode(status, exception);
+    const message = resolveErrorMessage(exception, status);
+    const logEntry = JSON.stringify({
+      code,
+      method: request.method,
+      organizationId: request.organizationContext?.organization?.id,
+      path: sanitizeRequestPath(request.originalUrl),
+      requestId: request.requestId,
+      status,
+      userId: request.user?.id,
+    });
+
+    if (status >= 500) {
+      this.logger.error(
+        logEntry,
+        exception instanceof Error ? exception.stack : undefined,
+      );
+    } else if (status >= 400 && status !== 404) {
+      this.logger.warn(logEntry);
+    }
+
     response
       .status(status)
       .json(
         fail(
-          resolveErrorCode(status, exception),
-          resolveErrorMessage(exception, status),
+          code,
+          message,
+          request.requestId ? { requestId: request.requestId } : undefined,
         ),
       );
   }
+}
+
+export function sanitizeRequestPath(originalUrl: string): string {
+  let pathname: string;
+
+  try {
+    pathname = new URL(originalUrl, "http://local.invalid").pathname;
+  } catch {
+    pathname = originalUrl.split("?", 1)[0] ?? "/";
+  }
+
+  const segments = pathname.split("/");
+  const invitationIndex = segments.findIndex(
+    (segment) => segment.toLowerCase() === "invitations",
+  );
+
+  if (invitationIndex >= 0 && segments[invitationIndex + 1]) {
+    segments[invitationIndex + 1] = "[redacted]";
+  }
+
+  const publicInviteIndex = segments.findIndex(
+    (segment) => segment.toLowerCase() === "invite",
+  );
+
+  if (publicInviteIndex >= 0 && segments[publicInviteIndex + 1]) {
+    segments[publicInviteIndex + 1] = "[redacted]";
+  }
+
+  return segments.join("/") || "/";
 }
 
 function resolveErrorMessage(exception: unknown, status: number): string {

@@ -16,6 +16,8 @@ import {
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
 import { fetchContent, updateContent } from "@/lib/contents/client";
+import { evaluateContentQuality } from "@/lib/ai-settings/client";
+import { exportContentToNotion } from "@/lib/integrations/client";
 
 type ContentDetailProps = {
   contentId: string;
@@ -36,6 +38,7 @@ export function ContentDetail({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -92,6 +95,33 @@ export function ContentDetail({
     setMessage("Contenu mis a jour.");
   }
 
+  async function handleQuality(score: number) {
+    setActionBusy("quality");
+    const result = await evaluateContentQuality(organizationSlug, contentId, {
+      score,
+    });
+    setActionBusy(null);
+    setMessage(
+      result.error
+        ? result.error.message
+        : `Evaluation enregistree : ${score}/5.`,
+    );
+  }
+
+  async function handleNotionExport() {
+    if (hasUnsavedChanges) {
+      setMessage("Enregistrez vos modifications avant l'export Notion.");
+      return;
+    }
+
+    setActionBusy("notion");
+    const result = await exportContentToNotion(organizationSlug, contentId);
+    setActionBusy(null);
+    setMessage(
+      result.error ? result.error.message : "Contenu exporte vers Notion.",
+    );
+  }
+
   function hydrateForm(nextContent: ContentItemPayload) {
     setContent(nextContent);
     setTitle(nextContent.title);
@@ -111,6 +141,14 @@ export function ContentDetail({
     );
     setMessage(null);
   }
+
+  const hasUnsavedChanges = Boolean(
+    content &&
+    (title.trim() !== content.title ||
+      body.trim() !== content.body ||
+      topic.trim() !== (content.topic ?? "") ||
+      status !== toSaveStatus(content.status)),
+  );
 
   if (isLoading) {
     return (
@@ -212,7 +250,36 @@ export function ContentDetail({
           <button className="button" disabled={isSaving} type="submit">
             {isSaving ? "Sauvegarde..." : "Mettre a jour"}
           </button>
+          <button
+            className="button-secondary"
+            disabled={actionBusy !== null || hasUnsavedChanges || isSaving}
+            type="button"
+            onClick={handleNotionExport}
+            title={
+              hasUnsavedChanges
+                ? "Enregistrez les modifications avant l'export."
+                : undefined
+            }
+          >
+            {actionBusy === "notion" ? "Export..." : "Exporter vers Notion"}
+          </button>
         </div>
+        <fieldset className="field">
+          <legend>Qualite de cette generation</legend>
+          <div className="flex flex-wrap gap-2" aria-label="Note de qualite">
+            {[1, 2, 3, 4, 5].map((score) => (
+              <button
+                className="button-secondary"
+                disabled={actionBusy !== null}
+                key={score}
+                type="button"
+                onClick={() => void handleQuality(score)}
+              >
+                {score}/5
+              </button>
+            ))}
+          </div>
+        </fieldset>
       </form>
     </section>
   );

@@ -1,26 +1,31 @@
 import type { Metadata } from "next";
 
-import { EmptyState } from "@/components/shell/empty-state";
+import { NotionIntegrationPanel } from "@/components/integrations/notion-integration-panel";
+
+type IntegrationsPageProps = {
+  params: Promise<{ organizationSlug: string }>;
+};
 
 export const metadata: Metadata = {
   title: "Integrations",
 };
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage({
+  params,
+}: IntegrationsPageProps) {
+  const { organizationSlug } = await params;
+
   return (
     <>
       <section className="app-title">
         <p className="eyebrow">Integrations</p>
         <h1>Connexions externes.</h1>
         <p>
-          Les integrations seront branchees par provider, en commencant par
-          Notion.
+          Connectez les outils utilises par votre equipe et gardez vos contenus
+          alignes.
         </p>
       </section>
-      <EmptyState
-        title="Aucune integration active"
-        description="Les connexions Notion et providers externes seront configurees dans les specs dediees."
-      />
+      <NotionIntegrationPanel organizationSlug={organizationSlug} />
     </>
   );
 }

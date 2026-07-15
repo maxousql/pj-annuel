@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run && node --test next.config.test.mjs",
     "test:smoke": "vitest run src/**/*.smoke.test.ts"
   },
   "dependencies": {

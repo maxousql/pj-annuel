@@ -2,7 +2,6 @@ import { type INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 
-import { AppModule } from "../src/app.module";
 import { configureApp } from "../src/app.setup";
 import { PrismaService } from "../src/database/prisma.service";
 
@@ -15,6 +14,7 @@ describe("Auth API", () => {
     process.env.FRONTEND_URL = "http://localhost:3000,http://localhost:3001";
     process.env.GOOGLE_CLIENT_ID = "google-client-id";
     process.env.NEXT_PUBLIC_API_URL = "http://localhost:4000";
+    const { AppModule } = await import("../src/app.module");
     prisma = new FakePrismaService();
 
     const moduleRef = await Test.createTestingModule({

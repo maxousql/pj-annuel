@@ -19,26 +19,36 @@ import type {
 import { AUTOMATION_RULE_TYPES } from "@content-ai/shared";
 
 import { PrismaService } from "../database/prisma.service";
+import { ScheduledJobsService } from "../common/jobs/scheduled-jobs.service";
 import type { ActiveOrganizationContext } from "../organizations/organizations.types";
 import { ROLE_ORDER } from "../organizations/permissions";
 import type { UpdateAutomationRuleDto } from "./dto/update-automation-rule.dto";
 import type { UpdateNotificationPreferencesDto } from "./dto/update-notification-preferences.dto";
 
 const DEFAULT_REMINDER_HOURS_BEFORE = 48;
+const DEFAULT_TIMEZONE = "Europe/Paris";
 const REMINDER_JOB_INTERVAL_MS = 15 * 60 * 1000;
 const RECOMMENDATION_JOB_INTERVAL_MS = 60 * 60 * 1000;
 
 @Injectable()
 export class AutomationsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AutomationsService.name);
-  private isRecommendationJobRunning = false;
-  private isReminderJobRunning = false;
   private recommendationInterval: ReturnType<typeof setInterval> | null = null;
   private reminderInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jobs: ScheduledJobsService,
+  ) {}
 
   onModuleInit() {
+    if (
+      process.env.NODE_ENV === "test" ||
+      process.env.DISABLE_SCHEDULED_JOBS === "true"
+    ) {
+      return;
+    }
+
     this.reminderInterval = setInterval(() => {
       void this.runPublicationReminderJob();
     }, REMINDER_JOB_INTERVAL_MS);
@@ -129,6 +139,10 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
   ): Promise<AutomationRulePayload> {
     if (!AUTOMATION_RULE_TYPES.includes(type)) {
       throw new BadRequestException("Type d'automatisation invalide.");
+    }
+
+    if (input.timezone && !isValidTimezone(input.timezone)) {
+      throw new BadRequestException("Fuseau horaire IANA invalide.");
     }
 
     const organizationId = organizationContext.organization.id;
@@ -307,6 +321,7 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
     }
 
     const reminderHoursBefore = getReminderHoursBefore(rule.parameters);
+    const timezone = getTimezone(rule.parameters);
     const now = new Date();
     const windowEnd = new Date(
       now.getTime() + reminderHoursBefore * 60 * 60 * 1000,
@@ -356,31 +371,37 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
       const triggerAt = new Date(
         plan.publicationDate.getTime() - reminderHoursBefore * 60 * 60 * 1000,
       );
-      const existingReminder = await this.prisma.reminder.findFirst({
-        select: {
-          id: true,
-        },
+      let reminder = await this.prisma.reminder.findUnique({
+        select: { id: true },
         where: {
-          organizationId,
-          publicationPlanId: plan.id,
-          triggerAt,
-        },
-      });
-      const reminder =
-        existingReminder ??
-        (await this.prisma.reminder.create({
-          data: {
+          organizationId_publicationPlanId_triggerAt: {
             organizationId,
             publicationPlanId: plan.id,
             triggerAt,
           },
-          select: {
-            id: true,
-          },
-        }));
+        },
+      });
 
-      if (!existingReminder) {
-        createdReminders += 1;
+      if (!reminder) {
+        try {
+          reminder = await this.prisma.reminder.create({
+            data: { organizationId, publicationPlanId: plan.id, triggerAt },
+            select: { id: true },
+          });
+          createdReminders += 1;
+        } catch (error) {
+          if (!isUniqueConstraintError(error)) throw error;
+          reminder = await this.prisma.reminder.findUniqueOrThrow({
+            select: { id: true },
+            where: {
+              organizationId_publicationPlanId_triggerAt: {
+                organizationId,
+                publicationPlanId: plan.id,
+                triggerAt,
+              },
+            },
+          });
+        }
       }
 
       for (const member of members) {
@@ -388,13 +409,13 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
 
-        const existingNotification = await this.prisma.notification.findFirst({
-          select: {
-            id: true,
-          },
+        const existingNotification = await this.prisma.notification.findUnique({
+          select: { id: true },
           where: {
-            reminderId: reminder.id,
-            userId: member.userId,
+            userId_reminderId: {
+              reminderId: reminder.id,
+              userId: member.userId,
+            },
           },
         });
 
@@ -402,16 +423,23 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
 
-        await this.prisma.notification.create({
-          data: {
-            body: `${plan.contentItem.title} est prevu sur ${plan.channel}. Verifiez le contenu avant publication.`,
-            organizationId,
-            reminderId: reminder.id,
-            title: "Publication proche",
-            userId: member.userId,
-          },
-        });
-        createdNotifications += 1;
+        try {
+          await this.prisma.notification.create({
+            data: {
+              body: `${plan.contentItem.title} est prevu sur ${plan.channel} le ${formatInTimezone(
+                plan.publicationDate,
+                timezone,
+              )}. Verifiez le contenu avant publication.`,
+              organizationId,
+              reminderId: reminder.id,
+              title: "Publication proche",
+              userId: member.userId,
+            },
+          });
+          createdNotifications += 1;
+        } catch (error) {
+          if (!isUniqueConstraintError(error)) throw error;
+        }
       }
     }
 
@@ -496,28 +524,26 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
     targetType: string;
     type: string;
   }): Promise<boolean> {
-    const existing = await this.prisma.recommendation.findFirst({
-      select: {
-        id: true,
-      },
+    const existing = await this.prisma.recommendation.findUnique({
+      select: { id: true },
       where: {
-        organizationId: input.organizationId,
-        status: "OPEN",
-        targetId: input.targetId,
-        targetType: input.targetType,
-        type: input.type,
+        organizationId_type_targetType_targetId: {
+          organizationId: input.organizationId,
+          targetId: input.targetId,
+          targetType: input.targetType,
+          type: input.type,
+        },
       },
     });
+    if (existing) return false;
 
-    if (existing) {
-      return false;
+    try {
+      await this.prisma.recommendation.create({ data: input });
+      return true;
+    } catch (error) {
+      if (isUniqueConstraintError(error)) return false;
+      throw error;
     }
-
-    await this.prisma.recommendation.create({
-      data: input,
-    });
-
-    return true;
   }
 
   private async listOptedOutUsers(
@@ -567,29 +593,43 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async runPublicationReminderJob() {
-    if (this.isReminderJobRunning) {
-      return;
-    }
-
-    this.isReminderJobRunning = true;
-
     try {
-      const organizationIds = await this.findOrganizationsWithActiveRule(
-        "PUBLICATION_REMINDER",
+      const execution = await this.jobs.runOncePerBucket(
+        "automations:publication-reminders",
+        REMINDER_JOB_INTERVAL_MS,
+        async () => {
+          const organizationIds = await this.findOrganizationsWithActiveRule(
+            "PUBLICATION_REMINDER",
+          );
+          let createdNotifications = 0;
+          let createdReminders = 0;
+
+          for (const organizationId of organizationIds) {
+            try {
+              const result =
+                await this.processPublicationRemindersForOrganization(
+                  organizationId,
+                );
+              createdNotifications += result.createdNotifications;
+              createdReminders += result.createdReminders;
+            } catch {
+              this.logger.warn(
+                `Publication reminders skipped for organization ${organizationId}.`,
+              );
+            }
+          }
+
+          return { createdNotifications, createdReminders };
+        },
       );
-      let createdNotifications = 0;
-      let createdReminders = 0;
 
-      for (const organizationId of organizationIds) {
-        const result =
-          await this.processPublicationRemindersForOrganization(organizationId);
-        createdNotifications += result.createdNotifications;
-        createdReminders += result.createdReminders;
-      }
-
-      if (createdNotifications > 0 || createdReminders > 0) {
+      if (
+        execution.acquired &&
+        (execution.result.createdNotifications > 0 ||
+          execution.result.createdReminders > 0)
+      ) {
         this.logger.log(
-          `Publication reminder job created ${createdReminders} reminder(s) and ${createdNotifications} notification(s).`,
+          `Publication reminder job created ${execution.result.createdReminders} reminder(s) and ${execution.result.createdNotifications} notification(s).`,
         );
       }
     } catch (error) {
@@ -597,33 +637,41 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
         "Publication reminder job failed.",
         error instanceof Error ? error.stack : undefined,
       );
-    } finally {
-      this.isReminderJobRunning = false;
     }
   }
 
   private async runRecommendationJob() {
-    if (this.isRecommendationJobRunning) {
-      return;
-    }
-
-    this.isRecommendationJobRunning = true;
-
     try {
-      const organizationIds = await this.findOrganizationsWithActiveRule(
-        "EDITORIAL_RECOMMENDATION",
+      const execution = await this.jobs.runOncePerBucket(
+        "automations:recommendations",
+        RECOMMENDATION_JOB_INTERVAL_MS,
+        async () => {
+          const organizationIds = await this.findOrganizationsWithActiveRule(
+            "EDITORIAL_RECOMMENDATION",
+          );
+          let createdRecommendations = 0;
+
+          for (const organizationId of organizationIds) {
+            try {
+              const result =
+                await this.generateRecommendationsForOrganization(
+                  organizationId,
+                );
+              createdRecommendations += result.createdRecommendations;
+            } catch {
+              this.logger.warn(
+                `Recommendations skipped for organization ${organizationId}.`,
+              );
+            }
+          }
+
+          return { createdRecommendations };
+        },
       );
-      let createdRecommendations = 0;
 
-      for (const organizationId of organizationIds) {
-        const result =
-          await this.generateRecommendationsForOrganization(organizationId);
-        createdRecommendations += result.createdRecommendations;
-      }
-
-      if (createdRecommendations > 0) {
+      if (execution.acquired && execution.result.createdRecommendations > 0) {
         this.logger.log(
-          `Recommendation job created ${createdRecommendations} recommendation(s).`,
+          `Recommendation job created ${execution.result.createdRecommendations} recommendation(s).`,
         );
       }
     } catch (error) {
@@ -631,8 +679,6 @@ export class AutomationsService implements OnModuleInit, OnModuleDestroy {
         "Recommendation job failed.",
         error instanceof Error ? error.stack : undefined,
       );
-    } finally {
-      this.isRecommendationJobRunning = false;
     }
   }
 }
@@ -752,7 +798,7 @@ function toNotificationPreferencePayload(
 function buildRuleParameters(
   type: AutomationRuleType,
   input: UpdateAutomationRuleDto,
-): Record<string, number> {
+): Record<string, number | string> {
   if (type !== "PUBLICATION_REMINDER") {
     return {};
   }
@@ -760,7 +806,46 @@ function buildRuleParameters(
   return {
     reminderHoursBefore:
       input.reminderHoursBefore ?? DEFAULT_REMINDER_HOURS_BEFORE,
+    timezone: input.timezone ?? DEFAULT_TIMEZONE,
   };
+}
+
+function getTimezone(parameters: unknown): string {
+  if (
+    isRecord(parameters) &&
+    typeof parameters.timezone === "string" &&
+    isValidTimezone(parameters.timezone)
+  ) {
+    return parameters.timezone;
+  }
+
+  return DEFAULT_TIMEZONE;
+}
+
+export function isValidTimezone(timezone: string): boolean {
+  try {
+    new Intl.DateTimeFormat("fr-FR", { timeZone: timezone }).format();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function formatInTimezone(date: Date, timezone: string): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: timezone,
+  }).format(date);
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
 }
 
 function getReminderHoursBefore(parameters: unknown): number {

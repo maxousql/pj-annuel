@@ -10,6 +10,7 @@ import type {
   ContentTagPayload,
   CurationFeedMutationPayload,
   CurationPayload,
+  CuratedResourceDetailPayload,
   CurationResourceMutationPayload,
   CuratedResourcePayload,
   DuplicateCheckPayload,
@@ -21,6 +22,7 @@ import type {
 } from "@content-ai/shared";
 
 import { ContentGenerationService } from "../ai/content-generation.service";
+import { ScheduledJobsService } from "../common/jobs/scheduled-jobs.service";
 import { PrismaService } from "../database/prisma.service";
 import { HistoryDuplicatesService } from "../history/history-duplicates.service";
 import type { ActiveOrganizationContext } from "../organizations/organizations.types";
@@ -29,9 +31,7 @@ import { slugify } from "../organizations/organizations.service";
 import type { AddResourceUrlDto } from "./dto/add-resource-url.dto";
 import type { AddRssFeedDto } from "./dto/add-rss-feed.dto";
 import type { UseResourceForGenerationDto } from "./dto/use-resource-for-generation.dto";
-
-const FETCH_TIMEOUT_MS = 8_000;
-const MAX_FETCH_CHARS = 400_000;
+import { assertPublicHttpUrl, safeFetchText } from "./safe-fetch";
 
 @Injectable()
 export class CurationService {
@@ -39,6 +39,7 @@ export class CurationService {
     private readonly prisma: PrismaService,
     private readonly contentGenerationService: ContentGenerationService,
     private readonly historyDuplicatesService: HistoryDuplicatesService,
+    private readonly jobs: ScheduledJobsService,
   ) {}
 
   async listCuration(
@@ -87,12 +88,65 @@ export class CurationService {
     };
   }
 
+  async getResourceDetail(
+    organizationContext: ActiveOrganizationContext,
+    resourceId: string,
+  ): Promise<CuratedResourceDetailPayload> {
+    return {
+      canEdit:
+        ROLE_ORDER[organizationContext.membership.role] >= ROLE_ORDER.EDITOR,
+      resource: await this.getResourcePayload(
+        organizationContext.organization.id,
+        resourceId,
+      ),
+    };
+  }
+
+  async importDueFeeds(): Promise<{
+    failedFeeds: number;
+    importedResources: number;
+    processedFeeds: number;
+  }> {
+    const now = new Date();
+    const feeds = await this.prisma.sourceFeed.findMany({
+      orderBy: { nextFetchAt: "asc" },
+      select: sourceFeedSelect,
+      take: 50,
+      where: {
+        OR: [{ nextFetchAt: null }, { nextFetchAt: { lte: now } }],
+        status: { in: ["ACTIVE", "ERROR"] },
+      },
+    });
+    let failedFeeds = 0;
+    let importedResources = 0;
+
+    for (const feed of feeds) {
+      try {
+        importedResources +=
+          (await this.importFeedResourcesWithLease(
+            feed.organizationId,
+            feed,
+            false,
+          )) ?? 0;
+      } catch {
+        failedFeeds += 1;
+      }
+    }
+
+    return {
+      failedFeeds,
+      importedResources,
+      processedFeeds: feeds.length,
+    };
+  }
+
   async addResourceUrl(
     organizationContext: ActiveOrganizationContext,
     input: AddResourceUrlDto,
   ): Promise<CurationResourceMutationPayload> {
     const organizationId = organizationContext.organization.id;
     const url = normalizeUrl(input.url);
+    await assertPublicHttpUrl(url);
     const existing = await this.prisma.curatedResource.findUnique({
       select: curatedResourceSelect,
       where: {
@@ -139,6 +193,7 @@ export class CurationService {
   ): Promise<CurationFeedMutationPayload> {
     const organizationId = organizationContext.organization.id;
     const url = normalizeUrl(input.url);
+    await assertPublicHttpUrl(url);
     const feedTitle = input.title ?? (await extractFeedTitle(url)) ?? url;
     const feed = await this.prisma.sourceFeed.upsert({
       create: {
@@ -158,7 +213,9 @@ export class CurationService {
         },
       },
     });
-    const importedCount = await this.importFeedResources(organizationId, feed);
+    const importedCount =
+      (await this.importFeedResourcesWithLease(organizationId, feed, true)) ??
+      0;
 
     return {
       feed: await this.getFeedPayload(organizationId, feed.id),
@@ -172,7 +229,9 @@ export class CurationService {
   ): Promise<CurationFeedMutationPayload> {
     const organizationId = organizationContext.organization.id;
     const feed = await this.findFeedOrThrow(organizationId, feedId);
-    const importedCount = await this.importFeedResources(organizationId, feed);
+    const importedCount =
+      (await this.importFeedResourcesWithLease(organizationId, feed, true)) ??
+      0;
 
     return {
       feed: await this.getFeedPayload(organizationId, feed.id),
@@ -283,14 +342,17 @@ export class CurationService {
     feed: SourceFeedRecord,
   ): Promise<number> {
     try {
+      await assertPublicHttpUrl(feed.url);
       const xml = await fetchText(feed.url);
-      const items = parseFeedItems(xml).slice(0, 20);
+      const items = parseFeedItems(xml, feed.url).slice(0, 20);
       let importedCount = 0;
 
       for (const item of items) {
         if (!item.url || !item.title) {
           continue;
         }
+
+        await assertPublicHttpUrl(item.url);
 
         const existing = await this.prisma.curatedResource.findUnique({
           select: {
@@ -328,6 +390,8 @@ export class CurationService {
         data: {
           lastError: null,
           lastFetchedAt: new Date(),
+          nextFetchAt: new Date(Date.now() + 60 * 60 * 1_000),
+          failureCount: 0,
           status: "ACTIVE",
         },
         where: {
@@ -341,6 +405,10 @@ export class CurationService {
         data: {
           lastError:
             error instanceof Error ? error.message : "Import RSS impossible.",
+          failureCount: { increment: 1 },
+          nextFetchAt: new Date(
+            Date.now() + rssRetryBackoffMs(feed.failureCount),
+          ),
           status: "ERROR",
         },
         where: {
@@ -350,6 +418,29 @@ export class CurationService {
 
       throw new BadRequestException("Import du flux RSS impossible.");
     }
+  }
+
+  private async importFeedResourcesWithLease(
+    organizationId: string,
+    feed: SourceFeedRecord,
+    failWhenBusy: boolean,
+  ): Promise<number | null> {
+    const execution = await this.jobs.runWithLease(
+      `curation:feed:${feed.id}`,
+      2 * 60 * 1_000,
+      () => this.importFeedResources(organizationId, feed),
+    );
+
+    if (!execution.acquired) {
+      if (failWhenBusy) {
+        throw new ConflictException(
+          "Un import de ce flux est deja en cours. Reessayez dans un instant.",
+        );
+      }
+      return null;
+    }
+
+    return execution.result;
   }
 
   private async syncResourceTags(
@@ -541,9 +632,11 @@ const tagSelect = {
 
 const sourceFeedSelect = {
   createdAt: true,
+  failureCount: true,
   id: true,
   lastError: true,
   lastFetchedAt: true,
+  nextFetchAt: true,
   organizationId: true,
   status: true,
   title: true,
@@ -586,9 +679,11 @@ type TagRecord = {
 
 type SourceFeedRecord = {
   createdAt: Date | string;
+  failureCount: number;
   id: string;
   lastError: string | null;
   lastFetchedAt: Date | string | null;
+  nextFetchAt: Date | string | null;
   organizationId: string;
   status: SourceFeedStatus;
   title: string;
@@ -715,21 +810,10 @@ async function extractUrlMetadata(url: string): Promise<{
 }
 
 async function fetchText(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: {
-      "user-agent": "ContentAI-CurationBot/0.1",
-    },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Fetch failed with status ${response.status}.`);
-  }
-
-  return (await response.text()).slice(0, MAX_FETCH_CHARS);
+  return safeFetchText(url);
 }
 
-function parseFeedItems(xml: string): FeedItem[] {
+export function parseFeedItems(xml: string, baseUrl?: string): FeedItem[] {
   const itemBlocks = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(
     (match) => match[0],
   );
@@ -740,6 +824,7 @@ function parseFeedItems(xml: string): FeedItem[] {
   return [...itemBlocks, ...entryBlocks].map((block) => {
     const url = normalizeFeedUrl(
       extractXmlValue(block, "link") ?? extractAtomLink(block) ?? "",
+      baseUrl,
     );
     const pubDate =
       extractXmlValue(block, "pubDate") ?? extractXmlValue(block, "updated");
@@ -806,11 +891,19 @@ function decodeEntities(value: string | undefined): string | null {
   return decoded || null;
 }
 
-function normalizeFeedUrl(value: string): string {
+function normalizeFeedUrl(value: string, baseUrl?: string): string {
   const trimmed = value.trim();
-  const match = trimmed.match(/^https?:\/\/\S+/i);
 
-  return match ? normalizeUrl(match[0]) : trimmed;
+  if (!trimmed) return "";
+
+  try {
+    const resolved = baseUrl ? new URL(trimmed, baseUrl) : new URL(trimmed);
+    if (!["http:", "https:"].includes(resolved.protocol)) return "";
+    resolved.hash = "";
+    return resolved.toString();
+  } catch {
+    return "";
+  }
 }
 
 function normalizeUrl(value: string): string {
@@ -849,4 +942,9 @@ function toContentDuplicatePayload(
 
 function toIsoString(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : value;
+}
+
+export function rssRetryBackoffMs(previousFailureCount: number): number {
+  const exponent = Math.min(Math.max(previousFailureCount, 0), 6);
+  return Math.min(24 * 60 * 60 * 1_000, 15 * 60 * 1_000 * 2 ** exponent);
 }

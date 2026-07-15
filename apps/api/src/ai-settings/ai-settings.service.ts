@@ -1,6 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import type {
   BrandVoiceProfilePayload,
+  AiQualityEvaluationPayload,
+  AiQualitySummaryPayload,
   GenerationLanguage,
   GenerationTargetLength,
 } from "@content-ai/shared";
@@ -13,6 +15,7 @@ import {
 import { PrismaService } from "../database/prisma.service";
 import type { ActiveOrganizationContext } from "../organizations/organizations.types";
 import type { UpdateBrandVoiceProfileDto } from "./dto/update-brand-voice-profile.dto";
+import type { UpsertQualityEvaluationDto } from "./dto/upsert-quality-evaluation.dto";
 
 @Injectable()
 export class AiSettingsService {
@@ -80,6 +83,79 @@ export class AiSettingsService {
     });
 
     return toBrandVoiceProfilePayload(organizationId, profile);
+  }
+
+  async evaluateContent(
+    userId: string,
+    organizationContext: ActiveOrganizationContext,
+    contentId: string,
+    input: UpsertQualityEvaluationDto,
+  ): Promise<AiQualityEvaluationPayload> {
+    const organizationId = organizationContext.organization.id;
+    const content = await this.prisma.contentItem.findFirst({
+      select: { format: true, id: true },
+      where: {
+        deletedAt: null,
+        id: contentId,
+        organizationId,
+        status: { not: "DELETED" },
+      },
+    });
+
+    if (!content) throw new NotFoundException("Contenu introuvable.");
+
+    const evaluation = await this.prisma.aiQualityEvaluation.upsert({
+      create: {
+        contentItemId: content.id,
+        createdById: userId,
+        feedback: input.feedback?.trim() || null,
+        format: content.format,
+        organizationId,
+        score: input.score,
+      },
+      update: {
+        feedback: input.feedback?.trim() || null,
+        score: input.score,
+      },
+      where: {
+        organizationId_contentItemId_createdById: {
+          contentItemId: content.id,
+          createdById: userId,
+          organizationId,
+        },
+      },
+    });
+
+    return {
+      contentItemId: evaluation.contentItemId,
+      feedback: evaluation.feedback,
+      format: evaluation.format,
+      score: evaluation.score,
+      updatedAt: evaluation.updatedAt.toISOString(),
+    };
+  }
+
+  async getQualitySummary(
+    organizationContext: ActiveOrganizationContext,
+  ): Promise<AiQualitySummaryPayload> {
+    const evaluations = await this.prisma.aiQualityEvaluation.groupBy({
+      _avg: { score: true },
+      _count: { _all: true },
+      by: ["format"],
+      orderBy: { format: "asc" },
+      where: {
+        contentItem: { deletedAt: null, status: { not: "DELETED" } },
+        organizationId: organizationContext.organization.id,
+      },
+    });
+
+    return {
+      formats: evaluations.map((evaluation) => ({
+        averageScore: Math.round((evaluation._avg.score ?? 0) * 100) / 100,
+        count: evaluation._count._all,
+        format: evaluation.format,
+      })),
+    };
   }
 }
 

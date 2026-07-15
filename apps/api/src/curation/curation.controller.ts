@@ -46,6 +46,19 @@ export class CurationController {
     return successResponse(resource);
   }
 
+  @Get("resources/:resourceId")
+  async getResource(
+    @Req() request: OrganizationRequest,
+    @Param("resourceId") resourceId: string,
+  ) {
+    return successResponse(
+      await this.curationService.getResourceDetail(
+        request.organizationContext,
+        resourceId,
+      ),
+    );
+  }
+
   @Post("feeds")
   @Roles("ADMIN")
   async addFeed(

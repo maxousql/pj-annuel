@@ -14,6 +14,16 @@ export async function readApiResponse<TData>(
   response: Response,
 ): Promise<ApiResponse<TData>> {
   const payload = (await response.json()) as ApiResponse<TData>;
+
+  if (
+    response.status === 401 &&
+    typeof window !== "undefined" &&
+    !window.location.pathname.startsWith("/login")
+  ) {
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+  }
+
   return payload;
 }
 

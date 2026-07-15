@@ -4,6 +4,7 @@ import type {
   CurationFeedMutationPayload,
   CurationPayload,
   CurationResourceMutationPayload,
+  CuratedResourceDetailPayload,
   GeneratedContentPayload,
   GenerationLanguage,
   GenerationTargetLength,
@@ -42,6 +43,18 @@ export async function fetchCuration(
   );
 
   return readApiResponse<CurationPayload>(response);
+}
+
+export async function fetchCurationResource(
+  organizationSlug: string,
+  resourceId: string,
+): Promise<ApiResponse<CuratedResourceDetailPayload>> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/curation/resources/${resourceId}`,
+    { credentials: "include" },
+  );
+
+  return readApiResponse<CuratedResourceDetailPayload>(response);
 }
 
 export async function addResourceUrl(

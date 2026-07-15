@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Put, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 
 import { AuthGuard } from "../auth/guards/auth.guard";
 import { successResponse } from "../common/responses/api-response";
@@ -7,6 +16,7 @@ import type { OrganizationRequest } from "../organizations/organizations.types";
 import { Roles } from "../organizations/roles.decorator";
 import { AiSettingsService } from "./ai-settings.service";
 import { UpdateBrandVoiceProfileDto } from "./dto/update-brand-voice-profile.dto";
+import { UpsertQualityEvaluationDto } from "./dto/upsert-quality-evaluation.dto";
 
 @Controller("organizations/:organizationSlug/ai-settings")
 @UseGuards(AuthGuard, OrganizationGuard)
@@ -34,5 +44,31 @@ export class AiSettingsController {
     );
 
     return successResponse({ profile });
+  }
+
+  @Get("quality")
+  async getQualitySummary(@Req() request: OrganizationRequest) {
+    return successResponse(
+      await this.aiSettingsService.getQualitySummary(
+        request.organizationContext,
+      ),
+    );
+  }
+
+  @Post("quality/contents/:contentId")
+  @Roles("EDITOR")
+  async evaluateContent(
+    @Req() request: OrganizationRequest,
+    @Param("contentId") contentId: string,
+    @Body() dto: UpsertQualityEvaluationDto,
+  ) {
+    return successResponse({
+      evaluation: await this.aiSettingsService.evaluateContent(
+        request.user.id,
+        request.organizationContext,
+        contentId,
+        dto,
+      ),
+    });
   }
 }

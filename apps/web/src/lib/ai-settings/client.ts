@@ -1,6 +1,8 @@
 import type {
   ApiResponse,
   BrandVoiceProfilePayload,
+  AiQualityEvaluationPayload,
+  AiQualitySummaryPayload,
   GenerationLanguage,
   GenerationTargetLength,
 } from "@content-ai/shared";
@@ -33,6 +35,35 @@ export async function fetchAiSettings(organizationSlug: string): Promise<
     profile: BrandVoiceProfilePayload;
     promptVersions: Record<string, string>;
   }>(response);
+}
+
+export async function evaluateContentQuality(
+  organizationSlug: string,
+  contentId: string,
+  input: { feedback?: string; score: number },
+): Promise<ApiResponse<{ evaluation: AiQualityEvaluationPayload }>> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ai-settings/quality/contents/${contentId}`,
+    {
+      body: JSON.stringify(input),
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    },
+  );
+
+  return readApiResponse<{ evaluation: AiQualityEvaluationPayload }>(response);
+}
+
+export async function fetchAiQualitySummary(
+  organizationSlug: string,
+): Promise<ApiResponse<AiQualitySummaryPayload>> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ai-settings/quality`,
+    { credentials: "include" },
+  );
+
+  return readApiResponse<AiQualitySummaryPayload>(response);
 }
 
 export async function updateBrandVoiceProfile(
