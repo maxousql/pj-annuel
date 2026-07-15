@@ -4,13 +4,25 @@ import type { OrganizationSummary } from "@content-ai/shared";
 import { Building2, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent } from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getDefaultOrganizationHref } from "@/lib/navigation/app-navigation";
 
 type OrganizationSwitcherProps = {
   activeOrganization?: OrganizationSummary | undefined;
   organizations: OrganizationSummary[];
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Administrateur",
+  EDITOR: "Éditeur",
+  READER: "Lecteur",
 };
 
 export function OrganizationSwitcher({
@@ -19,14 +31,9 @@ export function OrganizationSwitcher({
 }: OrganizationSwitcherProps) {
   const router = useRouter();
 
-  function handleChange(event: ChangeEvent<HTMLSelectElement>) {
-    const nextOrganization = organizations.find((organization) => {
-      return organization.slug === event.target.value;
-    });
-
-    if (nextOrganization) {
-      router.push(getDefaultOrganizationHref(nextOrganization.slug));
-    }
+  function handleValueChange(slug: string) {
+    const next = organizations.find((o) => o.slug === slug);
+    if (next) router.push(getDefaultOrganizationHref(next.slug));
   }
 
   if (organizations.length === 0) {
@@ -44,14 +51,17 @@ export function OrganizationSwitcher({
           href="/app/organizations/new"
         >
           <Plus className="size-4" aria-hidden="true" />
-          Creer
+          Créer
         </Link>
       </div>
     );
   }
 
+  const activeRole = activeOrganization?.role;
+  const roleLabel = activeRole ? (ROLE_LABELS[activeRole] ?? activeRole) : null;
+
   return (
-    <label className="grid gap-2 rounded-lg border-[1.5px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-3">
+    <div className="grid gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-3">
       <span className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--text-subtle)]">
         <Building2
           className="size-4 text-[color:var(--rubric)]"
@@ -59,18 +69,29 @@ export function OrganizationSwitcher({
         />
         Organisation
       </span>
-      <select
-        className="h-9 w-full rounded-md border-[1.5px] border-[color:var(--border-strong)] bg-[color:var(--paper)] px-3 text-[13px] font-bold text-[color:var(--ink)] outline-none transition focus:border-[color:var(--klein)] focus:ring-4 focus:ring-[color:var(--klein)]/15"
-        aria-label="Changer d'organisation active"
+      <Select
         value={activeOrganization?.slug ?? ""}
-        onChange={handleChange}
+        onValueChange={handleValueChange}
       >
-        {organizations.map((organization) => (
-          <option value={organization.slug} key={organization.id}>
-            {organization.name} - {organization.role}
-          </option>
-        ))}
-      </select>
-    </label>
+        <SelectTrigger
+          className="h-9 w-full border-[1.5px] border-(--border-strong) bg-paper text-[13px] font-semibold text-ink hover:border-ink"
+          aria-label="Changer d'organisation active"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false} sideOffset={6}>
+          {organizations.map((org) => (
+            <SelectItem key={org.id} value={org.slug}>
+              {org.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {roleLabel ? (
+        <span className="text-[11px] font-medium text-(--text-subtle)">
+          {roleLabel}
+        </span>
+      ) : null}
+    </div>
   );
 }

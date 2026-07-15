@@ -9,7 +9,7 @@ type OrganizationSettingsPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Parametres organisation",
+  title: "Paramètres organisation",
 };
 
 export default async function OrganizationSettingsPage({
@@ -20,9 +20,9 @@ export default async function OrganizationSettingsPage({
   return (
     <>
       <section className="app-title">
-        <p className="eyebrow">Parametres</p>
+        <p className="eyebrow">Paramètres</p>
         <h1>Organisation.</h1>
-        <p>Configuration et acces de l'espace actif.</p>
+        <p>Configuration et accès de l'espace actif.</p>
       </section>
       <OrganizationSettingsPanel organizationSlug={organizationSlug} />
     </>

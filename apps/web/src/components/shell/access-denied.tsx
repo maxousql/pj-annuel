@@ -7,8 +7,8 @@ type AccessDeniedProps = {
 };
 
 export function AccessDenied({
-  description = "Votre role actuel ne permet pas d'acceder a cette section.",
-  title = "Acces refuse",
+  description = "Votre rôle actuel ne permet pas d'accéder à cette section.",
+  title = "Accès refusé",
 }: AccessDeniedProps) {
   return (
     <section

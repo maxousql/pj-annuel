@@ -324,7 +324,7 @@ export function AppShell({ children }: AppShellProps) {
                 href={`/app/${activeOrganization.slug}/integrations`}
               >
                 <Puzzle className="size-[20px] text-[color:var(--text-subtle)]" />
-                <span>Integrations</span>
+                <span>Intégrations</span>
               </Link>
             ) : null}
             <Link
@@ -332,7 +332,7 @@ export function AppShell({ children }: AppShellProps) {
               href="/app/settings"
             >
               <Settings className="size-[20px] text-[color:var(--text-subtle)]" />
-              <span>Parametres</span>
+              <span>Paramètres</span>
             </Link>
           </div>
           <Link
@@ -344,7 +344,7 @@ export function AppShell({ children }: AppShellProps) {
             }
           >
             <Sparkles className="size-4" aria-hidden="true" />
-            Generer avec l'IA
+            Générer avec l'IA
           </Link>
         </aside>
 

@@ -158,7 +158,7 @@ export class CurationService {
     });
 
     if (existing) {
-      throw new ConflictException("Cette URL existe deja dans la veille.");
+      throw new ConflictException("Cette URL existe déjà dans la veille.");
     }
 
     const metadata = await extractUrlMetadata(url);

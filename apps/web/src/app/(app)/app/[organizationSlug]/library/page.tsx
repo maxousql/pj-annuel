@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ContentLibraryWorkspace } from "@/components/library/content-library-workspace";
 
 export const metadata = {
-  title: "Bibliotheque de contenus",
+  title: "Bibliothèque de contenus",
 };
 
 type LibraryPageProps = {
@@ -20,9 +20,9 @@ export default async function LibraryPage({ params }: LibraryPageProps) {
       <section className="page-heading">
         <div>
           <p className="eyebrow">V1</p>
-          <h1>Bibliotheque de contenus</h1>
+          <h1>Bibliothèque de contenus</h1>
           <p>
-            Classez, filtrez et maintenez les contenus editoriaux de
+            Classez, filtrez et maintenez les contenus éditoriaux de
             l'organisation.
           </p>
         </div>
@@ -37,7 +37,7 @@ export default async function LibraryPage({ params }: LibraryPageProps) {
             className="button"
             href={`/app/${organizationSlug}/contents/generate`}
           >
-            Generer
+            Générer
           </Link>
         </div>
       </section>

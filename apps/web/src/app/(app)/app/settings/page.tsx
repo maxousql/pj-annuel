@@ -4,34 +4,34 @@ export default function SettingsPage() {
   return (
     <>
       <section className="app-title">
-        <p className="eyebrow">Parametres</p>
+        <p className="eyebrow">Paramètres</p>
         <h1>Configuration du compte.</h1>
         <p>
-          Ajustez les informations de compte, les preferences et les acces
+          Ajustez les informations de compte, les préférences et les accès
           personnels.
         </p>
       </section>
-      <section className="settings-grid" aria-label="Sections de parametres">
+      <section className="settings-grid" aria-label="Sections de paramètres">
         <article className="settings-panel">
           <header>
             <div>
               <p className="eyebrow">Profil</p>
-              <h2>Identite utilisateur</h2>
+              <h2>Identité utilisateur</h2>
             </div>
           </header>
           <p className="muted">
-            Informations publiques et preferences personnelles.
+            Informations publiques et préférences personnelles.
           </p>
           <ProfileSettings />
         </article>
         <article className="settings-panel">
           <header>
             <div>
-              <p className="eyebrow">Securite</p>
-              <h2>Session et acces</h2>
+              <p className="eyebrow">Sécurité</p>
+              <h2>Session et accès</h2>
             </div>
           </header>
-          <p className="muted">Gestion de session et verification des acces.</p>
+          <p className="muted">Gestion de session et vérification des accès.</p>
         </article>
       </section>
     </>
