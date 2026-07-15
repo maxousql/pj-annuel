@@ -6,6 +6,7 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type {
@@ -21,16 +22,20 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Lightbulb,
   Loader2,
   Plus,
   Sparkles,
+  UserRound,
   Wand2,
   X,
 } from "lucide-react";
 
 import {
   CONTENT_FORMAT_LABELS,
+  CONTENT_IDEA_STATUS_LABELS,
   formatContentDate,
 } from "@/components/contents/content-labels";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -52,6 +57,10 @@ import {
   saveIdea,
   updateIdeaStatus,
 } from "@/lib/ideas/client";
+import {
+  clampSavedIdeasPage,
+  paginateSavedIdeas,
+} from "@/lib/ideas/saved-ideas-pagination";
 
 type IdeasWorkspaceProps = {
   organizationSlug: string;
@@ -93,14 +102,29 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [savedIdeasPage, setSavedIdeasPage] = useState(1);
+  const savedIdeasHeadingRef = useRef<HTMLDivElement>(null);
   const savedIdeaKeys = useMemo(() => {
     return new Set(savedIdeas.map((idea) => buildIdeaKey(idea)));
   }, [savedIdeas]);
+  const savedIdeasPagination = useMemo(
+    () => paginateSavedIdeas(savedIdeas, savedIdeasPage),
+    [savedIdeas, savedIdeasPage],
+  );
+
+  useEffect(() => {
+    const nextPage = clampSavedIdeasPage(savedIdeasPage, savedIdeas.length);
+
+    if (nextPage !== savedIdeasPage) {
+      setSavedIdeasPage(nextPage);
+    }
+  }, [savedIdeas.length, savedIdeasPage]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadIdeas() {
+      setSavedIdeasPage(1);
       setIsLoading(true);
       const result = await fetchIdeas(organizationSlug);
 
@@ -176,6 +200,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
     }
 
     setSavedIdeas((current) => [result.data.idea, ...current]);
+    setSavedIdeasPage(1);
   }
 
   async function handleArchive(ideaId: string) {
@@ -196,6 +221,9 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
     }
 
     setSavedIdeas((current) => current.filter((idea) => idea.id !== ideaId));
+    window.requestAnimationFrame(() => {
+      savedIdeasHeadingRef.current?.focus({ preventScroll: true });
+    });
   }
 
   async function handleMarkUsed(ideaId: string) {
@@ -237,13 +265,13 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
-                Ideation
+                Idéation
               </p>
               <CardTitle className="mt-2 text-xl font-bold text-[color:var(--ink)]">
-                Brief creatif
+                Brief créatif
               </CardTitle>
               <CardDescription className="mt-1 text-sm leading-6 text-[color:var(--text-muted)]">
-                Parametres transmis au generateur d'idees.
+                Paramètres transmis au générateur d&apos;idées.
               </CardDescription>
             </div>
             <Lightbulb className="mt-1 size-5 text-[color:var(--rubric)]" />
@@ -253,7 +281,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
             href={`/app/${organizationSlug}/contents/generate`}
           >
             <Plus className="size-4" />
-            Creer un contenu
+            Créer un contenu
           </Link>
         </CardHeader>
 
@@ -261,19 +289,19 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
           <form className="grid gap-5" onSubmit={handleGenerate}>
             <label className="grid gap-2">
               <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                Thematique
+                Thématique
               </span>
               <Input
                 className={cn(fieldClass, "h-11 rounded-xl")}
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
-                placeholder="Activation, retention, veille..."
+                placeholder="Activation, rétention, veille..."
               />
             </label>
 
             <label className="grid gap-2">
               <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                Format prefere
+                Format préféré
               </span>
               <select
                 className={selectClass}
@@ -292,7 +320,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
 
             <label className="grid gap-2">
               <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                Nombre d'idees
+                Nombre d&apos;idées
               </span>
               <Input
                 className={cn(fieldClass, "h-11 rounded-xl")}
@@ -316,7 +344,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                     setLanguage(event.target.value as GenerationLanguage)
                   }
                 >
-                  <option value="fr">Francais</option>
+                  <option value="fr">Français</option>
                   <option value="en">Anglais</option>
                   <option value="es">Espagnol</option>
                   <option value="de">Allemand</option>
@@ -345,7 +373,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2">
                 <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                  Creativite
+                  Créativité
                 </span>
                 <Input
                   className={cn(fieldClass, "h-11 rounded-xl")}
@@ -360,7 +388,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               </label>
               <label className="grid gap-2">
                 <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                  Intensite ton
+                  Intensité du ton
                 </span>
                 <Input
                   className={cn(fieldClass, "h-11 rounded-xl")}
@@ -384,7 +412,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                 rows={7}
                 value={brief}
                 onChange={(event) => setBrief(event.target.value)}
-                placeholder="Objectif, cible, contrainte de ton, offre a mettre en avant..."
+                placeholder="Objectif, cible, contrainte de ton, offre à mettre en avant..."
               />
             </label>
 
@@ -407,7 +435,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               ) : (
                 <Wand2 className="size-4" />
               )}
-              {isGenerating ? "Generation..." : "Generer des idees"}
+              {isGenerating ? "Génération..." : "Générer des idées"}
             </Button>
           </form>
         </CardContent>
@@ -422,7 +450,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                   Suggestions IA
                 </p>
                 <CardTitle className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
-                  Idees a selectionner
+                  Idées à sélectionner
                 </CardTitle>
               </div>
               <Badge className="h-7 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
@@ -458,7 +486,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                               <Plus className="size-4" />
                             )}
                             {alreadySaved
-                              ? "Sauvegardee"
+                              ? "Sauvegardée"
                               : isSaving
                                 ? "Sauvegarde..."
                                 : "Sauvegarder"}
@@ -483,7 +511,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               </div>
             ) : (
               <EmptyIdeaState
-                description="Lancez une generation pour obtenir des titres, angles et formats recommandes."
+                description="Lancez une génération pour obtenir des titres, angles et formats recommandés."
                 title="Aucune suggestion"
               />
             )}
@@ -497,12 +525,19 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
                 <p className="text-xs font-bold uppercase text-[color:var(--klein)]">
                   Historique
                 </p>
-                <CardTitle className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
-                  Idees sauvegardees
+                <CardTitle
+                  aria-level={2}
+                  className="mt-2 text-2xl font-bold text-[color:var(--ink)]"
+                  ref={savedIdeasHeadingRef}
+                  role="heading"
+                  tabIndex={-1}
+                >
+                  Idées sauvegardées
                 </CardTitle>
               </div>
               <Badge className="h-7 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
-                {savedIdeas.length} en base
+                {savedIdeas.length} idée{savedIdeas.length > 1 ? "s" : ""}{" "}
+                sauvegardée{savedIdeas.length > 1 ? "s" : ""}
               </Badge>
             </div>
           </CardHeader>
@@ -510,67 +545,159 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
           <CardContent className="px-5 py-5 sm:px-6">
             {isLoading ? (
               <EmptyIdeaState
-                description="Recuperation des idees sauvegardees."
+                description="Récupération des idées sauvegardées."
                 loading
                 title="Chargement"
               />
             ) : savedIdeas.length > 0 ? (
-              <div className="grid gap-4">
-                {savedIdeas.map((idea) => {
-                  const isUpdating = updatingIds.has(idea.id);
+              <div className="grid gap-5">
+                <div className="grid gap-4">
+                  {savedIdeasPagination.items.map((idea) => {
+                    const isUpdating = updatingIds.has(idea.id);
 
-                  return (
-                    <IdeaCard
-                      action={
-                        <>
-                          <Link
-                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-[color:var(--klein)] px-2.5 text-sm font-medium text-white transition hover:bg-[color:var(--klein)] hover:text-[color:var(--paper)]"
-                            href={`/app/${organizationSlug}/contents/generate?ideaId=${idea.id}`}
-                          >
-                            <ArrowRight className="size-4" />
-                            Transformer
-                          </Link>
-                          <Button
-                            className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
-                            disabled={isUpdating || idea.status === "USED"}
-                            type="button"
-                            variant="outline"
-                            onClick={() => void handleMarkUsed(idea.id)}
-                          >
-                            <CheckCircle2 className="size-4" />
-                            {idea.status === "USED"
-                              ? "Utilisee"
-                              : "Marquer utilisee"}
-                          </Button>
-                          <Button
-                            className="text-[color:var(--text-muted)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]"
-                            disabled={isUpdating}
-                            type="button"
-                            variant="ghost"
-                            onClick={() => void handleArchive(idea.id)}
-                          >
-                            <Archive className="size-4" />
-                            Archiver
-                          </Button>
-                        </>
-                      }
-                      idea={idea}
-                      key={idea.id}
-                      meta={`Sauvegardee le ${formatContentDate(idea.createdAt)}`}
-                    />
-                  );
-                })}
+                    return (
+                      <IdeaCard
+                        action={
+                          <>
+                            <Link
+                              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[color:var(--klein)] px-3 text-sm font-semibold !text-white transition hover:bg-[color:var(--klein)] hover:!text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--klein)]/25"
+                              href={`/app/${organizationSlug}/contents/generate?ideaId=${idea.id}`}
+                            >
+                              <ArrowRight className="size-4" />
+                              Transformer
+                            </Link>
+                            <Button
+                              className="h-10 rounded-xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-3 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]"
+                              disabled={isUpdating || idea.status === "USED"}
+                              type="button"
+                              variant="outline"
+                              onClick={() => void handleMarkUsed(idea.id)}
+                            >
+                              <CheckCircle2 className="size-4" />
+                              <span className="sm:hidden">
+                                {idea.status === "USED"
+                                  ? "Utilisée"
+                                  : "Utiliser"}
+                              </span>
+                              <span className="hidden sm:inline">
+                                {idea.status === "USED"
+                                  ? "Utilisée"
+                                  : "Marquer comme utilisée"}
+                              </span>
+                            </Button>
+                            <Button
+                              className="h-10 rounded-xl px-3 text-[color:var(--text-muted)] hover:bg-[color:var(--paper-card)] hover:text-[color:var(--ink)]"
+                              disabled={isUpdating}
+                              type="button"
+                              variant="ghost"
+                              onClick={() => void handleArchive(idea.id)}
+                            >
+                              <Archive className="size-4" />
+                              Archiver
+                            </Button>
+                          </>
+                        }
+                        idea={idea}
+                        key={idea.id}
+                        meta={
+                          <SavedIdeaMeta
+                            createdAt={idea.createdAt}
+                            creatorName={idea.createdBy?.name.trim() || null}
+                          />
+                        }
+                        primaryActionOnMobile
+                      />
+                    );
+                  })}
+                </div>
+
+                <SavedIdeasPagination
+                  page={savedIdeasPagination.page}
+                  totalItems={savedIdeasPagination.totalItems}
+                  totalPages={savedIdeasPagination.totalPages}
+                  onPageChange={setSavedIdeasPage}
+                />
               </div>
             ) : (
               <EmptyIdeaState
-                description="Sauvegardez une suggestion pour alimenter l'historique et la generation de contenus."
-                title="Aucune idee sauvegardee"
+                description="Sauvegardez une suggestion pour alimenter l'historique et la génération de contenus."
+                title="Aucune idée sauvegardée"
               />
             )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+function SavedIdeaMeta({
+  createdAt,
+  creatorName,
+}: {
+  createdAt: string;
+  creatorName: string | null;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-[color:var(--text-subtle)]">
+      <span className="inline-flex items-center gap-1.5 text-[color:var(--text-muted)]">
+        <UserRound aria-hidden="true" className="size-3.5" />
+        Sauvegardée par {creatorName ?? "Membre indisponible"}
+      </span>
+      <span>Le {formatContentDate(createdAt)}</span>
+    </div>
+  );
+}
+
+function SavedIdeasPagination({
+  onPageChange,
+  page,
+  totalItems,
+  totalPages,
+}: {
+  onPageChange: (page: number) => void;
+  page: number;
+  totalItems: number;
+  totalPages: number;
+}) {
+  return (
+    <nav
+      aria-label="Pagination des idées sauvegardées"
+      className="flex flex-col gap-3 rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <Button
+        aria-label="Afficher la page précédente"
+        className="h-11 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)] disabled:opacity-40"
+        disabled={page <= 1}
+        type="button"
+        variant="outline"
+        onClick={() => onPageChange(Math.max(1, page - 1))}
+      >
+        <ChevronLeft aria-hidden="true" className="size-4" />
+        Précédent
+      </Button>
+      <p
+        aria-live="polite"
+        className="text-center text-sm font-bold text-[color:var(--text-muted)]"
+      >
+        Page <span className="text-[color:var(--rubric)]">{page}</span> sur{" "}
+        {totalPages}
+        <span className="mt-0.5 block text-xs font-medium text-[color:var(--text-subtle)]">
+          {totalItems} idée{totalItems > 1 ? "s" : ""} au total
+        </span>
+      </p>
+      <Button
+        aria-label="Afficher la page suivante"
+        className="h-11 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-4 text-[color:var(--ink)] hover:bg-[color:var(--paper-2)] disabled:opacity-40"
+        disabled={page >= totalPages}
+        type="button"
+        variant="outline"
+        onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+      >
+        Suivant
+        <ChevronRight aria-hidden="true" className="size-4" />
+      </Button>
+    </nav>
   );
 }
 
@@ -607,6 +734,7 @@ function IdeaCard({
   duplicate,
   idea,
   meta,
+  primaryActionOnMobile = false,
 }: {
   action: ReactNode;
   duplicate?: ContentIdeaDuplicatePayload;
@@ -615,13 +743,14 @@ function IdeaCard({
     category: string | null;
     justification: string;
     recommendedFormat: ContentFormat;
-    status?: string;
+    status?: ContentIdeaPayload["status"];
     title: string;
   };
-  meta?: string;
+  meta?: ReactNode;
+  primaryActionOnMobile?: boolean;
 }) {
   return (
-    <article className="grid gap-4 rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 ring-1 ring-white/[0.03] lg:grid-cols-[minmax(0,1fr)_auto]">
+    <article className="rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 ring-1 ring-white/[0.03]">
       <div className="min-w-0">
         <div className="mb-4 flex flex-wrap gap-2">
           <Badge className="bg-[color:var(--klein)]/15 text-[color:var(--klein)]">
@@ -634,7 +763,7 @@ function IdeaCard({
           ) : null}
           {idea.status ? (
             <Badge className="bg-[color:var(--rubric)]/15 text-[color:var(--rubric)]">
-              {formatIdeaStatus(idea.status)}
+              {CONTENT_IDEA_STATUS_LABELS[idea.status]}
             </Badge>
           ) : null}
         </div>
@@ -647,15 +776,23 @@ function IdeaCard({
         <small className="mt-3 block text-sm leading-6 text-[color:var(--text-muted)]">
           {idea.justification}
         </small>
-        {meta ? (
-          <span className="mt-4 block text-xs font-semibold uppercase text-[color:var(--text-subtle)]">
-            {meta}
-          </span>
-        ) : null}
         <DuplicateNotice duplicate={duplicate} />
       </div>
-      <div className="flex flex-wrap items-start gap-2 lg:max-w-52 lg:justify-end">
-        {action}
+      <div
+        className={cn(
+          "mt-5 grid gap-4 border-t border-[color:var(--border-strong)] pt-4 sm:flex sm:flex-wrap sm:items-center sm:gap-6",
+          meta ? "sm:justify-between" : "sm:justify-end",
+        )}
+      >
+        {meta ? <div className="min-w-0">{meta}</div> : null}
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-2 sm:ml-auto sm:flex sm:flex-nowrap sm:items-center sm:justify-end [&>*]:min-w-0 [&>*]:w-full sm:[&>*]:w-auto sm:[&>*]:whitespace-nowrap",
+            primaryActionOnMobile && "[&>*:first-child]:col-span-2",
+          )}
+        >
+          {action}
+        </div>
       </div>
     </article>
   );
@@ -679,7 +816,7 @@ function DuplicateNotice({
       )}
     >
       <AlertTitle>
-        {duplicate.warning ? "Idee proche detectee" : "Similarite detectee"}
+        {duplicate.warning ? "Idée proche détectée" : "Similarité détectée"}
       </AlertTitle>
       <AlertDescription className="text-[color:var(--text-muted)]">
         Score {Math.round(duplicate.score * 100)}%
@@ -691,16 +828,4 @@ function DuplicateNotice({
 
 function buildIdeaKey(idea: { angle: string; title: string }): string {
   return `${idea.title.trim().toLowerCase()}::${idea.angle.trim().toLowerCase()}`;
-}
-
-function formatIdeaStatus(status: string): string {
-  const labels: Record<string, string> = {
-    ARCHIVED: "Archivee",
-    DISMISSED: "Ignoree",
-    DRAFT: "Brouillon",
-    SAVED: "Sauvegardee",
-    USED: "Utilisee",
-  };
-
-  return labels[status] ?? status;
 }

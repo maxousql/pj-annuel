@@ -328,8 +328,14 @@ export type ContentIdeaOptionsPayload = {
   ideas: ContentIdeaOption[];
 };
 
+export type ContentIdeaAuthorPayload = {
+  id: string;
+  name: string;
+};
+
 export type ContentIdeaPayload = ContentIdeaOption & {
   archivedAt: string | null;
+  createdBy: ContentIdeaAuthorPayload | null;
   justification: string;
   organizationId: string;
   updatedAt: string;
