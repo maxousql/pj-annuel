@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -166,11 +167,7 @@ export function AutomationsWorkspace({
 
   if (isLoading) {
     return (
-      <Card className={cn(panelClass, "rounded-3xl")}>
-        <CardContent className="grid min-h-56 place-items-center p-8">
-          <Loader2 className="size-8 animate-spin text-[color:var(--klein)]" />
-        </CardContent>
-      </Card>
+      <LoadingState title="Chargement des automatisations" />
     );
   }
 

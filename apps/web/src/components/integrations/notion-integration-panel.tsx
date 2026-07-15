@@ -16,6 +16,7 @@ import {
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -186,13 +187,7 @@ export function NotionIntegrationPanel({ organizationSlug }: Props) {
   }
 
   if (!integration) {
-    return (
-      <Card>
-        <CardContent className="flex min-h-32 items-center justify-center">
-          <Loader2 className="size-5 animate-spin" aria-label="Chargement" />
-        </CardContent>
-      </Card>
-    );
+    return <LoadingState title="Chargement de l'intégration" />;
   }
 
   return (

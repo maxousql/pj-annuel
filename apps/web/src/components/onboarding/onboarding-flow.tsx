@@ -10,6 +10,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { createOrganization } from "@/lib/organizations/client";
 import {
   applyOnboardingPreset,
@@ -229,9 +230,9 @@ export function OnboardingFlow() {
 
   if (state.status === "loading") {
     return (
-      <EmptyState
-        title="Preparation de l'onboarding"
-        description="Votre espace et vos informations editoriales sont en cours de verification."
+      <LoadingState
+        title="Préparation de l'onboarding"
+        description="Votre espace et vos informations éditoriales sont en cours de vérification."
       />
     );
   }

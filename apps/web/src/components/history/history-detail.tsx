@@ -9,6 +9,7 @@ import {
   formatContentDate,
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchHistoryItem } from "@/lib/history/client";
 
 type HistoryDetailProps = {
@@ -56,9 +57,9 @@ export function HistoryDetail({
 
   if (isLoading) {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement"
-        description="Lecture de l'element d'historique."
+        description="Lecture de l'élément d'historique."
       />
     );
   }

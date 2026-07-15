@@ -27,6 +27,7 @@ import {
   CONTENT_STATUS_LABELS,
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -698,9 +699,9 @@ export function EditorialCalendarWorkspace({
   function renderMainContent() {
     if (isLoading) {
       return (
-        <EmptyState
+        <LoadingState
           title="Chargement du calendrier"
-          description="Lecture des planifications de la periode demandee."
+          description="Lecture des planifications de la période demandée."
         />
       );
     }

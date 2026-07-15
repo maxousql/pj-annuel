@@ -10,7 +10,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AccessDenied } from "@/components/shell/access-denied";
-import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,7 +151,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
 
   if (state.status === "loading") {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement des membres"
         description="Les accès sont en cours de récupération."
       />

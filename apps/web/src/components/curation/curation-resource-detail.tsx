@@ -5,6 +5,7 @@ import { ExternalLink, Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +49,7 @@ export function CurationResourceDetail({
 
   if (error) return <p className="form-error">{error}</p>;
   if (!detail)
-    return <Loader2 className="size-5 animate-spin" aria-label="Chargement" />;
+    return <LoadingState title="Chargement de la ressource" />;
 
   const { resource } = detail;
 

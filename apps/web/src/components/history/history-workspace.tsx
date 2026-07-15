@@ -17,7 +17,7 @@ import {
   CONTENT_STATUS_LABELS,
   formatContentDate,
 } from "@/components/contents/content-labels";
-import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchHistory, type FetchHistoryInput } from "@/lib/history/client";
 
 type HistoryWorkspaceProps = {
@@ -213,9 +213,9 @@ export function HistoryWorkspace({ organizationSlug }: HistoryWorkspaceProps) {
 
       <section className="history-results">
         {isLoading ? (
-          <EmptyState
+          <LoadingState
             title="Chargement de l'historique"
-            description="Lecture des idees et contenus sauvegardes."
+            description="Lecture des idées et contenus sauvegardés."
           />
         ) : items.length > 0 ? (
           <>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { OrganizationRole } from "@content-ai/shared";
 
 import { AccessDenied } from "@/components/shell/access-denied";
-import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchActiveOrganization } from "@/lib/organizations/client";
 
 type OrganizationSettingsPanelProps = {
@@ -73,7 +73,7 @@ export function OrganizationSettingsPanel({
 
   if (state.status === "loading") {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement des paramètres"
         description="Les droits sur cette organisation sont en cours de vérification."
       />

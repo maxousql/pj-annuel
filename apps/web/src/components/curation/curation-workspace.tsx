@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 import { CONTENT_FORMAT_LABELS } from "@/components/contents/content-labels";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState } from "@/components/shell/loading-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -287,14 +288,7 @@ export function CurationWorkspace({
 
   if (isLoading) {
     return (
-      <Card className={cn(panelClass, "rounded-3xl")}>
-        <CardContent className="grid min-h-56 place-items-center p-8 text-center">
-          <div>
-            <Loader2 className="mx-auto mb-4 size-8 animate-spin text-[color:var(--klein)]" />
-            <p className="font-bold">Chargement de la veille...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <LoadingState title="Chargement de la veille" />
     );
   }
 

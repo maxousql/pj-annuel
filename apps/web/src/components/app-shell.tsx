@@ -17,6 +17,7 @@ import { Bell, Puzzle, Search, Settings, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 import { AccessDenied } from "@/components/shell/access-denied";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { MainNav } from "@/components/shell/main-nav";
 import { OrganizationSwitcher } from "@/components/shell/organization-switcher";
 import { UserMenu } from "@/components/shell/user-menu";
@@ -449,9 +450,9 @@ export function AppShell({ children }: AppShellProps) {
   function renderShellContent() {
     if (state.status === "loading") {
       return (
-        <EmptyState
+        <LoadingState
           title="Chargement de l'espace"
-          description="La session et les organisations accessibles sont en cours de verification."
+          description="La session et les organisations accessibles sont en cours de vérification."
         />
       );
     }

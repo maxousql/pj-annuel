@@ -9,6 +9,7 @@ import type {
 } from "@content-ai/shared";
 
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import {
   fetchEditorialContext,
   fetchEditorialContextSummary,
@@ -114,9 +115,9 @@ export function EditorialContextForm({
 
   if (isLoading) {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement du contexte"
-        description="Les informations editoriales de l'organisation sont en cours de lecture."
+        description="Les informations éditoriales de l'organisation sont en cours de lecture."
       />
     );
   }

@@ -37,6 +37,7 @@ import {
   formatContentDate,
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -275,9 +276,9 @@ export function ContentLibraryDetail({
 
   if (isLoading) {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement du contenu"
-        description="La fiche bibliotheque est en cours de lecture."
+        description="La fiche bibliothèque est en cours de lecture."
       />
     );
   }
