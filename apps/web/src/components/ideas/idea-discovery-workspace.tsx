@@ -26,7 +26,6 @@ import {
   AnimatePresence,
   motion,
   type PanInfo,
-  type Variants,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -64,6 +63,11 @@ import {
   removeDiscoveryCandidate,
   restoreDiscoveryCandidate,
 } from "@/lib/ideas/discovery-optimistic";
+import {
+  type DiscoverySwipeDirection,
+  discoveryCardVariants,
+  resolveDiscoveryCardInitial,
+} from "@/lib/ideas/discovery-motion";
 import { cn } from "@/lib/utils";
 
 type IdeaDiscoveryWorkspaceProps = {
@@ -73,8 +77,6 @@ type IdeaDiscoveryWorkspaceProps = {
 
 const panelClass =
   "border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/95 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] ring-1 ring-white/[0.03]";
-
-type SwipeDirection = -1 | 0 | 1;
 
 const REJECTION_REASONS: Array<{
   description: string;
@@ -116,7 +118,8 @@ export function IdeaDiscoveryWorkspace({
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(0);
+  const [swipeDirection, setSwipeDirection] =
+    useState<DiscoverySwipeDirection>(0);
   const [selectedReason, setSelectedReason] =
     useState<IdeaDiscoveryRejectionReason | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -512,61 +515,6 @@ export function IdeaDiscoveryWorkspace({
   );
 }
 
-type DiscoveryCardMotionContext = {
-  direction: SwipeDirection;
-  reduceMotion: boolean;
-};
-
-const discoveryCardVariants: Variants = {
-  animate: {
-    opacity: 1,
-    pointerEvents: "auto",
-    rotate: 0,
-    scale: 1,
-    x: 0,
-    y: 0,
-    zIndex: 1,
-    transition: {
-      duration: 0.22,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-  exit: ({ direction, reduceMotion }: DiscoveryCardMotionContext) =>
-    reduceMotion
-      ? {
-          opacity: 0,
-          pointerEvents: "none",
-          transition: { duration: 0.08 },
-          zIndex: 2,
-        }
-      : direction === 0
-        ? {
-            opacity: 0,
-            pointerEvents: "none",
-            scale: 0.96,
-            transition: { duration: 0.18, ease: [0.4, 0, 1, 1] },
-            y: -36,
-            zIndex: 2,
-          }
-        : {
-            opacity: 0,
-            pointerEvents: "none",
-            rotate: direction * 12,
-            transition: {
-              damping: 28,
-              mass: 0.72,
-              stiffness: 250,
-              type: "spring",
-            },
-            x: direction * 900,
-            zIndex: 2,
-          },
-  initial: ({ reduceMotion }: DiscoveryCardMotionContext) =>
-    reduceMotion
-      ? { opacity: 0 }
-      : { opacity: 0, scale: 0.97, y: 14, zIndex: 0 },
-};
-
 function DiscoveryCandidateCard({
   candidate,
   headingRef,
@@ -623,7 +571,7 @@ function DiscoveryCandidateCard({
       dragMomentum={false}
       dragSnapToOrigin
       exit="exit"
-      initial="initial"
+      initial={resolveDiscoveryCardInitial(reduceMotion)}
       style={{ rotate, x }}
       variants={discoveryCardVariants}
       whileDrag={{ scale: 1.012 }}
@@ -1096,7 +1044,9 @@ function DiscoveryCompleteState({
   );
 }
 
-function toSwipeDirection(signal: IdeaDiscoverySignal): SwipeDirection {
+function toSwipeDirection(
+  signal: IdeaDiscoverySignal,
+): DiscoverySwipeDirection {
   if (signal === "LIKE") return 1;
   if (signal === "DISLIKE") return -1;
   return 0;
