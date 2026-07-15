@@ -337,7 +337,7 @@ export function AppShell({ children }: AppShellProps) {
             </Link>
           </div>
           <Link
-            className="inline-flex h-[54px] items-center justify-center gap-3 rounded-lg border-[1.5px] border-[color:var(--rubric)] bg-[color:var(--rubric)] px-5 text-[15px] font-bold text-[color:var(--paper-card)] shadow-[4px_4px_0_rgba(23,19,15,0.18)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_rgba(23,19,15,0.18)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+            className="inline-flex h-[54px] items-center justify-center gap-3 rounded-lg border-[1.5px] border-[color:var(--rubric)] bg-[color:var(--rubric)] px-5 text-[15px] font-bold !text-white shadow-[4px_4px_0_rgba(23,19,15,0.18)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!text-white hover:shadow-[6px_6px_0_rgba(23,19,15,0.18)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             href={
               activeOrganization
                 ? `/app/${activeOrganization.slug}/contents/generate`
@@ -518,10 +518,10 @@ function ShellBrand({
       <LogoMark className="shrink-0 text-[color:var(--ink)]" size={42} />
       <span className="min-w-0">
         <span className="block truncate font-heading text-[21px] font-semibold leading-[1.05] text-[color:var(--ink)]">
-          Projet Annuel<span className="text-[color:var(--rubric)]">.</span>
+          Content AI<span className="text-[color:var(--rubric)]">.</span>
         </span>
         <span className="mt-1 block truncate font-mono text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-subtle)]">
-          L&apos;atelier editorial
+          Studio éditorial
         </span>
       </span>
     </Link>

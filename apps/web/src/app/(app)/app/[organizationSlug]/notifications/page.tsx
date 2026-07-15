@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { NotificationsWorkspace } from "@/components/notifications/notifications-workspace";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Notifications",
@@ -19,14 +20,11 @@ export default async function NotificationsPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Notifications</p>
-        <h1>Rappels et prochaines actions.</h1>
-        <p>
-          Consultez les notifications générées par les automatisations de
-          l'organisation.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Consultez les notifications générées par les automatisations de l'organisation."
+        eyebrow="Notifications"
+        title="Rappels et prochaines actions."
+      />
       <NotificationsWorkspace organizationSlug={organizationSlug} />
     </>
   );

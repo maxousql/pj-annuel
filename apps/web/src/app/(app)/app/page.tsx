@@ -1,22 +1,20 @@
 import Link from "next/link";
 import { OrganizationsOverview } from "@/components/organizations/organizations-overview";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export default function AppHomePage() {
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Espace protégé</p>
-        <h1>Choisir une organisation active.</h1>
-        <p>
-          Accédez aux espaces de travail rattachés à votre compte et suivez les
-          priorités de chaque équipe.
-        </p>
-      </section>
-      <div className="form-footer">
-        <Link className="button" href="/app/organizations/new">
-          Nouvelle organisation
-        </Link>
-      </div>
+      <AppPageHeader
+        actions={
+          <Link className="button" href="/app/organizations/new">
+            Nouvelle organisation
+          </Link>
+        }
+        description="Accédez aux espaces de travail rattachés à votre compte et suivez les priorités de chaque équipe."
+        eyebrow="Espace protégé"
+        title="Choisir une organisation active."
+      />
       <OrganizationsOverview />
     </>
   );

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 import { IdeasWorkspace } from "@/components/ideas/ideas-workspace";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
-  title: "Idees",
+  title: "Idées",
 };
 
 type IdeasPageProps = {
@@ -17,11 +18,11 @@ export default async function IdeasPage({ params }: IdeasPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Idees</p>
-        <h1>Idees de contenu.</h1>
-        <p>Sujets, angles et formats recommandes pour l'organisation active.</p>
-      </section>
+      <AppPageHeader
+        description="Sujets, angles et formats recommandés pour l'organisation active."
+        eyebrow="Idées"
+        title="Idées de contenu."
+      />
       <IdeasWorkspace organizationSlug={organizationSlug} />
     </>
   );

@@ -1,16 +1,14 @@
 import { ProfileSettings } from "@/components/settings/profile-settings";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export default function SettingsPage() {
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Paramètres</p>
-        <h1>Configuration du compte.</h1>
-        <p>
-          Ajustez les informations de compte, les préférences et les accès
-          personnels.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Ajustez les informations de compte, les préférences et les accès personnels."
+        eyebrow="Paramètres"
+        title="Configuration du compte."
+      />
       <section className="settings-grid" aria-label="Sections de paramètres">
         <article className="settings-panel">
           <header>

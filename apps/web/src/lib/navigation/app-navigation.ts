@@ -61,7 +61,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Planification éditoriale V1.",
+    description: "Planifiez et suivez vos publications éditoriales.",
     href: (organizationSlug) => `/app/${organizationSlug}/calendar`,
     id: "calendar",
     label: "Calendrier",
@@ -77,7 +77,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Rappels, recommandations et notifications V2.",
+    description: "Rappels, recommandations et notifications éditoriales.",
     href: (organizationSlug) => `/app/${organizationSlug}/automation`,
     id: "automation",
     label: "Automatisation",

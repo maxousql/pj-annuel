@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AiSettingsForm } from "@/components/ai-settings/ai-settings-form";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Profil IA",
@@ -17,14 +18,11 @@ export default async function AiSettingsPage({ params }: AiSettingsPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">V2</p>
-        <h1>Profil IA et prompts.</h1>
-        <p>
-          Versionnez les preferences de generation: langue, longueur,
-          creativite, exemples et interdits de marque.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Personnalisez les générations : langue, longueur, créativité, exemples et termes interdits."
+        eyebrow="Intelligence artificielle"
+        title="Profil IA et consignes."
+      />
       <AiSettingsForm organizationSlug={organizationSlug} />
     </>
   );

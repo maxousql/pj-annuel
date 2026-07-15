@@ -24,7 +24,6 @@ import {
   FileText,
   Grid3X3,
   ListFilter,
-  Plus,
   RotateCcw,
   Search,
   Sparkles,
@@ -175,26 +174,18 @@ export function ContentLibraryWorkspace({
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 py-1 text-xs font-bold uppercase text-[color:var(--text-muted)]">
               <Sparkles className="size-3.5 text-[color:var(--rubric)]" />
-              Bibliotheque Architect AI
+              Espace éditorial
             </div>
             <h2 className="text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               Pilotez vos{" "}
               <span className="text-[color:var(--rubric)]">contenus</span>{" "}
-              depuis une base editoriale premium.
+              depuis un espace éditorial centralisé.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
-              Filtrez, qualifiez et retrouvez chaque brouillon, publication ou
-              contenu archive sans changer les routes ni les actions existantes.
+              Retrouvez, filtrez et organisez vos brouillons, contenus planifiés
+              et publications en un seul endroit.
             </p>
           </div>
-
-          <Link
-            className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-2xl bg-[color:var(--rubric)] px-5 text-sm font-extrabold text-[color:var(--paper)] shadow-[0_0_36px_rgba(195,244,0,0.24)] transition hover:bg-[color:var(--rubric)]"
-            href={`/app/${organizationSlug}/contents/generate`}
-          >
-            <Plus className="size-4" />
-            Generer
-          </Link>
         </div>
       </section>
 
@@ -211,12 +202,12 @@ export function ContentLibraryWorkspace({
                 </CardTitle>
               </div>
               <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--rubric)]">
-                {activeFilterCount} actif(s)
+                Filtres actifs : {activeFilterCount}
               </Badge>
             </div>
             <CardDescription className="text-sm leading-6 text-[color:var(--text-muted)]">
-              Recherche, taxonomie, statut et periode conservent les memes
-              parametres API.
+              Combinez la recherche, les catégories, les statuts et les dates
+              pour retrouver rapidement un contenu.
             </CardDescription>
           </CardHeader>
 
@@ -302,7 +293,7 @@ export function ContentLibraryWorkspace({
                   </select>
                 </FieldLabel>
 
-                <FieldLabel label="Categorie">
+                <FieldLabel label="Catégorie">
                   <select
                     className={selectClassName}
                     value={draftFilters.categoryId}
@@ -323,10 +314,10 @@ export function ContentLibraryWorkspace({
                 </FieldLabel>
               </div>
 
-              <FieldLabel label="Categorie libre">
+              <FieldLabel label="Catégorie libre">
                 <Input
                   className={controlClassName}
-                  placeholder="Recherche categorie ou sujet historique"
+                  placeholder="Rechercher une catégorie ou un sujet"
                   value={draftFilters.category}
                   onChange={(event) =>
                     setDraftFilters((current) => ({
@@ -352,7 +343,7 @@ export function ContentLibraryWorkspace({
                   />
                 </FieldLabel>
 
-                <FieldLabel label="Jusqu'a">
+                <FieldLabel label="Jusqu'à">
                   <Input
                     className={controlClassName}
                     type="date"
@@ -382,7 +373,7 @@ export function ContentLibraryWorkspace({
                   onClick={handleReset}
                 >
                   <RotateCcw className="size-4" />
-                  Reinitialiser
+                  Réinitialiser
                 </Button>
               </div>
             </form>
@@ -396,32 +387,27 @@ export function ContentLibraryWorkspace({
                 Contenus
               </p>
               <h3 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
-                {library ? `${library.pagination.total} resultat(s)` : ""}
+                {library
+                  ? `${library.pagination.total} résultat${
+                      library.pagination.total > 1 ? "s" : ""
+                    }`
+                  : ""}
               </h3>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
-                <ViewModeButton
-                  icon={<Grid3X3 className="size-4" />}
-                  isActive={viewMode === "cards"}
-                  label="Cards"
-                  onClick={() => setViewMode("cards")}
-                />
-                <ViewModeButton
-                  icon={<Table2 className="size-4" />}
-                  isActive={viewMode === "table"}
-                  label="Table"
-                  onClick={() => setViewMode("table")}
-                />
-              </div>
-              <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-bold text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
-                href={`/app/${organizationSlug}/contents/generate`}
-              >
-                <Plus className="size-4 text-[color:var(--rubric)]" />
-                Generer
-              </Link>
+            <div className="inline-flex rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
+              <ViewModeButton
+                icon={<Grid3X3 className="size-4" />}
+                isActive={viewMode === "cards"}
+                label="Cartes"
+                onClick={() => setViewMode("cards")}
+              />
+              <ViewModeButton
+                icon={<Table2 className="size-4" />}
+                isActive={viewMode === "table"}
+                label="Tableau"
+                onClick={() => setViewMode("table")}
+              />
             </div>
           </header>
 
@@ -435,7 +421,7 @@ export function ContentLibraryWorkspace({
     if (isLoading) {
       return (
         <PremiumState
-          description="Lecture de la bibliotheque de l'organisation."
+          description="Chargement de la bibliothèque de l'organisation."
           title="Chargement des contenus"
         />
       );
@@ -445,7 +431,7 @@ export function ContentLibraryWorkspace({
       return (
         <PremiumState
           description={errorMessage}
-          title="Bibliotheque indisponible"
+          title="Bibliothèque indisponible"
           tone="danger"
         />
       );
@@ -498,7 +484,7 @@ export function ContentLibraryWorkspace({
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
             <ChevronLeft className="size-4" />
-            Precedent
+            Précédent
           </Button>
           <span className="text-center text-sm font-bold text-[color:var(--text-muted)]">
             Page{" "}
@@ -659,7 +645,7 @@ function LibraryContentTable({
               Tags
             </TableHead>
             <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
-              Maj
+              Mis à jour
             </TableHead>
             <TableHead className="px-4 text-right text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Action

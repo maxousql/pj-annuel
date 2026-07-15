@@ -37,7 +37,7 @@ describe("app navigation", () => {
     ).toBe(true);
   });
 
-  it("exposes V2 modules to editors when implemented", () => {
+  it("exposes editorial modules to editors when implemented", () => {
     const editorCuration = getNavigationItemsForRole("EDITOR").find((item) => {
       return item.id === "curation";
     });

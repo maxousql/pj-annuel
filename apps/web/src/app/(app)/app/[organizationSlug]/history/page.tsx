@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { HistoryWorkspace } from "@/components/history/history-workspace";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Historique",
@@ -17,11 +18,11 @@ export default async function HistoryPage({ params }: HistoryPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Historique</p>
-        <h1>Idées et contenus sauvegardés.</h1>
-        <p>Recherchez, filtrez et ouvrez les éléments éditoriaux existants.</p>
-      </section>
+      <AppPageHeader
+        description="Recherchez, filtrez et ouvrez les éléments éditoriaux existants."
+        eyebrow="Historique"
+        title="Idées et contenus sauvegardés."
+      />
       <HistoryWorkspace organizationSlug={organizationSlug} />
     </>
   );

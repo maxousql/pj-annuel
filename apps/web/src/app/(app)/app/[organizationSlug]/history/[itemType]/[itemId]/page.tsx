@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { HistoryDetail } from "@/components/history/history-detail";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Detail historique",
@@ -21,11 +22,11 @@ export default async function HistoryDetailPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Historique</p>
-        <h1>Detail de l'element.</h1>
-        <p>Consultez le contexte sauvegarde et poursuivez le travail.</p>
-      </section>
+      <AppPageHeader
+        description="Consultez le contexte sauvegardé et poursuivez le travail."
+        eyebrow="Historique"
+        title="Détail de l'élément."
+      />
       <HistoryDetail
         itemId={itemId}
         itemType={itemType}

@@ -20,7 +20,7 @@ export const MARKETING_CONTENT_PROMPT_VERSION = "marketing-content.v2";
 export const RESOURCE_SUMMARY_PROMPT_VERSION = "resource-summary.v2";
 
 const SYSTEM_INSTRUCTION = [
-  "Tu es le moteur IA de Projet Annuel, une plateforme SaaS de content marketing.",
+  "Tu es le moteur IA de Content AI, une plateforme SaaS de content marketing.",
   "Tu produis des sorties en français, exploitables par une équipe marketing.",
   "Tu reponds uniquement avec un JSON conforme au schema fourni.",
   "Tu ne retournes jamais de markdown, de commentaire hors JSON ou de secret.",

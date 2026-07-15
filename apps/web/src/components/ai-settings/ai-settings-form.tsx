@@ -115,7 +115,7 @@ export function AiSettingsForm({ organizationSlug }: AiSettingsFormProps) {
         <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
           <CardTitle>Voix de marque avancee</CardTitle>
           <CardDescription>
-            Ces consignes affinent les prompts V2 sans stocker de secret.
+            Ces consignes personnalisent les générations sans stocker de secret.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-5 py-5">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MembersList } from "@/components/organizations/members-list";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 type OrganizationMembersPageProps = {
   params: Promise<{
@@ -19,11 +20,11 @@ export default async function OrganizationMembersPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Membres</p>
-        <h1>{formatOrganizationName(organizationSlug)}</h1>
-        <p>Rôles et accès de l'organisation active.</p>
-      </section>
+      <AppPageHeader
+        description="Rôles et accès de l'organisation active."
+        eyebrow="Membres"
+        title={formatOrganizationName(organizationSlug)}
+      />
       <section className="settings-panel">
         <header>
           <div>

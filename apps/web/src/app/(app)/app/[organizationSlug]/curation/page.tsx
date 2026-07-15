@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CurationWorkspace } from "@/components/curation/curation-workspace";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Curation",
@@ -17,14 +18,11 @@ export default async function CurationPage({ params }: CurationPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">V2</p>
-        <h1>Veille et curation.</h1>
-        <p>
-          Collectez des URLs, importez des flux RSS, resumez les sources et
-          transformez-les en brouillons.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Collectez des URLs, importez des flux RSS, résumez les sources et transformez-les en brouillons."
+        eyebrow="Veille éditoriale"
+        title="Veille et curation."
+      />
       <CurationWorkspace organizationSlug={organizationSlug} />
     </>
   );

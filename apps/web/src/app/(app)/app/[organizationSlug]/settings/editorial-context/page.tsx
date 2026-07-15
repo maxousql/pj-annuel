@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 import { EditorialContextForm } from "@/components/editorial-context/editorial-context-form";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
-  title: "Contexte editorial",
+  title: "Contexte éditorial",
 };
 
 type EditorialContextPageProps = {
@@ -19,14 +20,11 @@ export default async function EditorialContextPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Contexte editorial</p>
-        <h1>Personnaliser les generations.</h1>
-        <p>
-          Configurez les informations marketing utilisees par l'IA pour cette
-          organisation.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Configurez les informations marketing utilisées par l'IA pour cette organisation."
+        eyebrow="Contexte éditorial"
+        title="Personnaliser les générations."
+      />
       <EditorialContextForm organizationSlug={organizationSlug} />
     </>
   );

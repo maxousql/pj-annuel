@@ -17,11 +17,9 @@ export default async function LibraryDetailPage({
   const { contentId, organizationSlug } = await params;
 
   return (
-    <div className="page-stack">
-      <ContentLibraryDetail
-        contentId={contentId}
-        organizationSlug={organizationSlug}
-      />
-    </div>
+    <ContentLibraryDetail
+      contentId={contentId}
+      organizationSlug={organizationSlug}
+    />
   );
 }

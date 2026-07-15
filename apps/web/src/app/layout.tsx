@@ -8,12 +8,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  applicationName: "Content AI",
   title: {
-    default: "Projet Annuel",
-    template: "%s | Projet Annuel",
+    default: "Content AI - Studio éditorial assisté par IA",
+    template: "%s | Content AI",
   },
   description:
-    "L'atelier éditorial : idées, rédaction IA et calendrier de publication.",
+    "Centralisez vos idées, votre rédaction assistée, votre veille et votre calendrier éditorial avec Content AI.",
+  keywords: [
+    "content marketing",
+    "rédaction IA",
+    "calendrier éditorial",
+    "gestion de contenu",
+    "Notion",
+  ],
+  openGraph: {
+    description:
+      "Un espace partagé pour produire, organiser et planifier des contenus cohérents avec votre marque.",
+    locale: "fr_FR",
+    siteName: "Content AI",
+    title: "Content AI - Studio éditorial assisté par IA",
+    type: "website",
+  },
+  robots: {
+    follow: true,
+    index: true,
+  },
 };
 
 type RootLayoutProps = { children: ReactNode };

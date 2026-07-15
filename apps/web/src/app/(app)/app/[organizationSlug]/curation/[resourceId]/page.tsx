@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CurationResourceDetail } from "@/components/curation/curation-resource-detail";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 type Props = {
   params: Promise<{ organizationSlug: string; resourceId: string }>;
@@ -13,11 +14,11 @@ export default async function CurationResourcePage({ params }: Props) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Veille</p>
-        <h1>Detail de la ressource.</h1>
-        <p>Source, resume, points cles et synchronisation externe.</p>
-      </section>
+      <AppPageHeader
+        description="Source, résumé, points clés et synchronisation externe."
+        eyebrow="Veille"
+        title="Détail de la ressource."
+      />
       <CurationResourceDetail
         organizationSlug={organizationSlug}
         resourceId={resourceId}

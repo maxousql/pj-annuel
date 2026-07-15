@@ -43,7 +43,7 @@ type BrandLockupProps = {
   sub?: string;
 };
 
-/** Logotype complet : cachet + wordmark serif, point final en vermillon. */
+/** Logotype complet : cachet + wordmark, point final en vermillon. */
 export function BrandLockup({ sub }: BrandLockupProps) {
   return (
     <>
@@ -51,7 +51,7 @@ export function BrandLockup({ sub }: BrandLockupProps) {
         <LogoMark />
       </span>
       <span>
-        Projet Annuel<span style={{ color: "var(--rubric)" }}>.</span>
+        Content AI<span style={{ color: "var(--rubric)" }}>.</span>
         {sub ? <span className="brand-sub">{sub}</span> : null}
       </span>
     </>

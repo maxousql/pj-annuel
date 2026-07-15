@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CreateOrganizationForm } from "@/components/organizations/create-organization-form";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Nouvelle organisation",
@@ -9,11 +10,11 @@ export const metadata: Metadata = {
 export default function NewOrganizationPage() {
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Organisation</p>
-        <h1>Nouvelle organisation.</h1>
-        <p>Créer un espace de travail isolé pour une équipe ou un client.</p>
-      </section>
+      <AppPageHeader
+        description="Créer un espace de travail isolé pour une équipe ou un client."
+        eyebrow="Organisation"
+        title="Nouvelle organisation."
+      />
       <section className="settings-panel">
         <header>
           <div>
