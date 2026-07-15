@@ -24,6 +24,7 @@ import {
   FileText,
   Grid3X3,
   ListFilter,
+  Plus,
   RotateCcw,
   Search,
   Sparkles,
@@ -174,16 +175,11 @@ export function ContentLibraryWorkspace({
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 py-1 text-xs font-bold uppercase text-[color:var(--text-muted)]">
               <Sparkles className="size-3.5 text-[color:var(--rubric)]" />
-<<<<<<< HEAD
               Bibliothèque Architect AI
-=======
-              Espace éditorial
->>>>>>> main
             </div>
             <h2 className="text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               Pilotez vos{" "}
               <span className="text-[color:var(--rubric)]">contenus</span>{" "}
-<<<<<<< HEAD
               depuis une base éditoriale premium.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
@@ -199,15 +195,6 @@ export function ContentLibraryWorkspace({
             <Plus className="size-4" />
             Générer
           </Link>
-=======
-              depuis un espace éditorial centralisé.
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
-              Retrouvez, filtrez et organisez vos brouillons, contenus planifiés
-              et publications en un seul endroit.
-            </p>
-          </div>
->>>>>>> main
         </div>
       </section>
 
@@ -417,7 +404,6 @@ export function ContentLibraryWorkspace({
               </h3>
             </div>
 
-<<<<<<< HEAD
             <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
                 <ViewModeButton

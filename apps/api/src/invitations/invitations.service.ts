@@ -285,7 +285,7 @@ export class InvitationsService {
     }
 
     return {
-      email: maskEmail(invitation.email),
+      email: invitation.email,
       expiresAt: invitation.expiresAt.toISOString(),
       organizationName: invitation.organization.name,
       organizationSlug: invitation.organization.slug,

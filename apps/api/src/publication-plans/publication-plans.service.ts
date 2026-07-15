@@ -210,7 +210,7 @@ export class PublicationPlansService {
         deletedAt: null,
         organizationId,
         status: {
-          notIn: ["ARCHIVED", "DELETED"],
+          in: ["DRAFT", "REVIEW", "READY"],
         },
       },
     });
@@ -507,6 +507,15 @@ async function syncContentStatusForPlan(
         id: contentId,
       },
     });
+    return;
+  }
+
+  if (status === "CANCELLED") {
+    await relaxScheduledContentIfUnused(
+      transaction,
+      organizationId,
+      contentId,
+    );
     return;
   }
 

@@ -23,6 +23,7 @@ type AuthMode = "login" | "register";
 type AuthFormProps = {
   mode: AuthMode;
   invitationToken?: string | null;
+  invitationEmail?: string | null;
 };
 
 const authConfig = {
@@ -42,7 +43,11 @@ const authConfig = {
   },
 } satisfies Record<AuthMode, Record<string, string>>;
 
-export function AuthForm({ mode, invitationToken }: AuthFormProps) {
+export function AuthForm({
+  mode,
+  invitationToken,
+  invitationEmail,
+}: AuthFormProps) {
   const config = authConfig[mode];
   const isRegister = mode === "register";
   const router = useRouter();
@@ -58,6 +63,10 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
   }, []);
 
   useEffect(() => {
+    if (invitationEmail) {
+      setPrefilledEmail(invitationEmail);
+    }
+
     if (!invitationToken || mode !== "register") return;
 
     void fetchInvitationPreview(invitationToken).then((result) => {
@@ -65,10 +74,12 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
         setError(result.error.message);
       } else {
         setInvitationPreview(result.data);
-        setPrefilledEmail(result.data.email);
+        if (!invitationEmail) {
+          setPrefilledEmail(result.data.email);
+        }
       }
     });
-  }, [invitationToken, mode]);
+  }, [invitationToken, invitationEmail, mode]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -158,6 +169,7 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
             type="email"
             autoComplete="email"
             defaultValue={prefilledEmail}
+            readOnly={!!invitationToken}
             required
           />
         </label>

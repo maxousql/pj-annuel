@@ -8,8 +8,17 @@ export const metadata: Metadata = {
   title: "Inscription",
 };
 
-export default function RegisterPage() {
-  const invitationToken = getInvitationTokenFromUrl();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function RegisterPage(props: {
+  searchParams: SearchParams;
+}) {
+  const searchParams = await props.searchParams;
+  const nextPath = typeof searchParams.next === "string" ? searchParams.next : null;
+  const invitationEmail = typeof searchParams.email === "string" ? searchParams.email : null;
+
+  // Extract token from next path like "/invite/[token]"
+  const invitationToken = nextPath?.match(/^\/invite\/(.+)$/)?.[1] ?? null;
 
   return (
     <main className="page-shell">
@@ -26,7 +35,11 @@ export default function RegisterPage() {
             préparer les prochains contenus.
           </p>
         </section>
-        <AuthForm mode="register" invitationToken={invitationToken} />
+        <AuthForm
+          mode="register"
+          invitationToken={invitationToken}
+          invitationEmail={invitationEmail}
+        />
       </div>
     </main>
   );

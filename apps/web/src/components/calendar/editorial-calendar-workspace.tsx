@@ -627,6 +627,18 @@ export function EditorialCalendarWorkspace({
                   <RotateCcw className="size-4" />
                   Annuler
                 </Button>
+                {editingPlanId ? (
+                  <Button
+                    className="h-11 rounded-[16px] border border-[color:var(--danger)]/30 bg-[color:var(--danger)]/10 px-4 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/20"
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleDelete(editingPlanId)}
+                    disabled={isSaving}
+                  >
+                    <Trash2 className="size-4" />
+                    Supprimer
+                  </Button>
+                ) : null}
               </div>
 
               {!calendar.contentOptions.length ? (
