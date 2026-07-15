@@ -888,7 +888,7 @@ export class IntegrationsService {
     await this.prisma.$transaction(
       async (transaction) => {
         await transaction.$queryRawUnsafe(
-          "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+          "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))::text AS lock_result",
           lockKey,
         );
         await handler(transaction);

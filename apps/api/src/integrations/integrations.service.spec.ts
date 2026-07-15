@@ -54,7 +54,7 @@ describe("IntegrationsService Notion synchronization", () => {
   it("serializes duplicate exports and reuses the persisted page", async () => {
     let syncState: Record<string, unknown> | null = null;
     const transaction = {
-      $queryRawUnsafe: jest.fn().mockResolvedValue([{ locked: true }]),
+      $queryRawUnsafe: jest.fn().mockResolvedValue([{ lock_result: "" }]),
       notionSyncState: {
         findUnique: jest.fn(async () => syncState),
         upsert: jest.fn(
@@ -82,6 +82,11 @@ describe("IntegrationsService Notion synchronization", () => {
     expect(notion.createPage).toHaveBeenCalledTimes(1);
     expect(notion.updatePage).toHaveBeenCalledTimes(1);
     expect(notion.replacePageBody).toHaveBeenCalledTimes(2);
+    expect(transaction.$queryRawUnsafe).toHaveBeenCalledWith(
+      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))::text AS lock_result",
+      "notion:organization:CONTENT:content",
+    );
+    expect(transaction.$queryRawUnsafe).toHaveBeenCalledTimes(2);
   });
 
   it("paginates local entities beyond the first hundred", async () => {
