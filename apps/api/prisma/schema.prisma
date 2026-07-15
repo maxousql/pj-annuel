@@ -63,6 +63,24 @@ enum ContentIdeaStatus {
   @@map("content_idea_status")
 }
 
+enum IdeaDiscoverySignal {
+  LIKE
+  DISLIKE
+  SKIP
+
+  @@map("idea_discovery_signal")
+}
+
+enum IdeaDiscoveryRejectionReason {
+  OFF_TOPIC
+  ALREADY_COVERED
+  WRONG_FORMAT
+  TOO_GENERIC
+  NOT_NOW
+
+  @@map("idea_discovery_rejection_reason")
+}
+
 enum ContentItemStatus {
   DRAFT
   REVIEW
@@ -245,12 +263,14 @@ model User {
   invitationsSent         Invitation[]             @relation("InvitationInviter")
   editorialContexts       EditorialContext[]       @relation("EditorialContextCreator")
   contentIdeas            ContentIdea[]            @relation("ContentIdeaCreator")
+  ideaDiscoveryCandidates IdeaDiscoveryCandidate[] @relation("IdeaDiscoveryCandidateCreator")
+  ideaDiscoveryFeedbacks  IdeaDiscoveryFeedback[]  @relation("IdeaDiscoveryFeedbackAuthor")
   contentItems            ContentItem[]            @relation("ContentItemCreator")
   aiGenerationLogs        AiGenerationLog[]
   onboardingProgresses    OnboardingProgress[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
-  qualityEvaluations      AiQualityEvaluation[]      @relation("AiQualityEvaluationCreator")
+  qualityEvaluations      AiQualityEvaluation[]    @relation("AiQualityEvaluationCreator")
 
   @@map("users")
 }
@@ -284,6 +304,9 @@ model Organization {
   invitations             Invitation[]
   editorialContexts       EditorialContext[]
   contentIdeas            ContentIdea[]
+  ideaDiscoveryCandidates IdeaDiscoveryCandidate[]
+  ideaDiscoveryFeedbacks  IdeaDiscoveryFeedback[]
+  ideaPreferenceProfile   IdeaPreferenceProfile?
   contentItems            ContentItem[]
   contentCategories       ContentCategory[]
   tags                    Tag[]
@@ -371,22 +394,24 @@ model EditorialContext {
 }
 
 model ContentIdea {
-  id                String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId    String            @map("organization_id") @db.Uuid
-  title             String
-  angle             String
-  recommendedFormat ContentFormat     @map("recommended_format")
-  justification     String
-  category          String?
-  status            ContentIdeaStatus @default(DRAFT)
-  createdById       String?           @map("created_by_id") @db.Uuid
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
-  archivedAt        DateTime?         @map("archived_at") @db.Timestamptz(6)
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy         User?             @relation("ContentIdeaCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  contentItems      ContentItem[]
-  aiGenerationLogs  AiGenerationLog[] @relation("AiGenerationIdeaResult")
+  id                   String                  @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId       String                  @map("organization_id") @db.Uuid
+  title                String
+  angle                String
+  recommendedFormat    ContentFormat           @map("recommended_format")
+  justification        String
+  category             String?
+  status               ContentIdeaStatus       @default(DRAFT)
+  createdById          String?                 @map("created_by_id") @db.Uuid
+  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  archivedAt           DateTime?               @map("archived_at") @db.Timestamptz(6)
+  discoveryCandidateId String?                 @unique @map("discovery_candidate_id") @db.Uuid
+  organization         Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy            User?                   @relation("ContentIdeaCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contentItems         ContentItem[]
+  aiGenerationLogs     AiGenerationLog[]       @relation("AiGenerationIdeaResult")
+  discoveryCandidate   IdeaDiscoveryCandidate? @relation(fields: [discoveryCandidateId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
@@ -394,32 +419,96 @@ model ContentIdea {
   @@map("content_ideas")
 }
 
+model IdeaDiscoveryCandidate {
+  id                    String                  @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId        String                  @map("organization_id") @db.Uuid
+  generatedById         String?                 @map("generated_by_id") @db.Uuid
+  title                 String
+  angle                 String
+  recommendedFormat     ContentFormat           @map("recommended_format")
+  justification         String
+  category              String?
+  fingerprint           String
+  isExploratory         Boolean                 @default(false) @map("is_exploratory")
+  promptVersion         String                  @map("prompt_version")
+  duplicateWarning      Boolean                 @default(false) @map("duplicate_warning")
+  duplicateScore        Float                   @default(0) @map("duplicate_score")
+  duplicateSource       String?                 @map("duplicate_source")
+  duplicateMatchedId    String?                 @map("duplicate_matched_id") @db.Uuid
+  duplicateMatchedTitle String?                 @map("duplicate_matched_title")
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  generatedBy           User?                   @relation("IdeaDiscoveryCandidateCreator", fields: [generatedById], references: [id], onDelete: SetNull)
+  savedIdea             ContentIdea?
+  feedbacks             IdeaDiscoveryFeedback[]
+
+  @@unique([organizationId, fingerprint])
+  @@index([organizationId, createdAt])
+  @@index([generatedById])
+  @@map("idea_discovery_candidates")
+}
+
+model IdeaDiscoveryFeedback {
+  id             String                        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String                        @map("organization_id") @db.Uuid
+  candidateId    String                        @map("candidate_id") @db.Uuid
+  userId         String                        @map("user_id") @db.Uuid
+  signal         IdeaDiscoverySignal
+  reason         IdeaDiscoveryRejectionReason?
+  createdAt      DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  candidate      IdeaDiscoveryCandidate        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  user           User                          @relation("IdeaDiscoveryFeedbackAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, candidateId])
+  @@index([organizationId, createdAt])
+  @@index([candidateId])
+  @@map("idea_discovery_feedbacks")
+}
+
+model IdeaPreferenceProfile {
+  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String       @unique @map("organization_id") @db.Uuid
+  likedCount     Int          @default(0) @map("liked_count")
+  dislikedCount  Int          @default(0) @map("disliked_count")
+  themeScores    Json         @default("{}") @map("theme_scores")
+  formatScores   Json         @default("{}") @map("format_scores")
+  resetAt        DateTime?    @map("reset_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("idea_preference_profiles")
+}
+
 model ContentItem {
-  id               String            @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId   String            @map("organization_id") @db.Uuid
-  ideaId           String?           @map("idea_id") @db.Uuid
-  categoryId       String?           @map("category_id") @db.Uuid
-  title            String
-  body             String            @default("")
-  format           ContentFormat
-  brief            String?
-  status           ContentItemStatus @default(DRAFT)
-  source           ContentSource     @default(AI_GENERATED)
-  topic            String?
-  duplicateScore   Float?            @map("duplicate_score")
-  createdById      String?           @map("created_by_id") @db.Uuid
-  publishedAt      DateTime?         @map("published_at") @db.Timestamptz(6)
-  archivedAt       DateTime?         @map("archived_at") @db.Timestamptz(6)
-  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
-  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  idea             ContentIdea?      @relation(fields: [ideaId], references: [id], onDelete: SetNull)
-  category         ContentCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdBy        User?             @relation("ContentItemCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  contentTags      ContentTag[]
-  publicationPlans PublicationPlan[]
-  aiGenerationLogs AiGenerationLog[] @relation("AiGenerationContentResult")
+  id                 String                @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId     String                @map("organization_id") @db.Uuid
+  ideaId             String?               @map("idea_id") @db.Uuid
+  categoryId         String?               @map("category_id") @db.Uuid
+  title              String
+  body               String                @default("")
+  format             ContentFormat
+  brief              String?
+  status             ContentItemStatus     @default(DRAFT)
+  source             ContentSource         @default(AI_GENERATED)
+  topic              String?
+  duplicateScore     Float?                @map("duplicate_score")
+  createdById        String?               @map("created_by_id") @db.Uuid
+  publishedAt        DateTime?             @map("published_at") @db.Timestamptz(6)
+  archivedAt         DateTime?             @map("archived_at") @db.Timestamptz(6)
+  deletedAt          DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime              @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization       Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  idea               ContentIdea?          @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  category           ContentCategory?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy          User?                 @relation("ContentItemCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contentTags        ContentTag[]
+  publicationPlans   PublicationPlan[]
+  aiGenerationLogs   AiGenerationLog[]     @relation("AiGenerationContentResult")
   qualityEvaluations AiQualityEvaluation[]
 
   @@index([organizationId, status])
@@ -641,9 +730,9 @@ model Recommendation {
   updatedAt      DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, type, targetType, targetId])
   @@index([organizationId, status])
   @@index([organizationId, type])
-  @@unique([organizationId, type, targetType, targetId])
   @@map("recommendations")
 }
 
@@ -661,9 +750,9 @@ model Notification {
   organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reminder       Reminder?          @relation(fields: [reminderId], references: [id], onDelete: SetNull)
 
+  @@unique([userId, reminderId])
   @@index([userId, status])
   @@index([organizationId, createdAt])
-  @@unique([userId, reminderId])
   @@map("notifications")
 }
 
@@ -700,25 +789,25 @@ model IntegrationCredential {
 }
 
 model NotionDatabaseMapping {
-  id                 String        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId     String        @unique @map("organization_id") @db.Uuid
-  databaseId         String        @map("database_id")
-  dataSourceId       String?       @map("data_source_id")
-  parentPageId       String?       @map("parent_page_id")
-  databaseName       String        @map("database_name")
-  databaseUrl        String?       @map("database_url")
-  managed            Boolean       @default(false)
-  managedMarker      String?       @map("managed_marker")
-  schemaVersion      Int           @default(1) @map("schema_version")
-  schemaStatus       String        @default("UNCHECKED") @map("schema_status")
-  schemaIssues       Json          @default("[]") @map("schema_issues")
-  lastSchemaCheckAt  DateTime?     @map("last_schema_check_at") @db.Timestamptz(6)
-  propertyMapping    Json          @default("{}") @map("property_mapping")
-  propertyIdMapping  Json          @default("{}") @map("property_id_mapping")
-  conflictStrategy   String        @default("NEWEST_WINS") @map("conflict_strategy")
-  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
-  organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId    String       @unique @map("organization_id") @db.Uuid
+  databaseId        String       @map("database_id")
+  dataSourceId      String?      @map("data_source_id")
+  parentPageId      String?      @map("parent_page_id")
+  databaseName      String       @map("database_name")
+  databaseUrl       String?      @map("database_url")
+  managed           Boolean      @default(false)
+  managedMarker     String?      @map("managed_marker")
+  schemaVersion     Int          @default(1) @map("schema_version")
+  schemaStatus      String       @default("UNCHECKED") @map("schema_status")
+  schemaIssues      Json         @default("[]") @map("schema_issues")
+  lastSchemaCheckAt DateTime?    @map("last_schema_check_at") @db.Timestamptz(6)
+  propertyMapping   Json         @default("{}") @map("property_mapping")
+  propertyIdMapping Json         @default("{}") @map("property_id_mapping")
+  conflictStrategy  String       @default("NEWEST_WINS") @map("conflict_strategy")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("notion_database_mappings")
 }
@@ -792,15 +881,15 @@ model OrganizationAuditLog {
 }
 
 model ScheduledJobRun {
-  id         String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  jobKey     String             @map("job_key")
-  bucketAt   DateTime           @map("bucket_at") @db.Timestamptz(6)
-  status     ScheduledJobStatus @default(RUNNING)
-  instanceId String             @map("instance_id")
-  startedAt  DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
-  finishedAt DateTime?          @map("finished_at") @db.Timestamptz(6)
-  leaseExpiresAt DateTime       @map("lease_expires_at") @db.Timestamptz(6)
-  error      String?
+  id             String             @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  jobKey         String             @map("job_key")
+  bucketAt       DateTime           @map("bucket_at") @db.Timestamptz(6)
+  status         ScheduledJobStatus @default(RUNNING)
+  instanceId     String             @map("instance_id")
+  startedAt      DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime?          @map("finished_at") @db.Timestamptz(6)
+  leaseExpiresAt DateTime           @map("lease_expires_at") @db.Timestamptz(6)
+  error          String?
 
   @@unique([jobKey, bucketAt])
   @@index([status, startedAt])
@@ -824,18 +913,18 @@ model SimilarityCheck {
 }
 
 model AiQualityEvaluation {
-  id             String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  contentItemId  String       @map("content_item_id") @db.Uuid
+  id             String        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  contentItemId  String        @map("content_item_id") @db.Uuid
   format         ContentFormat
   score          Int
   feedback       String?
-  createdById    String?      @map("created_by_id") @db.Uuid
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  contentItem    ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
-  createdBy      User?        @relation("AiQualityEvaluationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById    String?       @map("created_by_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentItem    ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  createdBy      User?         @relation("AiQualityEvaluationCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, contentItemId, createdById])
   @@index([organizationId, format])

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { IdeasWorkspace } from "@/components/ideas/ideas-workspace";
+import { IdeasModuleWorkspace } from "@/components/ideas/ideas-module-workspace";
 import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default async function IdeasPage({ params }: IdeasPageProps) {
         eyebrow="Idées"
         title="Idées de contenu."
       />
-      <IdeasWorkspace organizationSlug={organizationSlug} />
+      <IdeasModuleWorkspace organizationSlug={organizationSlug} />
     </>
   );
 }

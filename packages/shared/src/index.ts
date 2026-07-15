@@ -116,6 +116,68 @@ export type GeneratedContentIdeasPayload = {
   ideas: GeneratedContentIdeaSuggestion[];
 };
 
+export const IDEA_DISCOVERY_SIGNALS = ["LIKE", "DISLIKE", "SKIP"] as const;
+export type IdeaDiscoverySignal = (typeof IDEA_DISCOVERY_SIGNALS)[number];
+
+export const IDEA_DISCOVERY_REJECTION_REASONS = [
+  "OFF_TOPIC",
+  "ALREADY_COVERED",
+  "WRONG_FORMAT",
+  "TOO_GENERIC",
+  "NOT_NOW",
+] as const;
+export type IdeaDiscoveryRejectionReason =
+  (typeof IDEA_DISCOVERY_REJECTION_REASONS)[number];
+
+export type IdeaDiscoveryCandidatePayload = ContentIdeaSuggestion & {
+  createdAt: string;
+  duplicate: ContentIdeaDuplicatePayload;
+  id: string;
+  isExploratory: boolean;
+  organizationId: string;
+};
+
+export type IdeaDiscoveryThemePreferencePayload = {
+  name: string;
+  score: number;
+};
+
+export type IdeaDiscoveryFormatPreferencePayload = {
+  format: ContentFormat;
+  score: number;
+};
+
+export type IdeaDiscoveryProfilePayload = {
+  avoidedFormats: IdeaDiscoveryFormatPreferencePayload[];
+  avoidedThemes: IdeaDiscoveryThemePreferencePayload[];
+  dislikedCount: number;
+  learnedSignals: number;
+  likedCount: number;
+  organizationId: string;
+  preferredFormats: IdeaDiscoveryFormatPreferencePayload[];
+  preferredThemes: IdeaDiscoveryThemePreferencePayload[];
+  resetAt: string | null;
+  updatedAt: string | null;
+};
+
+export type IdeaDiscoveryFeedPayload = {
+  candidates: IdeaDiscoveryCandidatePayload[];
+  profile: IdeaDiscoveryProfilePayload;
+};
+
+export type IdeaDiscoveryFeedbackPayload = {
+  candidateId: string;
+  reason: IdeaDiscoveryRejectionReason | null;
+  signal: IdeaDiscoverySignal;
+};
+
+export type IdeaDiscoveryFeedbackResultPayload = {
+  candidate: IdeaDiscoveryCandidatePayload;
+  feedback: IdeaDiscoveryFeedbackPayload;
+  idea: ContentIdeaPayload | null;
+  profile: IdeaDiscoveryProfilePayload;
+};
+
 export type MarketingContentPayload = {
   title: string;
   body: string;

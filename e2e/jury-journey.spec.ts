@@ -36,13 +36,15 @@ test("jury journey: account to planned content", async ({ page }) => {
     new RegExp(`/app/${organizationSlug}/dashboard`),
   );
 
-  await page.goto(`/app/${organizationSlug}/ideas/generate`);
-  await page
-    .getByLabel("Brief court")
-    .fill("Proposer des idees sur un calendrier editorial assiste par IA.");
-  await page.getByRole("button", { name: "Generer des idees" }).click();
-  await expect(page.getByText("Idees a selectionner")).toBeVisible();
-  await page.getByRole("button", { name: "Sauvegarder" }).first().click();
+  await page.goto(`/app/${organizationSlug}/ideas`);
+  await page.getByRole("tab", { name: "Découvrir" }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Des idées choisies pour votre organisation",
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "À garder" }).click();
+  await page.getByRole("tab", { name: "Créer et gérer" }).click();
   await expect(
     page.getByRole("link", { name: "Transformer" }).first(),
   ).toBeVisible();
