@@ -139,6 +139,7 @@ function DashboardContent({
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button
             className="h-10 px-4"
+            nativeButton={false}
             render={
               <Link href={`/app/${organizationSlug}/calendar`}>
                 <CalendarDays data-icon="inline-start" aria-hidden="true" />
@@ -150,6 +151,7 @@ function DashboardContent({
           {summary.canEdit ? (
             <Button
               className="h-10 px-4"
+              nativeButton={false}
               render={
                 <Link href={`/app/${organizationSlug}/contents/generate`}>
                   <PenLine data-icon="inline-start" aria-hidden="true" />
@@ -266,6 +268,7 @@ function DashboardContent({
               </div>
               <Button
                 className="self-start sm:self-auto"
+                nativeButton={false}
                 render={
                   <Link href={`/app/${organizationSlug}/library`}>
                     Voir les contenus
@@ -305,6 +308,7 @@ function DashboardContent({
                 ))}
                 <Button
                   className="mt-2"
+                  nativeButton={false}
                   render={
                     <Link href={`/app/${organizationSlug}/library`}>
                       Voir toute la file
@@ -335,6 +339,7 @@ function DashboardContent({
             </CardDescription>
             <CardAction>
               <Button
+                nativeButton={false}
                 render={
                   <Link href={`/app/${organizationSlug}/history`}>
                     Tout voir
@@ -391,6 +396,7 @@ function DashboardContent({
             )}
             <Button
               className="mt-2"
+              nativeButton={false}
               render={
                 <Link href={`/app/${organizationSlug}/ideas`}>
                   Explorer les idées

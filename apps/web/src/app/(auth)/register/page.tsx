@@ -16,11 +16,11 @@ export default function RegisterPage() {
             <BrandLockup />
           </Link>
           <h1>
-            Votre equipe entre a <em>l&apos;atelier</em>.
+            Votre équipe entre à <em>l&apos;atelier</em>.
           </h1>
           <p>
-            Lancez un espace partage pour centraliser la strategie editoriale et
-            preparer les prochains contenus.
+            Lancez un espace partagé pour centraliser la stratégie éditoriale et
+            préparer les prochains contenus.
           </p>
         </section>
         <AuthForm mode="register" />

@@ -21,7 +21,7 @@ export default async function IntegrationsPage({
         <p className="eyebrow">Integrations</p>
         <h1>Connexions externes.</h1>
         <p>
-          Connectez les outils utilises par votre equipe et gardez vos contenus
+          Connectez les outils utilisés par votre équipe et gardez vos contenus
           alignes.
         </p>
       </section>

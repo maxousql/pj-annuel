@@ -5,11 +5,11 @@ export default function AppHomePage() {
   return (
     <>
       <section className="app-title">
-        <p className="eyebrow">Espace protege</p>
+        <p className="eyebrow">Espace protégé</p>
         <h1>Choisir une organisation active.</h1>
         <p>
-          Accedez aux espaces de travail rattaches a votre compte et suivez les
-          priorites de chaque equipe.
+          Accédez aux espaces de travail rattachés à votre compte et suivez les
+          priorités de chaque équipe.
         </p>
       </section>
       <div className="form-footer">

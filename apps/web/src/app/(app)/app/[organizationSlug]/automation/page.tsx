@@ -21,7 +21,7 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
         <p className="eyebrow">V2</p>
         <h1>Automatisation marketing.</h1>
         <p>
-          Activez les rappels, generez des recommandations et suivez les
+          Activez les rappels, générez des recommandations et suivez les
           notifications internes.
         </p>
       </section>

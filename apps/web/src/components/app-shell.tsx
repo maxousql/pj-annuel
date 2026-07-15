@@ -17,6 +17,7 @@ import { Bell, Puzzle, Search, Settings, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 import { AccessDenied } from "@/components/shell/access-denied";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { MainNav } from "@/components/shell/main-nav";
 import { OrganizationSwitcher } from "@/components/shell/organization-switcher";
 import { UserMenu } from "@/components/shell/user-menu";
@@ -324,7 +325,7 @@ export function AppShell({ children }: AppShellProps) {
                 href={`/app/${activeOrganization.slug}/integrations`}
               >
                 <Puzzle className="size-[20px] text-[color:var(--text-subtle)]" />
-                <span>Integrations</span>
+                <span>Intégrations</span>
               </Link>
             ) : null}
             <Link
@@ -332,7 +333,7 @@ export function AppShell({ children }: AppShellProps) {
               href="/app/settings"
             >
               <Settings className="size-[20px] text-[color:var(--text-subtle)]" />
-              <span>Parametres</span>
+              <span>Paramètres</span>
             </Link>
           </div>
           <Link
@@ -344,7 +345,7 @@ export function AppShell({ children }: AppShellProps) {
             }
           >
             <Sparkles className="size-4" aria-hidden="true" />
-            Generer avec l'IA
+            Générer avec l'IA
           </Link>
         </aside>
 
@@ -449,9 +450,9 @@ export function AppShell({ children }: AppShellProps) {
   function renderShellContent() {
     if (state.status === "loading") {
       return (
-        <EmptyState
+        <LoadingState
           title="Chargement de l'espace"
-          description="La session et les organisations accessibles sont en cours de verification."
+          description="La session et les organisations accessibles sont en cours de vérification."
         />
       );
     }

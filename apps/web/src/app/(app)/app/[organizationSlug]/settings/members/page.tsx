@@ -22,13 +22,13 @@ export default async function OrganizationMembersPage({
       <section className="app-title">
         <p className="eyebrow">Membres</p>
         <h1>{formatOrganizationName(organizationSlug)}</h1>
-        <p>Roles et acces de l'organisation active.</p>
+        <p>Rôles et accès de l'organisation active.</p>
       </section>
       <section className="settings-panel">
         <header>
           <div>
             <p className="eyebrow">RBAC</p>
-            <h2>Acces equipe</h2>
+            <h2>Accès équipe</h2>
           </div>
         </header>
         <MembersList organizationSlug={organizationSlug} />

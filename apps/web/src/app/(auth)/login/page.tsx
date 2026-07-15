@@ -19,8 +19,8 @@ export default function LoginPage() {
             Reprenez votre <em>plume</em>.
           </h1>
           <p>
-            Retrouvez vos contenus, vos idees et votre planning editorial dans
-            un espace organise par equipe.
+            Retrouvez vos contenus, vos idées et votre planning éditorial dans
+            un espace organisé par équipe.
           </p>
         </section>
         <AuthForm mode="login" />

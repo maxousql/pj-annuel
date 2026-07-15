@@ -15,6 +15,7 @@ import {
   formatContentDate,
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchContent, updateContent } from "@/lib/contents/client";
 import { evaluateContentQuality } from "@/lib/ai-settings/client";
 import { exportContentToNotion } from "@/lib/integrations/client";
@@ -152,9 +153,9 @@ export function ContentDetail({
 
   if (isLoading) {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement du contenu"
-        description="Le contenu sauvegarde est en cours de lecture."
+        description="Le contenu sauvegardé est en cours de lecture."
       />
     );
   }

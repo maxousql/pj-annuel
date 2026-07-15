@@ -21,7 +21,7 @@ export const RESOURCE_SUMMARY_PROMPT_VERSION = "resource-summary.v2";
 
 const SYSTEM_INSTRUCTION = [
   "Tu es le moteur IA de Projet Annuel, une plateforme SaaS de content marketing.",
-  "Tu produis des sorties en francais, exploitables par une equipe marketing.",
+  "Tu produis des sorties en français, exploitables par une équipe marketing.",
   "Tu reponds uniquement avec un JSON conforme au schema fourni.",
   "Tu ne retournes jamais de markdown, de commentaire hors JSON ou de secret.",
 ].join("\n");
@@ -34,18 +34,18 @@ export function buildContentIdeasPrompt(
 ): BuiltPrompt & { type: "CONTENT_IDEA" } {
   return {
     input: [
-      "Objectif: proposer des idees de contenus marketing.",
+      "Objectif: proposer des idées de contenus marketing.",
       formatEditorialContext(context),
       formatGenerationSettings(settings),
       formatBrandVoice(brandVoice),
-      `Nombre d'idees souhaite: ${input.count ?? 5}.`,
-      `Format prefere: ${formatContentFormat(input.format)}.`,
-      `Thematique demandee: ${input.topic?.trim() || "Non precisee"}.`,
-      `Brief utilisateur: ${input.brief?.trim() || "Aucun brief specifique"}.`,
+      `Nombre d'idées souhaité: ${input.count ?? 5}.`,
+      `Format préféré: ${formatContentFormat(input.format)}.`,
+      `Thématique demandée: ${input.topic?.trim() || "Non précisée"}.`,
+      `Brief utilisateur: ${input.brief?.trim() || "Aucun brief spécifique"}.`,
       formatHistory(input.history),
-      "Chaque idee doit contenir un titre, un angle, un format recommande, une justification et une categorie si pertinente.",
+      "Chaque idée doit contenir un titre, un angle, un format recommandé, une justification et une catégorie si pertinente.",
       'Retourne exactement ce JSON sans texte autour: {"ideas":[{"title":"...","angle":"...","recommendedFormat":"LINKEDIN_POST","justification":"...","category":"..."}]}',
-      `recommendedFormat doit etre une des valeurs exactes suivantes: ${CONTENT_FORMATS.join(", ")}.`,
+      `recommendedFormat doit être une des valeurs exactes suivantes: ${CONTENT_FORMATS.join(", ")}.`,
     ].join("\n\n"),
     metadata: {
       count: input.count ?? 5,
@@ -75,19 +75,19 @@ export function buildMarketingContentPrompt(
 ): BuiltPrompt & { type: "CONTENT_DRAFT" } {
   return {
     input: [
-      "Objectif: rediger un contenu marketing pret a retravailler.",
+      "Objectif: rédiger un contenu marketing prêt à retravailler.",
       formatEditorialContext(context),
       formatGenerationSettings(settings),
       formatBrandVoice(brandVoice),
       `Format cible: ${formatContentFormat(input.format)}.`,
       input.idea
-        ? `Idee source: ${input.idea.title.trim()} | Angle: ${input.idea.angle.trim()}.`
-        : "Idee source: non fournie.",
+        ? `Idée source: ${input.idea.title.trim()} | Angle: ${input.idea.angle.trim()}.`
+        : "Idée source: non fournie.",
       `Brief utilisateur: ${input.brief.trim()}.`,
       formatMarketingContentInstructions(input.format),
       formatHistory(input.history),
       "Le contenu doit respecter le ton, la cible et le positionnement de l'organisation.",
-      `Le champ JSON format doit etre exactement "${input.format}".`,
+      `Le champ JSON format doit être exactement "${input.format}".`,
     ].join("\n\n"),
     metadata: {
       creativity: settings.creativity,
@@ -115,18 +115,18 @@ export function buildResourceSummaryPrompt(
 ): BuiltPrompt & { type: "RESOURCE_SUMMARY" } {
   return {
     input: [
-      "Objectif: resumer une ressource de veille pour alimenter la curation.",
+      "Objectif: résumer une ressource de veille pour alimenter la curation.",
       formatEditorialContext(context),
       formatGenerationSettings(settings),
       formatBrandVoice(brandVoice),
       `Titre ressource: ${input.title.trim()}.`,
-      `Source: ${input.source?.trim() || "Non precisee"}.`,
-      `URL: ${input.url?.trim() || "Non precisee"}.`,
-      `Thematique: ${input.topic?.trim() || "Non precisee"}.`,
-      "Contenu a resumer:",
+      `Source: ${input.source?.trim() || "Non précisée"}.`,
+      `URL: ${input.url?.trim() || "Non précisée"}.`,
+      `Thématique: ${input.topic?.trim() || "Non précisée"}.`,
+      "Contenu à résumer:",
       input.content.trim(),
       formatHistory(input.history),
-      "Le resume doit extraire les points utiles a une future production editoriale.",
+      "Le résumé doit extraire les points utiles à une future production éditoriale.",
     ].join("\n\n"),
     metadata: {
       creativity: settings.creativity,
@@ -155,35 +155,35 @@ function formatGenerationSettings(
       de: "allemand",
       en: "anglais",
       es: "espagnol",
-      fr: "francais",
+      fr: "français",
     };
   const lengthLabel: Record<
     GenerationSettingsSnapshot["targetLength"],
     string
   > = {
-    long: "developpee",
+    long: "développée",
     short: "courte",
     standard: "standard",
   };
 
   return [
-    "Reglages de generation:",
+    "Réglages de génération:",
     `- Langue obligatoire: ${languageLabel[settings.language]}.`,
-    `- Niveau de creativite: ${settings.creativity}/5.`,
-    `- Intensite du ton de marque: ${settings.toneIntensity}/5.`,
+    `- Niveau de créativité: ${settings.creativity}/5.`,
+    `- Intensité du ton de marque: ${settings.toneIntensity}/5.`,
     `- Longueur cible: ${lengthLabel[settings.targetLength]}.`,
-    "Respecte strictement la langue demandee pour tous les champs textuels.",
+    "Respecte strictement la langue demandée pour tous les champs textuels.",
   ].join("\n");
 }
 
 function formatBrandVoice(brandVoice: BrandVoiceSnapshot): string {
   if (!brandVoice) {
-    return "Voix de marque avancee: non configuree.";
+    return "Voix de marque avancée: non configurée.";
   }
 
   return [
-    "Voix de marque avancee:",
-    `- Regles de ton: ${brandVoice.toneRules || "non precisees"}`,
+    "Voix de marque avancée:",
+    `- Règles de ton: ${brandVoice.toneRules || "non précisées"}`,
     `- Exemples a imiter: ${
       brandVoice.examples.length > 0 ? brandVoice.examples.join(" | ") : "aucun"
     }`,
@@ -198,22 +198,22 @@ function formatBrandVoice(brandVoice: BrandVoiceSnapshot): string {
 function formatEditorialContext(context: EditorialContextSnapshot): string {
   if (!context) {
     return [
-      "Contexte editorial:",
-      "- Secteur: non configure",
-      "- Cible: non configuree",
-      "- Ton: non configure",
-      "- Positionnement: non configure",
-      "- Thematiques: non configurees",
+      "Contexte éditorial:",
+      "- Secteur: non configuré",
+      "- Cible: non configurée",
+      "- Ton: non configuré",
+      "- Positionnement: non configuré",
+      "- Thématiques: non configurées",
     ].join("\n");
   }
 
   return [
-    "Contexte editorial:",
+    "Contexte éditorial:",
     `- Secteur: ${context.sector}`,
     `- Cible: ${context.targetAudience}`,
     `- Ton: ${context.tone}`,
     `- Positionnement: ${context.positioning}`,
-    `- Thematiques: ${context.themes.length > 0 ? context.themes.join(", ") : "non configurees"}`,
+    `- Thématiques: ${context.themes.length > 0 ? context.themes.join(", ") : "non configurées"}`,
     `- Notes ressources: ${context.resourceNotes ?? "aucune"}`,
   ].join("\n");
 }
@@ -230,57 +230,57 @@ function formatHistory(history: string[] | undefined): string {
   }
 
   return [
-    "Historique pertinent a eviter ou prendre en compte:",
+    "Historique pertinent à éviter ou prendre en compte:",
     ...relevantHistory.map((item) => `- ${item}`),
   ].join("\n");
 }
 
 function formatContentFormat(format: ContentFormat | undefined): string {
-  return format ?? "Non precise";
+  return format ?? "Non précisé";
 }
 
 function formatMarketingContentInstructions(format: ContentFormat): string {
   const instructions: Record<ContentFormat, string> = {
     BLOG_ARTICLE: [
       "Contraintes format:",
-      "- Produire un article structure avec introduction, 2 a 4 sections et conclusion.",
+      "- Produire un article structuré avec introduction, 2 à 4 sections et conclusion.",
       "- Utiliser des intertitres clairs dans le corps sans markdown.",
       "- Rester dans une longueur exploitable pour un premier brouillon.",
     ].join("\n"),
     EMAIL: [
       "Contraintes format:",
       "- Le titre doit pouvoir servir d'objet d'email.",
-      "- Le corps doit contenir une ouverture, une proposition de valeur et un appel a l'action.",
-      "- Eviter les tournures trop promotionnelles.",
+      "- Le corps doit contenir une ouverture, une proposition de valeur et un appel à l'action.",
+      "- Éviter les tournures trop promotionnelles.",
     ].join("\n"),
     HOOK: [
       "Contraintes format:",
-      "- Produire une serie d'accroches courtes et distinctes.",
-      "- Chaque accroche doit etre directement reutilisable en debut de contenu.",
-      "- Le corps peut contenir les variantes sous forme de lignes separees.",
+      "- Produire une série d'accroches courtes et distinctes.",
+      "- Chaque accroche doit être directement réutilisable en début de contenu.",
+      "- Le corps peut contenir les variantes sous forme de lignes séparées.",
     ].join("\n"),
     LINKEDIN_POST: [
       "Contraintes format:",
       "- Commencer par une accroche forte.",
-      "- Structurer en paragraphes courts avec une idee par paragraphe.",
-      "- Terminer par une question ou un appel a discussion.",
+      "- Structurer en paragraphes courts avec une idée par paragraphe.",
+      "- Terminer par une question ou un appel à discussion.",
     ].join("\n"),
     OTHER: [
       "Contraintes format:",
-      "- Adapter la structure au brief sans inventer de canal non demande.",
-      "- Garder une sortie claire, editee et prete a retravailler.",
+      "- Adapter la structure au brief sans inventer de canal non demandé.",
+      "- Garder une sortie claire, éditée et prête à retravailler.",
     ].join("\n"),
     SOCIAL_POST: [
       "Contraintes format:",
-      "- Produire un post court pour reseau social.",
-      "- Rester concis, direct et comprehensible sans contexte externe.",
-      "- Inclure un appel a l'action bref si pertinent.",
+      "- Produire un post court pour réseau social.",
+      "- Rester concis, direct et compréhensible sans contexte externe.",
+      "- Inclure un appel à l'action bref si pertinent.",
     ].join("\n"),
     THREAD: [
       "Contraintes format:",
       "- Produire un fil court avec une progression logique.",
-      "- Chaque point doit pouvoir etre publie comme message separe.",
-      "- Terminer par une synthese ou une question.",
+      "- Chaque point doit pouvoir être publié comme message séparé.",
+      "- Terminer par une synthèse ou une question.",
     ].join("\n"),
   };
 

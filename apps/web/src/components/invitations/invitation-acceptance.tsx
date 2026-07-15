@@ -70,7 +70,7 @@ export function InvitationAcceptance({ token }: Props) {
         {preview ? (
           <>
             <div>
-              <p className="eyebrow">Invitation d'equipe</p>
+              <p className="eyebrow">Invitation d'équipe</p>
               <h1>Rejoindre {preview.organizationName}</h1>
               <p>
                 Invitation pour {preview.email}, avec le role{" "}
@@ -93,7 +93,7 @@ export function InvitationAcceptance({ token }: Props) {
                   className="button-secondary"
                   href={`/register?next=${encodeURIComponent(`/invite/${token}`)}`}
                 >
-                  Creer le compte invite
+                  Créer le compte invité
                 </Link>
               </div>
             ) : (

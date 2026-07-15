@@ -23,7 +23,7 @@ export default async function NotificationsPage({
         <p className="eyebrow">Notifications</p>
         <h1>Rappels et prochaines actions.</h1>
         <p>
-          Consultez les notifications generees par les automatisations de
+          Consultez les notifications générées par les automatisations de
           l'organisation.
         </p>
       </section>

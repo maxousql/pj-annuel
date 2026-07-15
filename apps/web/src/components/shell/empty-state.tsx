@@ -16,7 +16,7 @@ export function EmptyState({ action, description, title }: EmptyStateProps) {
         </span>
         <div className="min-w-0">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--klein)]">
-            Etat vide
+            État vide
           </p>
           <h2 className="mt-1 font-heading text-2xl font-semibold italic leading-tight text-[color:var(--ink)] [overflow-wrap:anywhere]">
             {title}

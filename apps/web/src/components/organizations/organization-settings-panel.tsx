@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { OrganizationRole } from "@content-ai/shared";
 
 import { AccessDenied } from "@/components/shell/access-denied";
-import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchActiveOrganization } from "@/lib/organizations/client";
 
 type OrganizationSettingsPanelProps = {
@@ -57,7 +57,7 @@ export function OrganizationSettingsPanel({
       } catch {
         if (isMounted) {
           setState({
-            message: "Parametres d'organisation indisponibles.",
+            message: "Paramètres d'organisation indisponibles.",
             status: "error",
           });
         }
@@ -73,9 +73,9 @@ export function OrganizationSettingsPanel({
 
   if (state.status === "loading") {
     return (
-      <EmptyState
-        title="Chargement des parametres"
-        description="Les droits sur cette organisation sont en cours de verification."
+      <LoadingState
+        title="Chargement des paramètres"
+        description="Les droits sur cette organisation sont en cours de vérification."
       />
     );
   }
@@ -89,7 +89,7 @@ export function OrganizationSettingsPanel({
   }
 
   return (
-    <section className="settings-grid" aria-label="Parametres organisation">
+    <section className="settings-grid" aria-label="Paramètres organisation">
       <article className="settings-panel">
         <header>
           <div>
@@ -98,8 +98,8 @@ export function OrganizationSettingsPanel({
           </div>
         </header>
         <p className="muted">
-          Secteur, audience, ton, thematiques et contraintes utilisees par les
-          generations.
+          Secteur, audience, ton, thématiques et contraintes utilisées par les
+          générations.
         </p>
         <div className="form-footer">
           <Link
@@ -118,8 +118,8 @@ export function OrganizationSettingsPanel({
           </div>
         </header>
         <p className="muted">
-          Langue, longueur, creativite, exemples et termes interdits utilises
-          par les prompts versionnes.
+          Langue, longueur, créativité, exemples et termes interdits utilisés
+          par les prompts versionnés.
         </p>
         {state.role === "ADMIN" ? (
           <div className="form-footer">
@@ -142,8 +142,8 @@ export function OrganizationSettingsPanel({
           </div>
         </header>
         <p className="muted">
-          La modification du nom, du slug et des parametres avancees sera
-          ajoutee avec les prochains modules d'administration.
+          La modification du nom, du slug et des paramètres avancés sera
+          ajoutée avec les prochains modules d'administration.
         </p>
         {state.role !== "ADMIN" ? (
           <p className="muted">Reserve aux administrateurs.</p>
@@ -152,8 +152,8 @@ export function OrganizationSettingsPanel({
       <article className="settings-panel">
         <header>
           <div>
-            <p className="eyebrow">Acces</p>
-            <h2>Membres et roles</h2>
+            <p className="eyebrow">Accès</p>
+            <h2>Membres et rôles</h2>
           </div>
         </header>
         <p className="muted">

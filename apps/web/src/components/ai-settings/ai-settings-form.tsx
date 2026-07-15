@@ -8,6 +8,7 @@ import type {
 } from "@content-ai/shared";
 import { Loader2, Save } from "lucide-react";
 
+import { LoadingState } from "@/components/shell/loading-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -102,11 +103,7 @@ export function AiSettingsForm({ organizationSlug }: AiSettingsFormProps) {
 
   if (isLoading) {
     return (
-      <Card className={cn(panelClass, "rounded-3xl")}>
-        <CardContent className="grid min-h-56 place-items-center p-8">
-          <Loader2 className="size-8 animate-spin text-[color:var(--klein)]" />
-        </CardContent>
-      </Card>
+      <LoadingState title="Chargement des paramètres IA" />
     );
   }
 

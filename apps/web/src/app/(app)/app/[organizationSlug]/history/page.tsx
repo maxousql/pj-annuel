@@ -19,8 +19,8 @@ export default async function HistoryPage({ params }: HistoryPageProps) {
     <>
       <section className="app-title">
         <p className="eyebrow">Historique</p>
-        <h1>Idees et contenus sauvegardes.</h1>
-        <p>Recherchez, filtrez et ouvrez les elements editoriaux existants.</p>
+        <h1>Idées et contenus sauvegardés.</h1>
+        <p>Recherchez, filtrez et ouvrez les éléments éditoriaux existants.</p>
       </section>
       <HistoryWorkspace organizationSlug={organizationSlug} />
     </>

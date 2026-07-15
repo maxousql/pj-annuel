@@ -12,7 +12,7 @@ export default function NewOrganizationPage() {
       <section className="app-title">
         <p className="eyebrow">Organisation</p>
         <h1>Nouvelle organisation.</h1>
-        <p>Creer un espace de travail isole pour une equipe ou un client.</p>
+        <p>Créer un espace de travail isolé pour une équipe ou un client.</p>
       </section>
       <section className="settings-panel">
         <header>

@@ -15,46 +15,46 @@ import { getBackendHealth } from "@/lib/api/health";
 const modules = [
   {
     icon: Lightbulb,
-    title: "Banque d'idees",
+    title: "Banque d'idées",
     description:
-      "Capturez chaque intuition, priorisez-la, puis transformez-la en contenu pret a publier. Rien ne se perd.",
+      "Capturez chaque intuition, priorisez-la, puis transformez-la en contenu prêt à publier. Rien ne se perd.",
   },
   {
     icon: PenLine,
-    title: "Redaction assistee",
+    title: "Rédaction assistée",
     description:
-      "Des articles, posts et newsletters rediges par l'IA dans le respect strict de votre contexte editorial.",
+      "Des articles, posts et newsletters rédigés par l'IA dans le respect strict de votre contexte éditorial.",
   },
   {
     icon: BookOpen,
-    title: "Bibliotheque",
+    title: "Bibliothèque",
     description:
-      "Un fonds editorial commun : chaque contenu tague, filtrable et retrouvable par toute l'equipe.",
+      "Un fonds éditorial commun : chaque contenu tagué, filtrable et retrouvable par toute l'équipe.",
   },
   {
     icon: CalendarDays,
     title: "Calendrier",
     description:
-      "La vue mensuelle du planning de publication, par canal et par statut, partagee avec la redaction.",
+      "La vue mensuelle du planning de publication, par canal et par statut, partagée avec la rédaction.",
   },
   {
     icon: Users,
     title: "Organisations",
     description:
-      "Espaces distincts par marque ou par client : roles, membres et lignes editoriales independants.",
+      "Espaces distincts par marque ou par client : rôles, membres et lignes éditoriales indépendants.",
   },
   {
     icon: Gauge,
     title: "Pilotage",
     description:
-      "Production, sujets porteurs, activite de l'equipe : le tableau de bord de votre redaction.",
+      "Production, sujets porteurs, activité de l'équipe : le tableau de bord de votre rédaction.",
   },
 ] as const;
 
 const tickerItems = [
-  "Idees",
-  "Redaction IA",
-  "Bibliotheque",
+  "Idées",
+  "Rédaction IA",
+  "Bibliothèque",
   "Calendrier",
   "Organisations",
   "Pilotage",
@@ -76,7 +76,7 @@ export default async function HomePage() {
               Connexion
             </Link>
             <Link className="button" href="/register">
-              Creer un compte
+              Créer un compte
             </Link>
           </nav>
         </header>
@@ -92,10 +92,10 @@ export default async function HomePage() {
               <em>publies</em>.
             </h1>
             <p className="hero-lede">
-              Projet Annuel est l&apos;atelier ou votre equipe redige, organise
-              et planifie tout son content marketing. L&apos;IA ecrit dans votre
-              ton, le calendrier tient la cadence, la bibliotheque garde la
-              memoire.
+              Projet Annuel est l&apos;atelier où votre équipe rédige, organise
+              et planifie tout son content marketing. L&apos;IA écrit dans votre
+              ton, le calendrier tient la cadence, la bibliothèque garde la
+              mémoire.
             </p>
             <div className="hero-actions">
               <Link className="button" href="/register">
@@ -103,7 +103,7 @@ export default async function HomePage() {
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
               <Link className="button-ghost" href="/login">
-                J&apos;ai deja un compte
+                J&apos;ai déjà un compte
                 <ArrowRight size={14} aria-hidden="true" />
               </Link>
             </div>
@@ -153,7 +153,7 @@ export default async function HomePage() {
               Tout le cycle editorial, chapitre par chapitre.
             </h2>
             <p>
-              De l&apos;idee brute a la publication planifiee, chaque etape a sa
+              De l&apos;idée brute à la publication planifiée, chaque étape a sa
               place dans l&apos;atelier, et elles travaillent ensemble.
             </p>
           </div>
@@ -198,16 +198,16 @@ export default async function HomePage() {
         </section>
 
         <section className="cta-panel view-reveal">
-          <p className="kicker">Pret en deux minutes</p>
+          <p className="kicker">Prêt en deux minutes</p>
           <h2>
             Votre prochaine campagne commence par un <em>brouillon</em>.
           </h2>
           <p>
-            Creez votre organisation, posez votre ligne editoriale, et laissez
-            l&apos;atelier produire des contenus a votre image.
+            Créez votre organisation, posez votre ligne éditoriale, et laissez
+            l&apos;atelier produire des contenus à votre image.
           </p>
           <Link className="button" href="/register">
-            Demarrer gratuitement
+            Démarrer gratuitement
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </section>
@@ -217,8 +217,8 @@ export default async function HomePage() {
             <p className="kicker">Colophon</p>
             <h2>Sous le capot</h2>
             <p className="muted">
-              L&apos;atelier repose sur une API dediee. Etat du service en temps
-              reel, imprime ci-contre.
+              L&apos;atelier repose sur une API dédiée. État du service en temps
+              réel, imprimé ci-contre.
             </p>
           </div>
           <ApiHealthCard health={health} />

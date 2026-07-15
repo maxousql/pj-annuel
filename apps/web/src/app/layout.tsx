@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | Projet Annuel",
   },
   description:
-    "L'atelier editorial : idees, redaction IA et calendrier de publication.",
+    "L'atelier éditorial : idées, rédaction IA et calendrier de publication.",
 };
 
 type RootLayoutProps = { children: ReactNode };

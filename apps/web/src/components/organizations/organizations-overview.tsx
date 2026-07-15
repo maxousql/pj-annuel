@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchOrganizations } from "@/lib/organizations/client";
 
 type OrganizationsState =
@@ -54,9 +55,9 @@ export function OrganizationsOverview() {
 
   if (state.status === "loading") {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement des organisations"
-        description="Vos espaces accessibles sont en cours de recuperation."
+        description="Vos espaces accessibles sont en cours de récupération."
       />
     );
   }

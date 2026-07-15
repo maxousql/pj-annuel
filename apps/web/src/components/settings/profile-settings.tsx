@@ -3,6 +3,7 @@
 import type { AuthSessionPayload } from "@content-ai/shared";
 import { FormEvent, useEffect, useState } from "react";
 
+import { LoadingState } from "@/components/shell/loading-state";
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
 
 type ProfileState =
@@ -109,7 +110,7 @@ export function ProfileSettings() {
   }
 
   if (state.status === "loading") {
-    return <p className="muted">Chargement du profil...</p>;
+    return <LoadingState title="Chargement du profil" />;
   }
 
   if (state.status === "error") {

@@ -10,6 +10,7 @@ import {
   formatContentDate,
 } from "@/components/contents/content-labels";
 import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { fetchContents } from "@/lib/contents/client";
 
 type ContentsLibraryProps = {
@@ -51,9 +52,9 @@ export function ContentsLibrary({ organizationSlug }: ContentsLibraryProps) {
 
   if (isLoading) {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement des contenus"
-        description="La bibliotheque de l'organisation est en cours de lecture."
+        description="La bibliothèque de l'organisation est en cours de lecture."
       />
     );
   }

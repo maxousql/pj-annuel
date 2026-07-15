@@ -29,7 +29,7 @@ export const ROLE_LEVEL: Record<OrganizationRole, number> = {
 export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   {
     availability: "available",
-    description: "Vue synthese de l'activite editoriale.",
+    description: "Vue synthèse de l'activité éditoriale.",
     href: (organizationSlug) => `/app/${organizationSlug}/dashboard`,
     id: "dashboard",
     label: "Tableau de bord",
@@ -37,15 +37,15 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Sujets et angles sauvegardes.",
+    description: "Sujets et angles sauvegardés.",
     href: (organizationSlug) => `/app/${organizationSlug}/ideas`,
     id: "ideas",
-    label: "Idees",
+    label: "Idées",
     minimumRole: "READER",
   },
   {
     availability: "available",
-    description: "Bibliotheque filtrable des contenus editoriaux.",
+    description: "Bibliothèque filtrable des contenus éditoriaux.",
     href: (organizationSlug) => `/app/${organizationSlug}/library`,
     id: "contents",
     label: "Contenus",
@@ -53,7 +53,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Timeline des idees et contenus sauvegardes.",
+    description: "Timeline des idées et contenus sauvegardés.",
     href: (organizationSlug) => `/app/${organizationSlug}/history`,
     id: "history",
     label: "Historique",
@@ -61,7 +61,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Planification editoriale V1.",
+    description: "Planification éditoriale V1.",
     href: (organizationSlug) => `/app/${organizationSlug}/calendar`,
     id: "calendar",
     label: "Calendrier",
@@ -69,7 +69,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Veille, URLs, RSS et resumes IA.",
+    description: "Veille, URLs, RSS et résumés IA.",
     href: (organizationSlug) => `/app/${organizationSlug}/curation`,
     id: "curation",
     label: "Veille",
@@ -88,12 +88,12 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
     description: "Connexions Notion et providers.",
     href: (organizationSlug) => `/app/${organizationSlug}/integrations`,
     id: "integrations",
-    label: "Integrations",
+    label: "Intégrations",
     minimumRole: "ADMIN",
   },
   {
     availability: "available",
-    description: "Parametres de l'organisation.",
+    description: "Paramètres de l'organisation.",
     href: (organizationSlug) => `/app/${organizationSlug}/settings`,
     id: "settings",
     label: "Organisation",

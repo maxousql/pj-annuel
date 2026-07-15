@@ -10,7 +10,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AccessDenied } from "@/components/shell/access-denied";
-import { EmptyState } from "@/components/shell/empty-state";
+import { LoadingState } from "@/components/shell/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +79,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
 
     setEmail("");
     await load();
-    toast.success("Invitation creee et transmise au service email.");
+    toast.success("Invitation créée et transmise au service email.");
   }
 
   async function handleRole(
@@ -100,7 +100,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
     }
 
     await load();
-    toast.success("Role mis a jour.");
+    toast.success("Rôle mis à jour.");
   }
 
   async function handleRemove(member: MembershipSummary) {
@@ -132,7 +132,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
     }
 
     await load();
-    toast.success("Invitation relancee.");
+    toast.success("Invitation relancée.");
   }
 
   async function handleRevoke(invitation: InvitationSummaryPayload) {
@@ -146,14 +146,14 @@ export function MembersList({ organizationSlug }: MembersListProps) {
     }
 
     await load();
-    toast.success("Invitation revoquee.");
+    toast.success("Invitation révoquée.");
   }
 
   if (state.status === "loading") {
     return (
-      <EmptyState
+      <LoadingState
         title="Chargement des membres"
-        description="Les acces sont en cours de recuperation."
+        description="Les accès sont en cours de récupération."
       />
     );
   }
@@ -196,7 +196,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
             }
           >
             <option value="ADMIN">Administrateur</option>
-            <option value="EDITOR">Editeur</option>
+            <option value="EDITOR">Éditeur</option>
             <option value="READER">Lecteur</option>
           </select>
         </label>
@@ -235,7 +235,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
                 aria-label={`Role de ${member.name}`}
               >
                 <option value="ADMIN">Admin</option>
-                <option value="EDITOR">Editeur</option>
+                <option value="EDITOR">Éditeur</option>
                 <option value="READER">Lecteur</option>
               </select>
             </span>
@@ -293,7 +293,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
                     onClick={() => void handleRevoke(invitation)}
                     disabled={busy !== null}
                   >
-                    <Trash2 className="size-4" /> Revoquer
+                    <Trash2 className="size-4" /> Révoquer
                   </Button>
                 ) : null}
               </div>
