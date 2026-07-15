@@ -2,14 +2,36 @@
 
 import { useState } from "react";
 import { Compass, WandSparkles } from "lucide-react";
+import dynamic from "next/dynamic";
 
-import { IdeaDiscoveryWorkspace } from "@/components/ideas/idea-discovery-workspace";
 import { IdeasWorkspace } from "@/components/ideas/ideas-workspace";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  WorkspaceTabsList,
+  WorkspaceTabsTrigger,
+} from "@/components/ui/workspace-tabs";
 
 type IdeasModuleWorkspaceProps = {
   organizationSlug: string;
 };
+
+const IdeaDiscoveryWorkspace = dynamic(
+  () =>
+    import("@/components/ideas/idea-discovery-workspace").then(
+      (module) => module.IdeaDiscoveryWorkspace,
+    ),
+  {
+    loading: () => (
+      <div
+        aria-live="polite"
+        className="grid min-h-[28rem] place-items-center rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-8 text-center text-sm font-medium text-[color:var(--text-muted)]"
+      >
+        Préparation de l’espace de découverte...
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 export function IdeasModuleWorkspace({
   organizationSlug,
@@ -18,22 +40,16 @@ export function IdeasModuleWorkspace({
 
   return (
     <Tabs className="gap-5" defaultValue="generate">
-      <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-1.5 shadow-[0_2px_10px_rgba(23,19,15,0.04)]">
-        <TabsTrigger
-          className="h-11 flex-none rounded-xl px-4 text-[color:var(--text-muted)] data-active:bg-[color:var(--klein)] data-active:text-white data-active:shadow-none"
-          value="discover"
-        >
-          <Compass className="size-4" />
+      <WorkspaceTabsList>
+        <WorkspaceTabsTrigger value="discover">
+          <Compass className="size-4 text-[color:var(--klein)]" />
           Découvrir
-        </TabsTrigger>
-        <TabsTrigger
-          className="h-11 flex-none rounded-xl px-4 text-[color:var(--text-muted)] data-active:bg-[color:var(--klein)] data-active:text-white data-active:shadow-none"
-          value="generate"
-        >
-          <WandSparkles className="size-4" />
+        </WorkspaceTabsTrigger>
+        <WorkspaceTabsTrigger value="generate">
+          <WandSparkles className="size-4 text-[color:var(--klein)]" />
           Créer et gérer
-        </TabsTrigger>
-      </TabsList>
+        </WorkspaceTabsTrigger>
+      </WorkspaceTabsList>
 
       <TabsContent value="discover">
         <IdeaDiscoveryWorkspace

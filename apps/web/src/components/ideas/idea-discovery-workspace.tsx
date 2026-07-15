@@ -9,7 +9,10 @@ import type {
   IdeaDiscoverySignal,
 } from "@content-ai/shared";
 import {
+  ArrowLeft,
+  ArrowRight,
   Check,
+  CloudUpload,
   Compass,
   Lightbulb,
   Loader2,
@@ -19,6 +22,15 @@ import {
   Sparkles,
   ThumbsDown,
 } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  type PanInfo,
+  type Variants,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "motion/react";
 import { toast } from "sonner";
 
 import { CONTENT_FORMAT_LABELS } from "@/components/contents/content-labels";
@@ -47,6 +59,11 @@ import {
   resetIdeaDiscoveryPreferences,
   submitIdeaDiscoveryFeedback,
 } from "@/lib/ideas/client";
+import {
+  mergeCanonicalDiscoveryProfile,
+  removeDiscoveryCandidate,
+  restoreDiscoveryCandidate,
+} from "@/lib/ideas/discovery-optimistic";
 import { cn } from "@/lib/utils";
 
 type IdeaDiscoveryWorkspaceProps = {
@@ -56,6 +73,8 @@ type IdeaDiscoveryWorkspaceProps = {
 
 const panelClass =
   "border-[color:var(--border-strong)] bg-[color:var(--paper-card)]/95 text-[color:var(--ink)] shadow-[0_2px_10px_rgba(23,19,15,0.05)] ring-1 ring-white/[0.03]";
+
+type SwipeDirection = -1 | 0 | 1;
 
 const REJECTION_REASONS: Array<{
   description: string;
@@ -96,9 +115,8 @@ export function IdeaDiscoveryWorkspace({
   const [feed, setFeed] = useState<IdeaDiscoveryFeedPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [busySignal, setBusySignal] = useState<IdeaDiscoverySignal | null>(
-    null,
-  );
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(0);
   const [selectedReason, setSelectedReason] =
     useState<IdeaDiscoveryRejectionReason | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -107,8 +125,11 @@ export function IdeaDiscoveryWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const pendingCandidateIdsRef = useRef(new Set<string>());
+  const requestEpochRef = useRef(0);
   const shouldFocusNextCard = useRef(false);
   const organizationSlugRef = useRef(organizationSlug);
+  const reduceMotion = useReducedMotion();
   organizationSlugRef.current = organizationSlug;
 
   const activeCandidate = feed?.candidates[0] ?? null;
@@ -116,11 +137,15 @@ export function IdeaDiscoveryWorkspace({
   useEffect(() => {
     let isMounted = true;
     const requestSlug = organizationSlug;
+    const requestEpoch = requestEpochRef.current + 1;
+    requestEpochRef.current = requestEpoch;
+    pendingCandidateIdsRef.current.clear();
 
     async function load() {
       setIsLoading(true);
       setIsGenerating(false);
-      setBusySignal(null);
+      setPendingFeedbackCount(0);
+      setSwipeDirection(0);
       setSelectedReason(null);
       setIsRejecting(false);
       setIsResetting(false);
@@ -164,6 +189,9 @@ export function IdeaDiscoveryWorkspace({
 
     return () => {
       isMounted = false;
+      if (requestEpochRef.current === requestEpoch) {
+        requestEpochRef.current += 1;
+      }
     };
   }, [organizationSlug]);
 
@@ -175,6 +203,8 @@ export function IdeaDiscoveryWorkspace({
   }, [activeCandidate]);
 
   async function generateNewSelection() {
+    if (pendingFeedbackCount > 0) return;
+
     const requestSlug = organizationSlug;
     setError(null);
     setIsRejecting(false);
@@ -202,15 +232,26 @@ export function IdeaDiscoveryWorkspace({
   }
 
   async function sendFeedback(
+    candidate: IdeaDiscoveryCandidatePayload,
     signal: IdeaDiscoverySignal,
     reason?: IdeaDiscoveryRejectionReason,
   ) {
-    if (!activeCandidate) return;
+    if (pendingCandidateIdsRef.current.has(candidate.id)) return;
 
     const requestSlug = organizationSlug;
-    const candidateId = activeCandidate.id;
+    const requestEpoch = requestEpochRef.current;
+    const candidateId = candidate.id;
+    pendingCandidateIdsRef.current.add(candidateId);
     setError(null);
-    setBusySignal(signal);
+    setSwipeDirection(toSwipeDirection(signal));
+    setPendingFeedbackCount((current) => current + 1);
+    setFeed((current) =>
+      current ? removeDiscoveryCandidate(current, candidateId) : current,
+    );
+    setIsRejecting(false);
+    setSelectedReason(null);
+    shouldFocusNextCard.current = true;
+    setAnnouncement(toPendingAnnouncement(signal));
 
     const result = await submitIdeaDiscoveryFeedback(
       requestSlug,
@@ -219,43 +260,51 @@ export function IdeaDiscoveryWorkspace({
       reason,
     );
 
-    if (organizationSlugRef.current !== requestSlug) return;
-
-    setBusySignal(null);
-
-    if (result.error) {
-      setError(result.error.message);
-      toast.error(result.error.message);
+    if (
+      organizationSlugRef.current !== requestSlug ||
+      requestEpochRef.current !== requestEpoch
+    ) {
       return;
     }
 
-    setFeed((current) =>
-      current
-        ? {
-            candidates: current.candidates.filter(
-              (candidate) => candidate.id !== candidateId,
-            ),
-            profile: result.data.profile,
-          }
-        : current,
-    );
-    setIsRejecting(false);
-    setSelectedReason(null);
-    shouldFocusNextCard.current = true;
-
-    if (signal === "LIKE") {
-      onIdeaSaved?.();
-      setAnnouncement("Idée ajoutée à vos idées sauvegardées.");
-      toast.success("Idée ajoutée à vos idées sauvegardées.");
-    } else if (signal === "DISLIKE") {
-      setAnnouncement("Préférence prise en compte.");
-      toast.success("Votre préférence a été prise en compte.");
+    if (result.error) {
+      setFeed((current) =>
+        current ? restoreDiscoveryCandidate(current, candidate) : current,
+      );
+      setIsRejecting(signal === "DISLIKE" && Boolean(reason));
+      setSelectedReason(reason ?? null);
+      shouldFocusNextCard.current = true;
+      setAnnouncement(
+        "L'enregistrement a échoué. La proposition a été restaurée.",
+      );
+      setError(result.error.message);
+      toast.error(result.error.message);
     } else {
-      setAnnouncement("Proposition passée sans modifier vos préférences.");
+      const savedSignal = result.data.feedback.signal;
+      setFeed((current) =>
+        current
+          ? mergeCanonicalDiscoveryProfile(current, result.data.profile)
+          : current,
+      );
+
+      if (savedSignal === "LIKE") {
+        onIdeaSaved?.();
+        setAnnouncement("Idée ajoutée à vos idées sauvegardées.");
+        toast.success("Idée ajoutée à vos idées sauvegardées.");
+      } else if (savedSignal === "DISLIKE") {
+        setAnnouncement("Préférence prise en compte.");
+      } else {
+        setAnnouncement("Proposition passée sans modifier vos préférences.");
+      }
     }
+
+    pendingCandidateIdsRef.current.delete(candidateId);
+    setPendingFeedbackCount((current) => Math.max(0, current - 1));
   }
 
   async function resetPreferences() {
+    if (pendingFeedbackCount > 0) return;
+
     const requestSlug = organizationSlug;
     setIsResetting(true);
     setError(null);
@@ -326,10 +375,21 @@ export function IdeaDiscoveryWorkspace({
                   influencer son profil.
                 </CardDescription>
               </div>
-              <Badge className="h-8 shrink-0 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
-                {feed.candidates.length} restante
-                {feed.candidates.length > 1 ? "s" : ""}
-              </Badge>
+              <div
+                className="flex flex-wrap items-center gap-2"
+                aria-live="polite"
+              >
+                {pendingFeedbackCount > 0 ? (
+                  <Badge className="h-8 gap-1.5 bg-[color:var(--klein)]/10 px-3 text-[color:var(--klein)] ring-1 ring-[color:var(--klein)]/20">
+                    <CloudUpload className="size-3.5" />
+                    {pendingFeedbackCount} en cours
+                  </Badge>
+                ) : null}
+                <Badge className="h-8 shrink-0 bg-[color:var(--paper-2)] px-3 text-[color:var(--text-muted)] ring-1 ring-[color:var(--border-strong)]">
+                  {feed.candidates.length} restante
+                  {feed.candidates.length > 1 ? "s" : ""}
+                </Badge>
+              </div>
             </div>
           </CardHeader>
 
@@ -348,39 +408,62 @@ export function IdeaDiscoveryWorkspace({
             ) : null}
 
             {activeCandidate ? (
-              <div className="relative mx-auto max-w-3xl pb-4 sm:px-4">
-                {feed.candidates.length > 2 ? (
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-x-10 bottom-0 top-7 rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)]/55"
-                  />
-                ) : null}
-                {feed.candidates.length > 1 ? (
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-x-5 bottom-2 top-3 rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)]"
-                  />
-                ) : null}
+              <div className="mx-auto max-w-3xl pb-2 sm:px-4">
+                <div className="relative grid pb-4">
+                  {feed.candidates.length > 2 ? (
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-x-10 bottom-0 top-7 rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)]/55"
+                    />
+                  ) : null}
+                  {feed.candidates.length > 1 ? (
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-x-5 bottom-2 top-3 rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)]"
+                    />
+                  ) : null}
 
-                <DiscoveryCandidateCard
-                  busySignal={busySignal}
-                  candidate={activeCandidate}
-                  headingRef={headingRef}
-                  isRejecting={isRejecting}
-                  selectedReason={selectedReason}
-                  onCancelReject={() => {
-                    setIsRejecting(false);
-                    setSelectedReason(null);
-                  }}
-                  onChooseReason={setSelectedReason}
-                  onDislike={() => setIsRejecting(true)}
-                  onFeedback={(signal, reason) =>
-                    void sendFeedback(signal, reason)
-                  }
-                />
+                  <AnimatePresence
+                    custom={{
+                      direction: swipeDirection,
+                      reduceMotion: Boolean(reduceMotion),
+                    }}
+                    initial={false}
+                  >
+                    <DiscoveryCandidateCard
+                      candidate={activeCandidate}
+                      headingRef={headingRef}
+                      isRejecting={isRejecting}
+                      key={activeCandidate.id}
+                      reduceMotion={Boolean(reduceMotion)}
+                      selectedReason={selectedReason}
+                      onCancelReject={() => {
+                        setIsRejecting(false);
+                        setSelectedReason(null);
+                      }}
+                      onChooseReason={setSelectedReason}
+                      onDislike={() => setIsRejecting(true)}
+                      onFeedback={(signal, reason) =>
+                        void sendFeedback(activeCandidate, signal, reason)
+                      }
+                    />
+                  </AnimatePresence>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-3 text-xs font-medium text-[color:var(--text-muted)]">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ArrowLeft className="size-3.5 text-[color:var(--danger)]" />
+                    Glissez pour refuser
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    Glissez pour garder
+                    <ArrowRight className="size-3.5 text-[color:var(--rubric)]" />
+                  </span>
+                </div>
               </div>
             ) : (
               <DiscoveryCompleteState
+                pendingFeedbackCount={pendingFeedbackCount}
                 isGenerating={isGenerating}
                 onGenerate={() => void generateNewSelection()}
               />
@@ -390,7 +473,7 @@ export function IdeaDiscoveryWorkspace({
       </section>
 
       <PreferenceProfileCard
-        isResetting={isResetting}
+        isResetting={isResetting || pendingFeedbackCount > 0}
         profile={feed.profile}
         onReset={() => setResetDialogOpen(true)}
       />
@@ -429,8 +512,62 @@ export function IdeaDiscoveryWorkspace({
   );
 }
 
+type DiscoveryCardMotionContext = {
+  direction: SwipeDirection;
+  reduceMotion: boolean;
+};
+
+const discoveryCardVariants: Variants = {
+  animate: {
+    opacity: 1,
+    pointerEvents: "auto",
+    rotate: 0,
+    scale: 1,
+    x: 0,
+    y: 0,
+    zIndex: 1,
+    transition: {
+      duration: 0.22,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+  exit: ({ direction, reduceMotion }: DiscoveryCardMotionContext) =>
+    reduceMotion
+      ? {
+          opacity: 0,
+          pointerEvents: "none",
+          transition: { duration: 0.08 },
+          zIndex: 2,
+        }
+      : direction === 0
+        ? {
+            opacity: 0,
+            pointerEvents: "none",
+            scale: 0.96,
+            transition: { duration: 0.18, ease: [0.4, 0, 1, 1] },
+            y: -36,
+            zIndex: 2,
+          }
+        : {
+            opacity: 0,
+            pointerEvents: "none",
+            rotate: direction * 12,
+            transition: {
+              damping: 28,
+              mass: 0.72,
+              stiffness: 250,
+              type: "spring",
+            },
+            x: direction * 900,
+            zIndex: 2,
+          },
+  initial: ({ reduceMotion }: DiscoveryCardMotionContext) =>
+    reduceMotion
+      ? { opacity: 0 }
+      : { opacity: 0, scale: 0.97, y: 14, zIndex: 0 },
+};
+
 function DiscoveryCandidateCard({
-  busySignal,
   candidate,
   headingRef,
   isRejecting,
@@ -438,9 +575,9 @@ function DiscoveryCandidateCard({
   onChooseReason,
   onDislike,
   onFeedback,
+  reduceMotion,
   selectedReason,
 }: {
-  busySignal: IdeaDiscoverySignal | null;
   candidate: IdeaDiscoveryCandidatePayload;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   isRejecting: boolean;
@@ -451,12 +588,62 @@ function DiscoveryCandidateCard({
     signal: IdeaDiscoverySignal,
     reason?: IdeaDiscoveryRejectionReason,
   ) => void;
+  reduceMotion: boolean;
   selectedReason: IdeaDiscoveryRejectionReason | null;
 }) {
-  const isBusy = busySignal !== null;
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-220, 0, 220], [-10, 0, 10]);
+  const rejectOpacity = useTransform(x, [-130, -30, 0], [1, 0.2, 0]);
+  const keepOpacity = useTransform(x, [0, 30, 130], [0, 0.2, 1]);
+
+  function handleDragEnd(_: PointerEvent, info: PanInfo) {
+    const reachedDistance = Math.abs(info.offset.x) >= 105;
+    const reachedVelocity = Math.abs(info.velocity.x) >= 650;
+
+    if (!reachedDistance && !reachedVelocity) return;
+
+    const horizontalIntent =
+      Math.abs(info.offset.x) >= 20 ? info.offset.x : info.velocity.x;
+    onFeedback(horizontalIntent > 0 ? "LIKE" : "DISLIKE");
+  }
 
   return (
-    <article className="relative grid min-h-[34rem] gap-6 rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 shadow-[0_12px_32px_rgba(23,19,15,0.08)] sm:p-7">
+    <motion.article
+      animate="animate"
+      aria-roledescription="carte de proposition"
+      className={cn(
+        "relative col-start-1 row-start-1 grid min-h-[34rem] cursor-grab gap-6 touch-pan-y rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 shadow-[0_12px_32px_rgba(23,19,15,0.08)] will-change-transform active:cursor-grabbing sm:p-7",
+        isRejecting && "cursor-default active:cursor-default",
+      )}
+      data-candidate-id={candidate.id}
+      data-testid="idea-discovery-card"
+      drag={!reduceMotion && !isRejecting ? "x" : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.78}
+      dragMomentum={false}
+      dragSnapToOrigin
+      exit="exit"
+      initial="initial"
+      style={{ rotate, x }}
+      variants={discoveryCardVariants}
+      whileDrag={{ scale: 1.012 }}
+      onDragEnd={handleDragEnd}
+    >
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-5 top-5 rounded-xl border-2 border-[color:var(--rubric)] bg-[color:var(--paper-card)]/95 px-3 py-2 text-sm font-black uppercase tracking-[0.08em] text-[color:var(--rubric)] shadow-sm"
+        style={{ opacity: keepOpacity, rotate: -7 }}
+      >
+        À garder
+      </motion.div>
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-5 top-5 rounded-xl border-2 border-[color:var(--danger)] bg-[color:var(--paper-card)]/95 px-3 py-2 text-sm font-black uppercase tracking-[0.08em] text-[color:var(--danger)] shadow-sm"
+        style={{ opacity: rejectOpacity, rotate: 7 }}
+      >
+        Pas pour nous
+      </motion.div>
+
       <div>
         <div className="mb-5 flex flex-wrap gap-2">
           <Badge className="bg-[color:var(--klein)]/12 text-[color:var(--klein)] ring-1 ring-[color:var(--klein)]/20">
@@ -502,7 +689,6 @@ function DiscoveryCandidateCard({
       <div className="mt-auto">
         {isRejecting ? (
           <RejectionReasonPicker
-            busy={busySignal === "DISLIKE"}
             selectedReason={selectedReason}
             onCancel={onCancelReject}
             onChoose={onChooseReason}
@@ -512,7 +698,6 @@ function DiscoveryCandidateCard({
           <div className="grid gap-3 border-t border-[color:var(--border-strong)] pt-5 sm:grid-cols-3">
             <Button
               className="h-12 rounded-2xl border-[color:var(--border-strong)] bg-[color:var(--paper-card)] text-[color:var(--ink)] hover:bg-[color:var(--paper-card)]"
-              disabled={isBusy}
               type="button"
               variant="outline"
               onClick={onDislike}
@@ -522,46 +707,33 @@ function DiscoveryCandidateCard({
             </Button>
             <Button
               className="h-12 rounded-2xl text-[color:var(--text-muted)] hover:bg-[color:var(--paper-card)] hover:text-[color:var(--ink)]"
-              disabled={isBusy}
               type="button"
               variant="ghost"
               onClick={() => onFeedback("SKIP")}
             >
-              {busySignal === "SKIP" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <SkipForward className="size-4" />
-              )}
+              <SkipForward className="size-4" />
               Passer
             </Button>
             <Button
               className="h-12 rounded-2xl bg-[color:var(--rubric)] font-bold text-white hover:bg-[color:var(--rubric)]"
-              disabled={isBusy}
               type="button"
               onClick={() => onFeedback("LIKE")}
             >
-              {busySignal === "LIKE" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
-              À garder
+              <Check className="size-4" />À garder
             </Button>
           </div>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
 function RejectionReasonPicker({
-  busy,
   onCancel,
   onChoose,
   onConfirm,
   selectedReason,
 }: {
-  busy: boolean;
   onCancel: () => void;
   onChoose: (reason: IdeaDiscoveryRejectionReason) => void;
   onConfirm: () => void;
@@ -605,25 +777,15 @@ function RejectionReasonPicker({
         {selected?.description ?? "Vous pouvez aussi confirmer sans motif."}
       </p>
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
-          disabled={busy}
-          type="button"
-          variant="ghost"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Annuler
         </Button>
         <Button
           className="bg-[color:var(--klein)] text-white hover:bg-[color:var(--klein)]"
-          disabled={busy}
           type="button"
           onClick={onConfirm}
         >
-          {busy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <ThumbsDown className="size-4" />
-          )}
+          <ThumbsDown className="size-4" />
           Confirmer le refus
         </Button>
       </div>
@@ -886,26 +1048,35 @@ function DiscoveryUnavailableState({
 function DiscoveryCompleteState({
   isGenerating,
   onGenerate,
+  pendingFeedbackCount,
 }: {
   isGenerating: boolean;
   onGenerate: () => void;
+  pendingFeedbackCount: number;
 }) {
+  const isFinalizing = pendingFeedbackCount > 0;
+
   return (
     <div className="grid min-h-[30rem] place-items-center rounded-3xl border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-8 text-center">
       <div className="max-w-md">
         <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[color:var(--rubric)]/15 text-[color:var(--ink)] ring-1 ring-[color:var(--rubric)]/25">
-          <Check className="size-7" />
+          {isFinalizing ? (
+            <CloudUpload className="size-7" />
+          ) : (
+            <Check className="size-7" />
+          )}
         </div>
         <h3 className="text-2xl font-bold text-[color:var(--ink)]">
-          Sélection terminée
+          {isFinalizing ? "Finalisation de vos choix" : "Sélection terminée"}
         </h3>
         <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
-          Vos choix sont enregistrés. Préparez une nouvelle sélection pour
-          continuer à affiner les propositions.
+          {isFinalizing
+            ? `${pendingFeedbackCount} choix en cours d'enregistrement. Vous pouvez déjà consulter le résultat de votre sélection.`
+            : "Vos choix sont enregistrés. Préparez une nouvelle sélection pour continuer à affiner les propositions."}
         </p>
         <Button
           className="mt-6 h-11 rounded-2xl"
-          disabled={isGenerating}
+          disabled={isGenerating || isFinalizing}
           type="button"
           onClick={onGenerate}
         >
@@ -914,9 +1085,31 @@ function DiscoveryCompleteState({
           ) : (
             <Sparkles className="size-4" />
           )}
-          {isGenerating ? "Préparation..." : "Nouvelle sélection"}
+          {isGenerating
+            ? "Préparation..."
+            : isFinalizing
+              ? "Enregistrement..."
+              : "Nouvelle sélection"}
         </Button>
       </div>
     </div>
   );
+}
+
+function toSwipeDirection(signal: IdeaDiscoverySignal): SwipeDirection {
+  if (signal === "LIKE") return 1;
+  if (signal === "DISLIKE") return -1;
+  return 0;
+}
+
+function toPendingAnnouncement(signal: IdeaDiscoverySignal): string {
+  if (signal === "LIKE") {
+    return "Idée mise de côté. La proposition suivante est disponible.";
+  }
+
+  if (signal === "DISLIKE") {
+    return "Préférence mise de côté. La proposition suivante est disponible.";
+  }
+
+  return "Proposition passée. La suivante est disponible.";
 }
