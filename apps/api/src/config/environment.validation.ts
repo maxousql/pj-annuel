@@ -18,6 +18,11 @@ export function validateEnvironment(
   );
   const environment = readString(config, "NODE_ENV") || "development";
 
+  const notionApiVersion = readString(config, "NOTION_API_VERSION");
+  if (notionApiVersion && notionApiVersion !== "2026-03-11") {
+    throw new Error("NOTION_API_VERSION must be 2026-03-11.");
+  }
+
   if (!["development", "test", "production"].includes(environment)) {
     throw new Error("NODE_ENV must be development, test or production.");
   }

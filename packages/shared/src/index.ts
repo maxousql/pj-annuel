@@ -725,6 +725,8 @@ export type NotionPropertyMappingPayload = {
   title: string;
 };
 
+export type NotionPropertyIdMappingPayload = NotionPropertyMappingPayload;
+
 export type NotionPropertyTypeMappingPayload = {
   channel: "select";
   date: "date";
@@ -735,21 +737,63 @@ export type NotionPropertyTypeMappingPayload = {
 };
 
 export type NotionDatabasePayload = {
+  databaseId: string;
+  dataSourceId: string;
+  /** @deprecated Use dataSourceId. Kept during the advanced-mapping transition. */
   id: string;
   name: string;
+  url: string | null;
   properties: Array<{
     id: string;
     name: string;
+    options: string[];
     type: string;
   }>;
+};
+
+export type NotionParentPagePayload = {
+  id: string;
+  name: string;
+  url: string | null;
+};
+
+export type NotionSchemaStatus =
+  "UNCHECKED" | "PROVISIONING" | "READY" | "DRIFTED" | "UNAVAILABLE";
+
+export type NotionSchemaIssuePayload = {
+  actualType: string | null;
+  code:
+    | "MISSING_PROPERTY"
+    | "INCOMPATIBLE_PROPERTY"
+    | "MISSING_STATUS_OPTIONS"
+    | "SOURCE_MISMATCH";
+  expectedType: string;
+  field: keyof NotionPropertyMappingPayload;
+  message: string;
+  propertyId: string | null;
+  reparable: boolean;
+};
+
+export type NotionSchemaHealthPayload = {
+  checkedAt: string | null;
+  issues: NotionSchemaIssuePayload[];
+  status: NotionSchemaStatus;
 };
 
 export type NotionMappingPayload = {
   conflictStrategy: NotionConflictStrategy;
   databaseId: string;
   databaseName: string;
+  databaseUrl: string | null;
+  dataSourceId: string | null;
+  managed: boolean;
+  parentPageId: string | null;
+  propertyIdMapping: NotionPropertyIdMappingPayload;
   propertyMapping: NotionPropertyMappingPayload;
   propertyTypes: NotionPropertyTypeMappingPayload;
+  schemaHealth: NotionSchemaHealthPayload;
+  schemaVersion: number;
+  setupMode: "MANAGED" | "ADVANCED";
   updatedAt: string;
 };
 
@@ -783,6 +827,16 @@ export type NotionConnectPayload = {
 
 export type NotionDatabasesPayload = {
   databases: NotionDatabasePayload[];
+};
+
+export type NotionParentPagesPayload = {
+  pages: NotionParentPagePayload[];
+};
+
+export type NotionProvisionPayload = {
+  health: NotionSchemaHealthPayload;
+  mapping: NotionMappingPayload;
+  recovered: boolean;
 };
 
 export type NotionSyncResultPayload = {

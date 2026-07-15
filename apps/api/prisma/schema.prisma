@@ -301,6 +301,7 @@ model Organization {
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
   notionDatabaseMapping   NotionDatabaseMapping?
+  notionProvisioningLease NotionProvisioningLease?
   notionSyncStates        NotionSyncState[]
   notionSyncLogs          NotionSyncLog[]
   auditLogs               OrganizationAuditLog[]
@@ -699,17 +700,42 @@ model IntegrationCredential {
 }
 
 model NotionDatabaseMapping {
-  id                 String       @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
-  organizationId     String       @unique @map("organization_id") @db.Uuid
-  databaseId         String       @map("database_id")
-  databaseName       String       @map("database_name")
-  propertyMapping    Json         @default("{}") @map("property_mapping")
-  conflictStrategy   String       @default("NEWEST_WINS") @map("conflict_strategy")
-  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                 String        @id @default(dbgenerated("extensions.gen_random_uuid()")) @db.Uuid
+  organizationId     String        @unique @map("organization_id") @db.Uuid
+  databaseId         String        @map("database_id")
+  dataSourceId       String?       @map("data_source_id")
+  parentPageId       String?       @map("parent_page_id")
+  databaseName       String        @map("database_name")
+  databaseUrl        String?       @map("database_url")
+  managed            Boolean       @default(false)
+  managedMarker      String?       @map("managed_marker")
+  schemaVersion      Int           @default(1) @map("schema_version")
+  schemaStatus       String        @default("UNCHECKED") @map("schema_status")
+  schemaIssues       Json          @default("[]") @map("schema_issues")
+  lastSchemaCheckAt  DateTime?     @map("last_schema_check_at") @db.Timestamptz(6)
+  propertyMapping    Json          @default("{}") @map("property_mapping")
+  propertyIdMapping  Json          @default("{}") @map("property_id_mapping")
+  conflictStrategy   String        @default("NEWEST_WINS") @map("conflict_strategy")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("notion_database_mappings")
+}
+
+model NotionProvisioningLease {
+  organizationId String       @id @map("organization_id") @db.Uuid
+  leaseToken     String       @map("lease_token") @db.Uuid
+  leaseExpiresAt DateTime     @map("lease_expires_at") @db.Timestamptz(6)
+  marker         String
+  parentPageId   String       @map("parent_page_id")
+  lastErrorCode  String?      @map("last_error_code")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([leaseExpiresAt])
+  @@map("notion_provisioning_leases")
 }
 
 model NotionSyncState {

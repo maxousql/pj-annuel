@@ -20,20 +20,28 @@ databaseDescribe("production flows with real PostgreSQL", () => {
   let prisma: PrismaService;
   const notion = {
     createPage: jest.fn().mockResolvedValue(notionPage()),
-    listDatabases: jest.fn().mockResolvedValue([
-      {
-        id: "database",
-        name: "Editorial",
-        properties: [
-          { id: "title", name: "Nom", type: "title" },
-          { id: "status", name: "Statut", type: "status" },
-          { id: "date", name: "Date de publication", type: "date" },
-          { id: "channel", name: "Canal", type: "select" },
-          { id: "type", name: "Type", type: "select" },
-          { id: "url", name: "URL source", type: "url" },
-        ],
-      },
-    ]),
+    retrieveDatabase: jest.fn().mockResolvedValue({
+      dataSources: [{ id: "source", name: "Editorial" }],
+      description: "",
+      id: "database",
+      name: "Editorial",
+      parentPageId: "parent",
+      url: "https://notion.so/database",
+    }),
+    retrieveDataSource: jest.fn().mockResolvedValue({
+      databaseId: "database",
+      databaseUrl: "https://notion.so/database",
+      id: "source",
+      name: "Editorial",
+      properties: [
+        { id: "title", name: "Nom", options: [], type: "title" },
+        { id: "status", name: "Statut", options: [], type: "status" },
+        { id: "date", name: "Date de publication", options: [], type: "date" },
+        { id: "channel", name: "Canal", options: [], type: "select" },
+        { id: "type", name: "Type", options: [], type: "select" },
+        { id: "url", name: "URL source", options: [], type: "url" },
+      ],
+    }),
     replacePageBody: jest.fn().mockResolvedValue(undefined),
     retrievePage: jest.fn().mockResolvedValue(notionPage()),
     updatePage: jest.fn().mockResolvedValue(notionPage()),
@@ -156,6 +164,7 @@ databaseDescribe("production flows with real PostgreSQL", () => {
         conflictStrategy: "NEWEST_WINS",
         databaseId: "database",
         databaseName: "Editorial",
+        dataSourceId: "source",
         propertyMapping: {
           channel: "Canal",
           date: "Date de publication",

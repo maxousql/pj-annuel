@@ -1,9 +1,12 @@
 import {
+  assessNotionSchema,
+  buildNotionSchemaRepair,
   IntegrationsService,
   resolveAllowedFrontendOrigin,
   validateNotionPropertyMapping,
 } from "./integrations.service";
 import { NotionApiError } from "./notion/notion.types";
+import { MANAGED_NOTION_STATUS_OPTIONS } from "./notion/notion-mapping";
 
 describe("IntegrationsService Notion synchronization", () => {
   it("requires distinct property names with compatible Notion types", () => {
@@ -195,6 +198,339 @@ describe("IntegrationsService Notion synchronization", () => {
       where: { organizationId: "organization", provider: "NOTION" },
     });
   });
+
+  it("treats visible property renames as healthy when stable IDs remain", () => {
+    const source = managedSource().map((property) => ({
+      ...property,
+      name: `Renommé ${property.name}`,
+    }));
+
+    expect(
+      assessNotionSchema(
+        {
+          databaseId: "database",
+          databaseUrl: null,
+          id: "source",
+          name: "Planif",
+          properties: source,
+        },
+        mappingPayload(),
+      ),
+    ).toMatchObject({ issues: [], status: "READY" });
+  });
+
+  it("absorbs visible renames into mapping metadata without remote writes", () => {
+    const renamed = managedSource().map((property) => ({
+      ...property,
+      name: `Renommé ${property.name}`,
+    }));
+    const repair = buildNotionSchemaRepair(
+      {
+        databaseId: "database",
+        databaseUrl: null,
+        id: "source",
+        name: "Planif",
+        properties: renamed,
+      },
+      mappingPayload(),
+    );
+
+    expect(repair.properties).toEqual({});
+    expect(repair.propertyMapping.title).toBe("Renommé Nom");
+    expect(repair.propertyMapping.status).toBe("Renommé Statut");
+  });
+
+  it("reuses Notion's only title property instead of trying to create a second one", () => {
+    const source = managedSource().map((property) =>
+      property.id === "title-id"
+        ? { ...property, id: "current-title-id", name: "Titre actuel" }
+        : property,
+    );
+    const repair = buildNotionSchemaRepair(
+      {
+        databaseId: "database",
+        databaseUrl: null,
+        id: "source",
+        name: "Planif",
+        properties: source,
+      },
+      mappingPayload(),
+    );
+
+    expect(repair.properties.Nom).toBeUndefined();
+    expect(repair.propertyMapping.title).toBe("Titre actuel");
+  });
+
+  it("repairs an incompatible property by adding a new column without deleting it", () => {
+    const source = managedSource().map((property) =>
+      property.id === "status-id"
+        ? { ...property, name: "Statut", type: "rich_text" }
+        : property,
+    );
+    const repair = buildNotionSchemaRepair(
+      {
+        databaseId: "database",
+        databaseUrl: null,
+        id: "source",
+        name: "Planif",
+        properties: source,
+      },
+      mappingPayload(),
+    );
+
+    expect(repair.properties["Statut (Planif)"]).toBeDefined();
+    expect(repair.properties["status-id"]).toBeUndefined();
+    expect(Object.values(repair.properties)).not.toContain(null);
+    expect(repair.propertyMapping.status).toBe("Statut (Planif)");
+  });
+
+  it("extends status options while preserving existing choices", () => {
+    const source = managedSource().map((property) =>
+      property.id === "status-id"
+        ? {
+            ...property,
+            optionIds: {
+              Brouillon: "draft-option-id",
+              Personnalisé: "custom-option-id",
+            },
+            options: ["Personnalisé", "Brouillon"],
+            type: "status",
+          }
+        : property,
+    );
+    const repair = buildNotionSchemaRepair(
+      {
+        databaseId: "database",
+        databaseUrl: null,
+        id: "source",
+        name: "Planif",
+        properties: source,
+      },
+      mappingPayload(),
+    );
+    const update = repair.properties["status-id"] as {
+      status: {
+        options: Array<{ group?: string; id?: string; name?: string }>;
+      };
+    };
+
+    expect(update.status.options).toEqual(
+      expect.arrayContaining([
+        { id: "custom-option-id" },
+        { id: "draft-option-id" },
+        { group: "Complete", name: "Publié" },
+        { group: "In progress", name: "En révision" },
+      ]),
+    );
+  });
+
+  it("extends status options after a compatible status property was recreated", () => {
+    const source = managedSource().map((property) =>
+      property.id === "status-id"
+        ? {
+            ...property,
+            id: "replacement-status-id",
+            optionIds: { Brouillon: "draft-option-id" },
+            options: ["Brouillon"],
+            type: "status",
+          }
+        : property,
+    );
+    const repair = buildNotionSchemaRepair(
+      {
+        databaseId: "database",
+        databaseUrl: null,
+        id: "source",
+        name: "Planif",
+        properties: source,
+      },
+      mappingPayload(),
+    );
+    const update = repair.properties["replacement-status-id"] as {
+      status: {
+        options: Array<{ group?: string; id?: string; name?: string }>;
+      };
+    };
+
+    expect(repair.propertyMapping.status).toBe("Statut");
+    expect(update.status.options).toEqual(
+      expect.arrayContaining([
+        { id: "draft-option-id" },
+        { group: "Complete", name: "Publié" },
+      ]),
+    );
+  });
+
+  it("rediscovers a managed database under a persistent lease instead of creating a duplicate", async () => {
+    const prisma = basePrisma();
+    prisma.$queryRawUnsafe = jest.fn(async (...args: unknown[]) => [
+      { lease_token: args[2] },
+    ]);
+    prisma.$executeRawUnsafe = jest.fn().mockResolvedValue(1);
+    prisma.organizationAuditLog = { create: jest.fn().mockResolvedValue({}) };
+    prisma.notionDatabaseMapping.update = jest
+      .fn()
+      .mockResolvedValue(managedMappingRecord());
+    const transaction = {
+      $queryRawUnsafe: jest.fn(async (...args: unknown[]) => [
+        { lease_token: args[2] },
+      ]),
+      notionDatabaseMapping: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        upsert: jest.fn().mockResolvedValue(managedMappingRecord()),
+      },
+      notionSyncState: { deleteMany: jest.fn() },
+      organizationAuditLog: { create: jest.fn().mockResolvedValue({}) },
+    };
+    prisma.$transaction = jest.fn(
+      async (handler: (client: object) => Promise<unknown>) =>
+        handler(transaction),
+    );
+    const notion = baseNotion();
+    const discovered = {
+      database: {
+        dataSources: [{ id: "source", name: "Planif" }],
+        description: "planif-managed:organization",
+        id: "database",
+        name: "Planif",
+        parentPageId: "parent",
+        url: "https://notion.so/database",
+      },
+      dataSource: {
+        databaseId: "database",
+        databaseUrl: "https://notion.so/database",
+        id: "source",
+        name: "Planif",
+        properties: managedSource(),
+      },
+    };
+    notion.findManagedDatabase.mockResolvedValue(discovered);
+    notion.retrieveDataSource.mockResolvedValue(discovered.dataSource);
+    const service = createService(prisma, notion);
+
+    await expect(
+      service.provisionNotionDatabase("user", organizationContext(), {
+        confirmed: true,
+        parentPageId: "parent",
+      }),
+    ).resolves.toMatchObject({ recovered: true });
+    expect(notion.createDatabase).not.toHaveBeenCalled();
+    expect(prisma.$executeRawUnsafe).toHaveBeenCalled();
+  });
+
+  it("refuses to persist provisioning after its lease was lost", async () => {
+    const prisma = basePrisma();
+    prisma.$queryRawUnsafe = jest.fn(async (...args: unknown[]) => [
+      { lease_token: args[2] },
+    ]);
+    prisma.$executeRawUnsafe = jest.fn().mockResolvedValue(1);
+    const transaction = {
+      $queryRawUnsafe: jest.fn().mockResolvedValue([]),
+      notionDatabaseMapping: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        upsert: jest.fn(),
+      },
+      notionSyncState: { deleteMany: jest.fn() },
+      organizationAuditLog: { create: jest.fn() },
+    };
+    prisma.$transaction = jest.fn(
+      async (handler: (client: object) => Promise<unknown>) =>
+        handler(transaction),
+    );
+    const notion = baseNotion();
+    notion.findManagedDatabase.mockResolvedValue({
+      database: {
+        dataSources: [{ id: "source", name: "Planif" }],
+        description: "planif-managed:organization",
+        id: "database",
+        name: "Planif",
+        parentPageId: "parent",
+        url: "https://notion.so/database",
+      },
+      dataSource: {
+        databaseId: "database",
+        databaseUrl: "https://notion.so/database",
+        id: "source",
+        name: "Planif",
+        properties: managedSource(),
+      },
+    });
+    const service = createService(prisma, notion);
+
+    await expect(
+      service.provisionNotionDatabase("user", organizationContext(), {
+        confirmed: true,
+        parentPageId: "parent",
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(transaction.notionDatabaseMapping.upsert).not.toHaveBeenCalled();
+  });
+
+  it("backfills a legacy database mapping with its data source and property IDs", async () => {
+    const prisma = basePrisma();
+    const legacy = {
+      ...mappingRecord(),
+      dataSourceId: null,
+      propertyIdMapping: {},
+      schemaStatus: "UNCHECKED",
+    };
+    const saved = {
+      ...legacy,
+      dataSourceId: "source",
+      propertyIdMapping: mappingPayload().propertyIdMapping,
+      schemaStatus: "READY",
+    };
+    prisma.notionDatabaseMapping.findUnique.mockResolvedValue(legacy);
+    const transaction = {
+      notionDatabaseMapping: {
+        findUnique: jest.fn().mockResolvedValue({ dataSourceId: null }),
+        update: jest.fn().mockResolvedValue(saved),
+      },
+      notionSyncState: { deleteMany: jest.fn() },
+    };
+    prisma.$transaction = jest.fn(
+      async (handler: (client: object) => Promise<unknown>) =>
+        handler(transaction),
+    );
+    const notion = baseNotion();
+    notion.retrieveDatabase.mockResolvedValue({
+      dataSources: [{ id: "source", name: "Planif" }],
+      description: "",
+      id: "database",
+      name: "Planif",
+      parentPageId: "parent",
+      url: "https://notion.so/database",
+    });
+    notion.retrieveDataSource.mockResolvedValue({
+      databaseId: "database",
+      databaseUrl: "https://notion.so/database",
+      id: "source",
+      name: "Planif",
+      properties: managedSource(),
+    });
+    const service = createService(prisma, notion);
+
+    const connection = await (
+      service as unknown as {
+        getConnection(organizationId: string): Promise<{
+          mapping: ReturnType<typeof mappingPayload>;
+        }>;
+      }
+    ).getConnection("organization");
+
+    expect(connection.mapping.dataSourceId).toBe("source");
+    expect(connection.mapping.propertyIdMapping).toEqual(
+      mappingPayload().propertyIdMapping,
+    );
+    expect(transaction.notionDatabaseMapping.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          dataSourceId: "source",
+          schemaStatus: "READY",
+        }),
+      }),
+    );
+  });
 });
 
 function basePrisma() {
@@ -219,8 +555,14 @@ function basePrisma() {
 function baseNotion() {
   return {
     createPage: jest.fn(),
+    createDatabase: jest.fn(),
+    findManagedDatabase: jest.fn(),
+    listParentPages: jest.fn(),
     replacePageBody: jest.fn().mockResolvedValue(undefined),
+    retrieveDatabase: jest.fn(),
+    retrieveDataSource: jest.fn(),
     retrievePage: jest.fn(),
+    updateDataSource: jest.fn(),
     updatePage: jest.fn(),
   };
 }
@@ -341,12 +683,23 @@ function page(id: string, properties: Record<string, unknown> = {}) {
 function mappingRecord() {
   return {
     conflictStrategy: "NOTION_WINS",
+    dataSourceId: "source",
     databaseId: "database",
     databaseName: "Database",
+    databaseUrl: "https://notion.so/database",
+    id: "mapping",
+    lastSchemaCheckAt: new Date("2026-07-10T00:00:00.000Z"),
+    managed: false,
+    organizationId: "organization",
+    parentPageId: null,
+    propertyIdMapping: mappingPayload().propertyIdMapping,
     propertyMapping: {
       ...mappingPayload().propertyMapping,
       __types: mappingPayload().propertyTypes,
     },
+    schemaIssues: [],
+    schemaStatus: "READY",
+    schemaVersion: 1,
     updatedAt: new Date("2026-07-10T00:00:00.000Z"),
   };
 }
@@ -354,8 +707,20 @@ function mappingRecord() {
 function mappingPayload() {
   return {
     conflictStrategy: "NOTION_WINS" as const,
+    dataSourceId: "source",
     databaseId: "database",
     databaseName: "Database",
+    databaseUrl: "https://notion.so/database",
+    managed: false,
+    parentPageId: null,
+    propertyIdMapping: {
+      channel: "channel-id",
+      date: "date-id",
+      entityType: "type-id",
+      sourceUrl: "url-id",
+      status: "status-id",
+      title: "title-id",
+    },
     propertyMapping: {
       channel: "Canal",
       date: "Date de publication",
@@ -372,7 +737,43 @@ function mappingPayload() {
       status: "select" as const,
       title: "title" as const,
     },
+    schemaHealth: {
+      checkedAt: "2026-07-10T00:00:00.000Z",
+      issues: [],
+      status: "READY" as const,
+    },
+    schemaVersion: 1,
+    setupMode: "ADVANCED" as const,
     updatedAt: "2026-07-10T00:00:00.000Z",
+  };
+}
+
+function managedSource() {
+  return [
+    { id: "title-id", name: "Nom", options: [], type: "title" },
+    {
+      id: "status-id",
+      name: "Statut",
+      options: [...MANAGED_NOTION_STATUS_OPTIONS],
+      type: "select",
+    },
+    { id: "date-id", name: "Date de publication", options: [], type: "date" },
+    { id: "channel-id", name: "Canal", options: [], type: "select" },
+    { id: "type-id", name: "Type", options: [], type: "select" },
+    { id: "url-id", name: "URL source", options: [], type: "url" },
+  ];
+}
+
+function managedMappingRecord() {
+  return {
+    ...mappingRecord(),
+    managed: true,
+    managedMarker: "planif-managed:organization",
+    parentPageId: "parent",
+    propertyMapping: {
+      ...mappingPayload().propertyMapping,
+      __types: mappingPayload().propertyTypes,
+    },
   };
 }
 

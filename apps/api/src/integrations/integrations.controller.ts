@@ -19,6 +19,10 @@ import { successResponse } from "../common/responses/api-response";
 import { OrganizationGuard } from "../organizations/organization.guard";
 import type { OrganizationRequest } from "../organizations/organizations.types";
 import { Roles } from "../organizations/roles.decorator";
+import {
+  ProvisionNotionDatabaseDto,
+  RepairNotionDatabaseDto,
+} from "./dto/notion-admin.dto";
 import { SaveNotionMappingDto } from "./dto/save-notion-mapping.dto";
 import { IntegrationsService } from "./integrations.service";
 
@@ -67,6 +71,57 @@ export class IntegrationsController {
         request.organizationContext,
       ),
     });
+  }
+
+  @Get("pages")
+  @Roles("ADMIN")
+  async listParentPages(@Req() request: OrganizationRequest) {
+    return successResponse({
+      pages: await this.integrationsService.listNotionParentPages(
+        request.organizationContext,
+      ),
+    });
+  }
+
+  @Post("provision")
+  @Roles("ADMIN")
+  async provision(
+    @Req() request: OrganizationRequest,
+    @Body() dto: ProvisionNotionDatabaseDto,
+  ) {
+    return successResponse(
+      await this.integrationsService.provisionNotionDatabase(
+        request.user.id,
+        request.organizationContext,
+        dto,
+      ),
+    );
+  }
+
+  @Get("health")
+  @Roles("ADMIN")
+  async health(@Req() request: OrganizationRequest) {
+    return successResponse({
+      health: await this.integrationsService.diagnoseNotionSchema(
+        request.user.id,
+        request.organizationContext,
+      ),
+    });
+  }
+
+  @Post("repair")
+  @Roles("ADMIN")
+  async repair(
+    @Req() request: OrganizationRequest,
+    @Body() dto: RepairNotionDatabaseDto,
+  ) {
+    return successResponse(
+      await this.integrationsService.repairNotionSchema(
+        request.user.id,
+        request.organizationContext,
+        dto,
+      ),
+    );
   }
 
   @Post("mapping")

@@ -5,19 +5,42 @@ export type NotionCredentialMetadata = {
   workspaceName?: string;
 };
 
-export type NotionDatabase = {
+export type NotionProperty = {
   id: string;
   name: string;
-  properties: Array<{
-    id: string;
-    name: string;
-    type: string;
-  }>;
+  optionIds?: Record<string, string>;
+  options: string[];
+  type: string;
+};
+
+export type NotionDataSource = {
+  databaseId: string;
+  databaseUrl: string | null;
+  id: string;
+  name: string;
+  properties: NotionProperty[];
+};
+
+export type NotionDatabase = NotionDataSource;
+
+export type NotionDatabaseContainer = {
+  dataSources: Array<{ id: string; name: string }>;
+  description: string;
+  id: string;
+  name: string;
+  parentPageId: string | null;
+  url: string | null;
+};
+
+export type NotionParentPage = {
+  id: string;
+  name: string;
+  url: string | null;
 };
 
 export type NotionPage = {
-  archived?: boolean;
   id: string;
+  in_trash?: boolean;
   last_edited_time: string;
   properties: Record<string, unknown>;
   url?: string;
@@ -25,8 +48,23 @@ export type NotionPage = {
 
 export type NotionPageWrite = {
   children?: unknown[];
-  parent?: { database_id: string };
+  parent: {
+    data_source_id: string;
+    type: "data_source_id";
+  };
   properties: Record<string, unknown>;
+};
+
+export type CreateNotionDatabaseInput = {
+  description: string;
+  parentPageId: string;
+  properties: Record<string, unknown>;
+  title: string;
+};
+
+export type ManagedNotionDatabaseSelector = {
+  preferred?: { databaseId: string; dataSourceId: string };
+  requiredProperties: Array<{ name: string; types: string[] }>;
 };
 
 export class NotionApiError extends Error {
