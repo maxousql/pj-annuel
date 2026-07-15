@@ -166,9 +166,7 @@ export function AutomationsWorkspace({
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement des automatisations" />
-    );
+    return <LoadingState title="Chargement des automatisations" />;
   }
 
   if (!state) {

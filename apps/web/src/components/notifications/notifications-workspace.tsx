@@ -162,9 +162,7 @@ export function NotificationsWorkspace({
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement des notifications" />
-    );
+    return <LoadingState title="Chargement des notifications" />;
   }
 
   if (!state) {

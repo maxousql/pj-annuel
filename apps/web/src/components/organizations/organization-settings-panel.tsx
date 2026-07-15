@@ -142,8 +142,8 @@ export function OrganizationSettingsPanel({
           </div>
         </header>
         <p className="muted">
-          La modification du nom, du slug et des paramètres avancés sera
-          ajoutée avec les prochains modules d'administration.
+          La modification du nom, du slug et des paramètres avancés sera ajoutée
+          avec les prochains modules d'administration.
         </p>
         {state.role !== "ADMIN" ? (
           <p className="muted">Reserve aux administrateurs.</p>

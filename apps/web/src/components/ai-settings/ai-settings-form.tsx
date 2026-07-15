@@ -102,9 +102,7 @@ export function AiSettingsForm({ organizationSlug }: AiSettingsFormProps) {
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement des paramètres IA" />
-    );
+    return <LoadingState title="Chargement des paramètres IA" />;
   }
 
   if (!profile) {

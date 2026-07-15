@@ -48,8 +48,7 @@ export function CurationResourceDetail({
   }
 
   if (error) return <p className="form-error">{error}</p>;
-  if (!detail)
-    return <LoadingState title="Chargement de la ressource" />;
+  if (!detail) return <LoadingState title="Chargement de la ressource" />;
 
   const { resource } = detail;
 

@@ -1,6 +1,9 @@
 "use client";
 
-import type { AuthSessionPayload, InvitationPreviewPayload } from "@content-ai/shared";
+import type {
+  AuthSessionPayload,
+  InvitationPreviewPayload,
+} from "@content-ai/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -10,7 +13,10 @@ import {
   getSafeNextPath,
   readApiResponse,
 } from "@/lib/auth/client";
-import { fetchInvitationPreview, acceptInvitation } from "@/lib/invitations/client";
+import {
+  fetchInvitationPreview,
+  acceptInvitation,
+} from "@/lib/invitations/client";
 
 type AuthMode = "login" | "register";
 
@@ -43,7 +49,8 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alternateNextPath, setAlternateNextPath] = useState("/app");
-  const [invitationPreview, setInvitationPreview] = useState<InvitationPreviewPayload | null>(null);
+  const [invitationPreview, setInvitationPreview] =
+    useState<InvitationPreviewPayload | null>(null);
   const [prefilledEmail, setPrefilledEmail] = useState("");
 
   useEffect(() => {
@@ -126,7 +133,9 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
         {invitationPreview ? (
           <>
             <p className="eyebrow">Invitation d'équipe</p>
-            <h1 id={`${mode}-title`}>Rejoindre {invitationPreview.organizationName}</h1>
+            <h1 id={`${mode}-title`}>
+              Rejoindre {invitationPreview.organizationName}
+            </h1>
           </>
         ) : (
           <>

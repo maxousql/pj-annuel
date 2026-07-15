@@ -115,7 +115,7 @@ export function ProfileSettings() {
   async function handleDeleteAccount() {
     if (
       !window.confirm(
-        "Êtes-vous certain de vouloir supprimer votre compte ? Cette action est irréversible."
+        "Êtes-vous certain de vouloir supprimer votre compte ? Cette action est irréversible.",
       )
     ) {
       return;
@@ -133,7 +133,10 @@ export function ProfileSettings() {
         setState({
           message: result.error?.message ?? "Suppression impossible.",
           status: "ready",
-          user: state.status === "ready" ? state.user : { id: "", email: "", name: "", avatarUrl: null },
+          user:
+            state.status === "ready"
+              ? state.user
+              : { id: "", email: "", name: "", avatarUrl: null },
         });
         return;
       }
@@ -143,7 +146,10 @@ export function ProfileSettings() {
       setState({
         message: "Suppression impossible.",
         status: "ready",
-        user: state.status === "ready" ? state.user : { id: "", email: "", name: "", avatarUrl: null },
+        user:
+          state.status === "ready"
+            ? state.user
+            : { id: "", email: "", name: "", avatarUrl: null },
       });
     } finally {
       setIsDeletingAccount(false);

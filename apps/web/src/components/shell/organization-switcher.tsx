@@ -31,7 +31,8 @@ export function OrganizationSwitcher({
 }: OrganizationSwitcherProps) {
   const router = useRouter();
 
-  function handleValueChange(slug: string) {
+  function handleValueChange(slug: string | null) {
+    if (!slug) return;
     const next = organizations.find((o) => o.slug === slug);
     if (next) router.push(getDefaultOrganizationHref(next.slug));
   }

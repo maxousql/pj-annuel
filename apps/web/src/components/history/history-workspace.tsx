@@ -17,6 +17,7 @@ import {
   CONTENT_STATUS_LABELS,
   formatContentDate,
 } from "@/components/contents/content-labels";
+import { EmptyState } from "@/components/shell/empty-state";
 import { LoadingState } from "@/components/shell/loading-state";
 import { fetchHistory, type FetchHistoryInput } from "@/lib/history/client";
 
