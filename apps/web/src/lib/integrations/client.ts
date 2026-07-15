@@ -5,7 +5,10 @@ import type {
   NotionDatabasesPayload,
   NotionIntegrationPayload,
   NotionMappingPayload,
+  NotionParentPagesPayload,
   NotionPropertyMappingPayload,
+  NotionProvisionPayload,
+  NotionSchemaHealthPayload,
   NotionSyncResultPayload,
 } from "@content-ai/shared";
 
@@ -61,6 +64,7 @@ export async function saveNotionMapping(
   input: {
     conflictStrategy: NotionConflictStrategy;
     databaseId: string;
+    dataSourceId: string;
     databaseName: string;
     propertyMapping: NotionPropertyMappingPayload;
   },
@@ -73,6 +77,49 @@ export async function saveNotionMapping(
   });
 
   return readApiResponse<{ mapping: NotionMappingPayload }>(response);
+}
+
+export async function listNotionParentPages(
+  organizationSlug: string,
+): Promise<ApiResponse<NotionParentPagesPayload>> {
+  const response = await fetch(`${notionBaseUrl(organizationSlug)}/pages`, {
+    credentials: "include",
+  });
+  return readApiResponse<NotionParentPagesPayload>(response);
+}
+
+export async function provisionNotionDatabase(
+  organizationSlug: string,
+  parentPageId: string,
+): Promise<ApiResponse<NotionProvisionPayload>> {
+  const response = await fetch(`${notionBaseUrl(organizationSlug)}/provision`, {
+    body: JSON.stringify({ confirmed: true, parentPageId }),
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  return readApiResponse<NotionProvisionPayload>(response);
+}
+
+export async function checkNotionSchemaHealth(
+  organizationSlug: string,
+): Promise<ApiResponse<{ health: NotionSchemaHealthPayload }>> {
+  const response = await fetch(`${notionBaseUrl(organizationSlug)}/health`, {
+    credentials: "include",
+  });
+  return readApiResponse<{ health: NotionSchemaHealthPayload }>(response);
+}
+
+export async function repairNotionSchema(
+  organizationSlug: string,
+): Promise<ApiResponse<NotionProvisionPayload>> {
+  const response = await fetch(`${notionBaseUrl(organizationSlug)}/repair`, {
+    body: JSON.stringify({ confirmed: true }),
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  return readApiResponse<NotionProvisionPayload>(response);
 }
 
 export async function syncNotion(

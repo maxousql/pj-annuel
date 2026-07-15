@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -15,6 +16,7 @@ import { OrganizationGuard } from "../organizations/organization.guard";
 import type { OrganizationRequest } from "../organizations/organizations.types";
 import { Roles } from "../organizations/roles.decorator";
 import { GenerateIdeasDto } from "./dto/generate-ideas.dto";
+import { IdeaDiscoveryFeedbackDto } from "./dto/idea-discovery-feedback.dto";
 import { CheckIdeaDuplicateDto, SaveIdeaDto } from "./dto/save-idea.dto";
 import { UpdateIdeaStatusDto } from "./dto/update-idea-status.dto";
 import { IdeasService } from "./ideas.service";
@@ -46,6 +48,55 @@ export class IdeasController {
     );
 
     return successResponse(ideas);
+  }
+
+  @Get("discovery")
+  @Roles("EDITOR")
+  async getDiscoveryFeed(@Req() request: OrganizationRequest) {
+    const feed = await this.ideasService.getDiscoveryFeed(
+      request.user.id,
+      request.organizationContext,
+    );
+
+    return successResponse(feed);
+  }
+
+  @Post("discovery/generate")
+  @Roles("EDITOR")
+  async generateDiscoveryFeed(@Req() request: OrganizationRequest) {
+    const feed = await this.ideasService.generateDiscoveryFeed(
+      request.user.id,
+      request.organizationContext,
+    );
+
+    return successResponse(feed);
+  }
+
+  @Post("discovery/:candidateId/feedback")
+  @Roles("EDITOR")
+  async submitDiscoveryFeedback(
+    @Req() request: OrganizationRequest,
+    @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
+    @Body() dto: IdeaDiscoveryFeedbackDto,
+  ) {
+    const result = await this.ideasService.submitDiscoveryFeedback(
+      request.user.id,
+      request.organizationContext,
+      candidateId,
+      dto,
+    );
+
+    return successResponse(result);
+  }
+
+  @Post("discovery/preferences/reset")
+  @Roles("EDITOR")
+  async resetDiscoveryPreferences(@Req() request: OrganizationRequest) {
+    const profile = await this.ideasService.resetDiscoveryPreferences(
+      request.organizationContext,
+    );
+
+    return successResponse({ profile });
   }
 
   @Post("duplicate-check")

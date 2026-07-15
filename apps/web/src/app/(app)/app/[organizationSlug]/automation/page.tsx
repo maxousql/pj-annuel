@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AutomationsWorkspace } from "@/components/automations/automations-workspace";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Automatisation",
@@ -17,14 +18,11 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">V2</p>
-        <h1>Automatisation marketing.</h1>
-        <p>
-          Activez les rappels, générez des recommandations et suivez les
-          notifications internes.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Activez les rappels, générez des recommandations et suivez les notifications internes."
+        eyebrow="Automatisations"
+        title="Automatisation marketing."
+      />
       <AutomationsWorkspace organizationSlug={organizationSlug} />
     </>
   );

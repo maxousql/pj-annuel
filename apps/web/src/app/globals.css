@@ -398,7 +398,7 @@ textarea:disabled {
 
 .hero h1,
 .auth-copy h1,
-.app-title h1 {
+.app-page-header h1 {
   margin: 0;
   font-size: clamp(2.6rem, 7.2vw, 5.2rem);
   line-height: 1.02;
@@ -431,7 +431,7 @@ textarea:disabled {
 
 .hero p,
 .auth-copy p,
-.app-title p,
+.app-page-header p,
 .muted {
   margin: 0;
   color: var(--text-muted);
@@ -818,11 +818,270 @@ textarea:disabled {
   text-transform: uppercase;
 }
 
+/* Sections éditoriales complémentaires de la landing */
+.editorial-pillars strong {
+  max-width: 14ch;
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.editorial-pillars span {
+  max-width: 30ch;
+  line-height: 1.5;
+}
+
+.workflow-editorial {
+  padding-top: 88px;
+}
+
+.workflow-chapters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-chapters li {
+  display: grid;
+  min-height: 260px;
+  align-content: start;
+  gap: 16px;
+  border-left: 1px solid var(--border-strong);
+  padding: 30px 24px;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.workflow-chapters li:first-child {
+  border-left: 0;
+}
+
+.workflow-chapters li:hover {
+  background: var(--paper-card);
+}
+
+.workflow-chapters li > span {
+  color: transparent;
+  font-family: var(--font-heading), ui-sans-serif, sans-serif;
+  font-size: 2.2rem;
+  font-style: italic;
+  font-weight: 400;
+  -webkit-text-stroke: 1px var(--rubric);
+}
+
+.workflow-chapters h3 {
+  margin: 8px 0 0;
+  font-size: 1.4rem;
+}
+
+.workflow-chapters p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.notion-highlight {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+  gap: 54px;
+  align-items: center;
+  margin-top: 88px;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 54px;
+  background:
+    linear-gradient(135deg, rgba(216, 64, 31, 0.08), transparent 58%),
+    var(--paper-card);
+  box-shadow: var(--press-shadow);
+}
+
+.notion-highlight-copy {
+  display: grid;
+  gap: 18px;
+}
+
+.notion-highlight h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4.2vw, 3.2rem);
+  line-height: 1.05;
+}
+
+.notion-highlight-copy > p:not(.kicker) {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.notion-highlight-copy ul {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notion-highlight-copy li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.notion-highlight-copy li svg {
+  flex: 0 0 auto;
+  color: var(--rubric);
+}
+
+.notion-sync-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 28px 24px;
+  background: var(--paper-2);
+  box-shadow: 5px 5px 0 rgba(23, 19, 15, 0.14);
+}
+
+.notion-sync-sheet > div {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  text-align: center;
+}
+
+.notion-sync-sheet > svg {
+  color: var(--rubric);
+}
+
+.notion-sync-sheet div > svg {
+  color: var(--rubric);
+}
+
+.notion-sync-sheet strong {
+  font-family: var(--font-heading), ui-sans-serif, sans-serif;
+  font-size: 1.05rem;
+}
+
+.notion-sync-sheet span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.landing-faq {
+  padding-top: 96px;
+}
+
+.faq-editorial-list {
+  border-top: 1.5px solid var(--ink);
+}
+
+.faq-editorial-list details {
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.faq-editorial-list summary {
+  position: relative;
+  cursor: pointer;
+  padding: 24px 48px 24px 4px;
+  font-family: var(--font-heading), ui-sans-serif, sans-serif;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 620;
+  list-style: none;
+}
+
+.faq-editorial-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-editorial-list summary::after {
+  content: "+";
+  position: absolute;
+  top: 20px;
+  right: 8px;
+  color: var(--rubric);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.faq-editorial-list details[open] summary::after {
+  content: "-";
+}
+
+.faq-editorial-list details p {
+  max-width: 68ch;
+  margin: -4px 0 24px 4px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .workflow-chapters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workflow-chapters li:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .workflow-chapters li:nth-child(4) {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .notion-highlight {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .workflow-chapters {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-chapters li,
+  .workflow-chapters li:first-child,
+  .workflow-chapters li:nth-child(3),
+  .workflow-chapters li:nth-child(4) {
+    min-height: auto;
+    border-top: 1px solid var(--border-strong);
+    border-left: 0;
+    padding: 24px 6px;
+  }
+
+  .workflow-chapters li:first-child {
+    border-top: 0;
+  }
+
+  .notion-highlight {
+    gap: 38px;
+    margin-top: 72px;
+    padding: 32px 22px;
+  }
+
+  .notion-sync-sheet {
+    grid-template-columns: 1fr;
+  }
+
+  .notion-sync-sheet > svg {
+    transform: rotate(90deg);
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Panneaux / cartes
 --------------------------------------------------------------------------- */
 
-.health-card,
 .auth-panel,
 .dashboard-panel,
 .settings-panel,
@@ -833,21 +1092,12 @@ textarea:disabled {
   box-shadow: var(--shadow-card);
 }
 
-.health-card,
 .auth-panel,
 .dashboard-panel,
 .settings-panel {
   padding: 26px;
 }
 
-.health-card {
-  display: grid;
-  gap: 16px;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.85rem;
-}
-
-.health-card header,
 .dashboard-panel header,
 .settings-panel header,
 .metric-card header {
@@ -857,7 +1107,6 @@ textarea:disabled {
   gap: 12px;
 }
 
-.health-card h2,
 .dashboard-panel h2,
 .settings-panel h2,
 .metric-card h3 {
@@ -888,30 +1137,6 @@ textarea:disabled {
 .status-pill[data-tone="warning"] {
   color: var(--warning);
   background: rgba(161, 98, 7, 0.08);
-}
-
-.health-details {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-}
-
-.health-details div {
-  display: grid;
-  gap: 4px;
-}
-
-.health-details dt {
-  color: var(--text-subtle);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.health-details dd {
-  margin: 0;
-  overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1202,13 +1427,53 @@ textarea:disabled {
   font-size: 0.82rem;
 }
 
-.app-title {
+.app-page-header {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px 32px;
+  min-width: 0;
+  padding: 4px 0 10px;
+}
+
+.app-page-header-copy {
+  display: grid;
+  min-width: 0;
   gap: 10px;
 }
 
-.app-title h1 {
+.app-page-header h1 {
+  margin: 0;
   font-size: clamp(2rem, 5.5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.app-page-header-copy > p:not(.eyebrow) {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.app-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 767px) {
+  .app-page-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding-bottom: 8px;
+  }
+
+  .app-page-header-actions {
+    justify-content: flex-start;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1486,18 +1751,6 @@ textarea:disabled {
   padding: 26px;
 }
 
-.onboarding-header {
-  display: grid;
-  max-width: 760px;
-  gap: 12px;
-}
-
-.onboarding-header h1 {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.1rem);
-  line-height: 1.05;
-}
-
 .onboarding-section,
 .onboarding-form {
   display: grid;
@@ -1592,12 +1845,6 @@ textarea:disabled {
 .summary-grid dd {
   margin: 0;
   overflow-wrap: anywhere;
-}
-
-.app-title-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2442,7 +2689,6 @@ textarea:disabled {
 
   .app-header,
   .app-header-main,
-  .health-card header,
   .dashboard-panel header,
   .settings-panel header,
   .metric-card header,

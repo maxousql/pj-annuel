@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 test("jury journey: account to planned content", async ({ page }) => {
   const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -36,13 +36,72 @@ test("jury journey: account to planned content", async ({ page }) => {
     new RegExp(`/app/${organizationSlug}/dashboard`),
   );
 
-  await page.goto(`/app/${organizationSlug}/ideas/generate`);
-  await page
-    .getByLabel("Brief court")
-    .fill("Proposer des idees sur un calendrier editorial assiste par IA.");
-  await page.getByRole("button", { name: "Generer des idees" }).click();
-  await expect(page.getByText("Idees a selectionner")).toBeVisible();
-  await page.getByRole("button", { name: "Sauvegarder" }).first().click();
+  const accountLink = page.getByRole("link", {
+    name: "Ouvrir les paramètres du compte",
+  });
+  await expect(accountLink.getByText("Administrateur")).toBeVisible();
+  await accountLink.click();
+  await expect(page).toHaveURL(/\/app\/settings$/);
+  await expect(
+    page.getByRole("heading", { name: "Votre espace, à votre image." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Votre empreinte éditoriale" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Sécurité du compte" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Organisation Jury", { exact: true }),
+  ).toBeVisible();
+
+  await page.goto(`/app/${organizationSlug}/notifications`);
+  await expectTabsInsideTrack(page.getByRole("tablist"), page.getByRole("tab"));
+
+  await page.goto(`/app/${organizationSlug}/ideas`);
+  await expectTabsInsideTrack(page.getByRole("tablist"), page.getByRole("tab"));
+  await page.getByRole("tab", { name: "Découvrir" }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Des idées choisies pour votre organisation",
+    }),
+  ).toBeVisible();
+  const discoveryCard = page.getByTestId("idea-discovery-card");
+  const discoveryStack = page.getByTestId("idea-discovery-card-stack");
+  const swipeHints = page.getByTestId("idea-discovery-swipe-hints");
+  await expectVerticalGap(discoveryStack, swipeHints, 8);
+  const candidateId = await discoveryCard.getAttribute("data-candidate-id");
+  const cardBox = await discoveryCard.boundingBox();
+  expect(cardBox).not.toBeNull();
+
+  if (!cardBox || !candidateId) {
+    throw new Error("Discovery card is missing its swipe geometry.");
+  }
+
+  await dragCandidate(page, discoveryCard, 40);
+  await expect(discoveryCard).toHaveAttribute("data-candidate-id", candidateId);
+
+  await dragCandidate(page, discoveryCard, Math.min(220, cardBox.width / 2));
+  const nextDiscoveryCard = page.locator(
+    `[data-testid="idea-discovery-card"]:not([data-candidate-id="${candidateId}"])`,
+  );
+  await expect(nextDiscoveryCard).toBeVisible();
+  const rejectedCandidateId =
+    await nextDiscoveryCard.getAttribute("data-candidate-id");
+  expect(rejectedCandidateId).not.toBeNull();
+
+  await dragCandidate(page, nextDiscoveryCard, -220);
+  await expect(
+    page.locator(
+      `[data-testid="idea-discovery-card"][data-candidate-id="${rejectedCandidateId}"]`,
+    ),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(
+      `[data-testid="idea-discovery-card"][data-candidate-id="${candidateId}"]`,
+    ),
+  ).toHaveCount(0);
+  await page.getByRole("tab", { name: "Créer et gérer" }).click();
   await expect(
     page.getByRole("link", { name: "Transformer" }).first(),
   ).toBeVisible();
@@ -67,3 +126,64 @@ test("jury journey: account to planned content", async ({ page }) => {
   await page.getByRole("button", { name: "Planifier", exact: true }).click();
   await expect(page.getByText("Planification creee.")).toBeVisible();
 });
+
+async function expectTabsInsideTrack(tablist: Locator, tabs: Locator) {
+  await expect(tablist).toBeVisible();
+  const trackBox = await tablist.boundingBox();
+  expect(trackBox).not.toBeNull();
+
+  if (!trackBox) return;
+
+  const tabCount = await tabs.count();
+  for (let index = 0; index < tabCount; index += 1) {
+    const tabBox = await tabs.nth(index).boundingBox();
+    expect(tabBox).not.toBeNull();
+
+    if (!tabBox) continue;
+
+    expect(tabBox.y).toBeGreaterThanOrEqual(trackBox.y - 1);
+    expect(tabBox.y + tabBox.height).toBeLessThanOrEqual(
+      trackBox.y + trackBox.height + 1,
+    );
+  }
+}
+
+async function expectVerticalGap(
+  upperElement: Locator,
+  lowerElement: Locator,
+  minimumGap: number,
+) {
+  const upperBox = await upperElement.boundingBox();
+  const lowerBox = await lowerElement.boundingBox();
+  expect(upperBox).not.toBeNull();
+  expect(lowerBox).not.toBeNull();
+
+  if (!upperBox || !lowerBox) return;
+
+  expect(lowerBox.y - (upperBox.y + upperBox.height)).toBeGreaterThanOrEqual(
+    minimumGap,
+  );
+}
+
+async function dragCandidate(
+  page: Page,
+  card: Locator,
+  horizontalDelta: number,
+) {
+  const cardBox = await card.boundingBox();
+
+  if (!cardBox) {
+    throw new Error("Discovery card is missing its swipe geometry.");
+  }
+
+  const cardCenter = {
+    x: cardBox.x + cardBox.width / 2,
+    y: cardBox.y + cardBox.height / 2,
+  };
+  await page.mouse.move(cardCenter.x, cardCenter.y);
+  await page.mouse.down();
+  await page.mouse.move(cardCenter.x + horizontalDelta, cardCenter.y, {
+    steps: 8,
+  });
+  await page.mouse.up();
+}

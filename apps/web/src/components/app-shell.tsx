@@ -2,6 +2,7 @@
 
 import type {
   AuthSessionPayload,
+  AuthUser,
   ContentIdeaPayload,
   ContentItemPayload,
   OnboardingStatePayload,
@@ -21,12 +22,17 @@ import { LoadingState } from "@/components/shell/loading-state";
 import { MainNav } from "@/components/shell/main-nav";
 import { OrganizationSwitcher } from "@/components/shell/organization-switcher";
 import { UserMenu } from "@/components/shell/user-menu";
-import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
+import {
+  getApiBaseUrl,
+  PROFILE_UPDATED_EVENT,
+  readApiResponse,
+} from "@/lib/auth/client";
 import { fetchIdeas } from "@/lib/ideas/client";
 import { fetchLibraryContents } from "@/lib/library/client";
 import {
   getDefaultOrganizationHref,
   getOrganizationSlugFromPath,
+  resolveActiveOrganization,
 } from "@/lib/navigation/app-navigation";
 
 type AppShellProps = {
@@ -60,6 +66,9 @@ export function AppShell({ children }: AppShellProps) {
     ShellSearchResult[]
   >([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [recentOrganizationSlug, setRecentOrganizationSlug] = useState<
+    string | undefined
+  >();
 
   useEffect(() => {
     let isMounted = true;
@@ -135,20 +144,52 @@ export function AppShell({ children }: AppShellProps) {
     };
   }, []);
 
+  useEffect(() => {
+    function handleProfileUpdated(event: Event) {
+      const user = (event as CustomEvent<AuthUser>).detail;
+
+      if (!user?.id) {
+        return;
+      }
+
+      setState((currentState) => {
+        if (currentState.status !== "ready") {
+          return currentState;
+        }
+
+        return {
+          ...currentState,
+          session: { user },
+        };
+      });
+    }
+
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    };
+  }, []);
+
   const requestedOrganizationSlug = getOrganizationSlugFromPath(pathname);
+
+  useEffect(() => {
+    if (requestedOrganizationSlug) {
+      setRecentOrganizationSlug(requestedOrganizationSlug);
+    }
+  }, [requestedOrganizationSlug]);
+
   const activeOrganization = useMemo(() => {
     if (state.status !== "ready") {
       return undefined;
     }
 
-    if (requestedOrganizationSlug) {
-      return state.organizations.find((organization) => {
-        return organization.slug === requestedOrganizationSlug;
-      });
-    }
-
-    return state.organizations[0];
-  }, [requestedOrganizationSlug, state]);
+    return resolveActiveOrganization(
+      state.organizations,
+      requestedOrganizationSlug,
+      recentOrganizationSlug,
+    );
+  }, [recentOrganizationSlug, requestedOrganizationSlug, state]);
 
   const isOnboardingPath = pathname === "/app/onboarding";
   const isOrganizationCreationPath = pathname === "/app/organizations/new";
@@ -340,7 +381,7 @@ export function AppShell({ children }: AppShellProps) {
             </Link>
           </div>
           <Link
-            className="inline-flex h-[54px] items-center justify-center gap-3 rounded-lg border-[1.5px] border-[color:var(--rubric)] bg-[color:var(--rubric)] px-5 text-[15px] font-bold text-[color:var(--paper-card)] shadow-[4px_4px_0_rgba(23,19,15,0.18)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_rgba(23,19,15,0.18)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+            className="inline-flex h-[54px] items-center justify-center gap-3 rounded-lg border-[1.5px] border-[color:var(--rubric)] bg-[color:var(--rubric)] px-5 text-[15px] font-bold !text-white shadow-[4px_4px_0_rgba(23,19,15,0.18)] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!text-white hover:shadow-[6px_6px_0_rgba(23,19,15,0.18)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             href={
               activeOrganization
                 ? `/app/${activeOrganization.slug}/contents/generate`
@@ -425,7 +466,10 @@ export function AppShell({ children }: AppShellProps) {
                 ) : null}
                 <span className="hidden h-11 w-px bg-[color:var(--border-strong)] lg:block" />
                 {state.status === "ready" ? (
-                  <UserMenu user={state.session.user} />
+                  <UserMenu
+                    role={activeOrganization?.role}
+                    user={state.session.user}
+                  />
                 ) : null}
               </div>
             </div>
@@ -521,10 +565,10 @@ function ShellBrand({
       <LogoMark className="shrink-0 text-[color:var(--ink)]" size={42} />
       <span className="min-w-0">
         <span className="block truncate font-heading text-[21px] font-semibold leading-[1.05] text-[color:var(--ink)]">
-          Projet Annuel<span className="text-[color:var(--rubric)]">.</span>
+          Content AI<span className="text-[color:var(--rubric)]">.</span>
         </span>
         <span className="mt-1 block truncate font-mono text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-subtle)]">
-          L&apos;atelier editorial
+          Studio éditorial
         </span>
       </span>
     </Link>

@@ -70,6 +70,14 @@ export type BrandVoiceSnapshot = {
   toneRules: string;
 } | null;
 
+export type IdeaDiscoveryPreferenceSnapshot = {
+  avoidedFormats: string[];
+  avoidedThemes: string[];
+  learnedSignals: number;
+  preferredFormats: string[];
+  preferredThemes: string[];
+};
+
 export type GenerationBaseInput = {
   organizationId: string;
   userId?: string | null;
@@ -84,6 +92,12 @@ export type GenerationBaseInput = {
 export type GenerateContentIdeasInput = GenerationBaseInput & {
   brief?: string | undefined;
   count?: number | undefined;
+  discovery?:
+    | {
+        explorationCount: number;
+        preferences: IdeaDiscoveryPreferenceSnapshot;
+      }
+    | undefined;
   format?: ContentFormat | undefined;
   topic?: string | undefined;
 };

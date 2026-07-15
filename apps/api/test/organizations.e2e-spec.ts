@@ -1477,6 +1477,24 @@ describe("Organizations API", () => {
       .expect(403);
 
     await request(app.getHttpServer())
+      .get("/api/organizations/reader-ideas-team/ideas/discovery")
+      .set("Cookie", readerCookie)
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post("/api/organizations/reader-ideas-team/ideas/discovery/generate")
+      .set("Cookie", readerCookie)
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post(
+        "/api/organizations/reader-ideas-team/ideas/discovery/candidate-id/feedback",
+      )
+      .set("Cookie", readerCookie)
+      .send({ signal: "LIKE" })
+      .expect(403);
+
+    await request(app.getHttpServer())
       .post("/api/organizations/reader-ideas-team/ideas")
       .set("Cookie", readerCookie)
       .send({
@@ -2508,6 +2526,10 @@ class OrganizationFakePrismaService {
 
       return { count: initialLength - this.contentTags.length };
     },
+  };
+
+  readonly ideaDiscoveryCandidate = {
+    findMany: async () => [],
   };
 
   readonly contentItem = {

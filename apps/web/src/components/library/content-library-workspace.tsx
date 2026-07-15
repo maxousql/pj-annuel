@@ -24,7 +24,6 @@ import {
   FileText,
   Grid3X3,
   ListFilter,
-  Plus,
   RotateCcw,
   Search,
   Sparkles,
@@ -175,11 +174,16 @@ export function ContentLibraryWorkspace({
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 py-1 text-xs font-bold uppercase text-[color:var(--text-muted)]">
               <Sparkles className="size-3.5 text-[color:var(--rubric)]" />
+<<<<<<< HEAD
               Bibliothèque Architect AI
+=======
+              Espace éditorial
+>>>>>>> main
             </div>
             <h2 className="text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               Pilotez vos{" "}
               <span className="text-[color:var(--rubric)]">contenus</span>{" "}
+<<<<<<< HEAD
               depuis une base éditoriale premium.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
@@ -195,6 +199,15 @@ export function ContentLibraryWorkspace({
             <Plus className="size-4" />
             Générer
           </Link>
+=======
+              depuis un espace éditorial centralisé.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
+              Retrouvez, filtrez et organisez vos brouillons, contenus planifiés
+              et publications en un seul endroit.
+            </p>
+          </div>
+>>>>>>> main
         </div>
       </section>
 
@@ -211,12 +224,12 @@ export function ContentLibraryWorkspace({
                 </CardTitle>
               </div>
               <Badge className="border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--rubric)]">
-                {activeFilterCount} actif(s)
+                Filtres actifs : {activeFilterCount}
               </Badge>
             </div>
             <CardDescription className="text-sm leading-6 text-[color:var(--text-muted)]">
-              Recherche, taxonomie, statut et periode conservent les memes
-              parametres API.
+              Combinez la recherche, les catégories, les statuts et les dates
+              pour retrouver rapidement un contenu.
             </CardDescription>
           </CardHeader>
 
@@ -302,7 +315,7 @@ export function ContentLibraryWorkspace({
                   </select>
                 </FieldLabel>
 
-                <FieldLabel label="Categorie">
+                <FieldLabel label="Catégorie">
                   <select
                     className={selectClassName}
                     value={draftFilters.categoryId}
@@ -323,10 +336,10 @@ export function ContentLibraryWorkspace({
                 </FieldLabel>
               </div>
 
-              <FieldLabel label="Categorie libre">
+              <FieldLabel label="Catégorie libre">
                 <Input
                   className={controlClassName}
-                  placeholder="Recherche categorie ou sujet historique"
+                  placeholder="Rechercher une catégorie ou un sujet"
                   value={draftFilters.category}
                   onChange={(event) =>
                     setDraftFilters((current) => ({
@@ -352,7 +365,7 @@ export function ContentLibraryWorkspace({
                   />
                 </FieldLabel>
 
-                <FieldLabel label="Jusqu'a">
+                <FieldLabel label="Jusqu'à">
                   <Input
                     className={controlClassName}
                     type="date"
@@ -382,7 +395,7 @@ export function ContentLibraryWorkspace({
                   onClick={handleReset}
                 >
                   <RotateCcw className="size-4" />
-                  Reinitialiser
+                  Réinitialiser
                 </Button>
               </div>
             </form>
@@ -396,22 +409,27 @@ export function ContentLibraryWorkspace({
                 Contenus
               </p>
               <h3 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
-                {library ? `${library.pagination.total} resultat(s)` : ""}
+                {library
+                  ? `${library.pagination.total} résultat${
+                      library.pagination.total > 1 ? "s" : ""
+                    }`
+                  : ""}
               </h3>
             </div>
 
+<<<<<<< HEAD
             <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
                 <ViewModeButton
                   icon={<Grid3X3 className="size-4" />}
                   isActive={viewMode === "cards"}
-                  label="Cards"
+                  label="Cartes"
                   onClick={() => setViewMode("cards")}
                 />
                 <ViewModeButton
                   icon={<Table2 className="size-4" />}
                   isActive={viewMode === "table"}
-                  label="Table"
+                  label="Tableau"
                   onClick={() => setViewMode("table")}
                 />
               </div>
@@ -435,7 +453,7 @@ export function ContentLibraryWorkspace({
     if (isLoading) {
       return (
         <PremiumState
-          description="Lecture de la bibliotheque de l'organisation."
+          description="Chargement de la bibliothèque de l'organisation."
           title="Chargement des contenus"
         />
       );
@@ -498,7 +516,7 @@ export function ContentLibraryWorkspace({
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
             <ChevronLeft className="size-4" />
-            Precedent
+            Précédent
           </Button>
           <span className="text-center text-sm font-bold text-[color:var(--text-muted)]">
             Page{" "}
@@ -659,7 +677,7 @@ function LibraryContentTable({
               Tags
             </TableHead>
             <TableHead className="px-4 text-xs font-bold uppercase text-[color:var(--text-subtle)]">
-              Maj
+              Mis à jour
             </TableHead>
             <TableHead className="px-4 text-right text-xs font-bold uppercase text-[color:var(--text-subtle)]">
               Action

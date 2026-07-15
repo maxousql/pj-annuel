@@ -164,6 +164,7 @@ export class ContentGenerationService {
         brandVoice,
         model: providerResponse.model,
         prompt,
+        resultMetadata: getGenerationResultMetadata(prompt.type, output),
         status: "SUCCEEDED",
       });
 
@@ -179,6 +180,7 @@ export class ContentGenerationService {
         brandVoice,
         model: this.provider.model,
         prompt,
+        resultMetadata: {},
         status: "FAILED",
       });
 
@@ -214,6 +216,7 @@ export class ContentGenerationService {
     inputHash: string;
     model: string;
     prompt: BuiltPrompt;
+    resultMetadata: Record<string, unknown>;
     status: "SUCCEEDED" | "FAILED";
   }): Promise<void> {
     await this.prisma.aiGenerationLog.create({
@@ -229,6 +232,7 @@ export class ContentGenerationService {
           provider: this.provider.name,
           responseSchema: input.prompt.responseSchemaName,
           ...input.prompt.metadata,
+          ...input.resultMetadata,
         },
         promptVersion: input.prompt.version,
         resultContentIdeaId: input.input.resultContentIdeaId ?? null,
@@ -298,6 +302,19 @@ export class ContentGenerationService {
       toneRules: profile.toneRules,
     };
   }
+}
+
+function getGenerationResultMetadata(
+  type: AiGenerationType,
+  output: unknown,
+): Record<string, unknown> {
+  if (type !== "CONTENT_IDEA") {
+    return {};
+  }
+
+  return {
+    resultCount: (output as ContentIdeasPayload).ideas.length,
+  };
 }
 
 function hashGenerationInput(

@@ -200,7 +200,11 @@ export function MembersList({ organizationSlug }: MembersListProps) {
             <option value="READER">Lecteur</option>
           </select>
         </label>
-        <Button className="self-end min-h-11.5" type="submit" disabled={busy !== null}>
+        <Button
+          className="self-end min-h-11.5"
+          type="submit"
+          disabled={busy !== null}
+        >
           {busy === "invite" ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

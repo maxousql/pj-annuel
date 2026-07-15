@@ -31,6 +31,15 @@ describe("production environment validation", () => {
     ).toThrow("must be configured together");
   });
 
+  it("refuses a legacy Notion API contract", () => {
+    expect(() =>
+      validateEnvironment({
+        ...validProduction,
+        NOTION_API_VERSION: "2022-06-28",
+      }),
+    ).toThrow("NOTION_API_VERSION must be 2026-03-11");
+  });
+
   it("requires a strong state secret and compatible cookies for OAuth", () => {
     const notion = {
       NOTION_CLIENT_ID: "client",

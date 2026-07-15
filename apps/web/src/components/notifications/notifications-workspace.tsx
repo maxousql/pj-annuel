@@ -27,7 +27,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  WorkspaceTabsList,
+  WorkspaceTabsTrigger,
+} from "@/components/ui/workspace-tabs";
 import {
   fetchAutomations,
   markAllNotificationsAsRead,
@@ -115,7 +119,7 @@ export function NotificationsWorkspace({
     }
 
     await reload();
-    toast.success("Notification marquee comme lue.");
+    toast.success("Notification marquée comme lue.");
   }
 
   async function handleReadAll() {
@@ -129,9 +133,10 @@ export function NotificationsWorkspace({
     }
 
     await reload();
+    const updatedCount = result.data.updatedCount;
     toast.success(
-      result.data.updatedCount > 0
-        ? `${result.data.updatedCount} notification(s) marquée(s) comme lues.`
+      updatedCount > 0
+        ? `${updatedCount} notification${updatedCount > 1 ? "s" : ""} marquée${updatedCount > 1 ? "s" : ""} comme lue${updatedCount > 1 ? "s" : ""}.`
         : "Aucune notification non lue.",
     );
   }
@@ -162,9 +167,7 @@ export function NotificationsWorkspace({
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement des notifications" />
-    );
+    return <LoadingState title="Chargement des notifications" />;
   }
 
   if (!state) {
@@ -187,7 +190,7 @@ export function NotificationsWorkspace({
               Centre de notifications
             </CardTitle>
             <CardDescription>
-              Rappels, non lues et recommandations editoriales.
+              Rappels, non lues et recommandations éditoriales.
             </CardDescription>
           </div>
           <Button
@@ -211,29 +214,20 @@ export function NotificationsWorkspace({
       </CardHeader>
       <CardContent className="px-5 py-5">
         <Tabs defaultValue="unread" className="gap-5">
-          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-1">
-            <TabsTrigger
-              className="h-10 flex-none rounded-xl px-3 data-active:bg-[color:var(--paper-card)] data-active:text-[color:var(--ink)]"
-              value="unread"
-            >
+          <WorkspaceTabsList>
+            <WorkspaceTabsTrigger value="unread">
               Non lues
               <Badge>{unreadNotifications.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              className="h-10 flex-none rounded-xl px-3 data-active:bg-[color:var(--paper-card)] data-active:text-[color:var(--ink)]"
-              value="reminders"
-            >
+            </WorkspaceTabsTrigger>
+            <WorkspaceTabsTrigger value="reminders">
               Rappels
               <Badge>{reminderNotifications.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              className="h-10 flex-none rounded-xl px-3 data-active:bg-[color:var(--paper-card)] data-active:text-[color:var(--ink)]"
-              value="recommendations"
-            >
+            </WorkspaceTabsTrigger>
+            <WorkspaceTabsTrigger value="recommendations">
               Recommandations
               <Badge>{recommendations.length}</Badge>
-            </TabsTrigger>
-          </TabsList>
+            </WorkspaceTabsTrigger>
+          </WorkspaceTabsList>
 
           <TabsContent value="unread">
             <NotificationList

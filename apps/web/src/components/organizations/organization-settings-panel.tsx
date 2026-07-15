@@ -113,7 +113,7 @@ export function OrganizationSettingsPanel({
       <article className="settings-panel">
         <header>
           <div>
-            <p className="eyebrow">Profil IA V2</p>
+            <p className="eyebrow">Profil IA</p>
             <h2>Voix de marque</h2>
           </div>
         </header>
@@ -142,8 +142,8 @@ export function OrganizationSettingsPanel({
           </div>
         </header>
         <p className="muted">
-          La modification du nom, du slug et des paramètres avancés sera
-          ajoutée avec les prochains modules d'administration.
+          La modification du nom, du slug et des paramètres avancés sera ajoutée
+          avec les prochains modules d'administration.
         </p>
         {state.role !== "ADMIN" ? (
           <p className="muted">Réservé aux administrateurs.</p>

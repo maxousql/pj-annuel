@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { OrganizationSettingsPanel } from "@/components/organizations/organization-settings-panel";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 type OrganizationSettingsPageProps = {
   params: Promise<{
@@ -19,11 +20,11 @@ export default async function OrganizationSettingsPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Paramètres</p>
-        <h1>Organisation.</h1>
-        <p>Configuration et accès de l'espace actif.</p>
-      </section>
+      <AppPageHeader
+        description="Configuration et accès de l'espace actif."
+        eyebrow="Paramètres"
+        title="Organisation."
+      />
       <OrganizationSettingsPanel organizationSlug={organizationSlug} />
     </>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ContentDetail } from "@/components/contents/content-detail";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Contenu",
@@ -18,11 +19,11 @@ export default async function ContentPage({ params }: ContentPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Contenu</p>
-        <h1>Edition du contenu.</h1>
-        <p>Consultez, ajustez et mettez a jour un contenu sauvegarde.</p>
-      </section>
+      <AppPageHeader
+        description="Consultez, ajustez et mettez à jour un contenu sauvegardé."
+        eyebrow="Contenu"
+        title="Édition du contenu."
+      />
       <ContentDetail
         contentId={contentId}
         organizationSlug={organizationSlug}

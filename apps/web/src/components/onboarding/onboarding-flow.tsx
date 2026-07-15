@@ -10,6 +10,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shell/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { LoadingState } from "@/components/shell/loading-state";
 import { getApiBaseUrl } from "@/lib/auth/client";
 import { createOrganization } from "@/lib/organizations/client";
@@ -288,16 +289,12 @@ export function OnboardingFlow() {
       </aside>
 
       <div className="onboarding-panel">
-        <header className="onboarding-header">
-          <div>
-            <p className="eyebrow">Onboarding</p>
-            <h1 id="onboarding-title">Configurer votre espace contenu.</h1>
-          </div>
-          <p className="muted">
-            Trois reglages suffisent pour que les generations utilisent votre
-            marche, votre audience et vos sujets prioritaires.
-          </p>
-        </header>
+        <AppPageHeader
+          description="Trois réglages suffisent pour adapter les générations à votre marché, votre audience et vos sujets prioritaires."
+          eyebrow="Prise en main"
+          title="Configurer votre espace contenu."
+          titleId="onboarding-title"
+        />
 
         {renderCurrentStep()}
       </div>
@@ -528,7 +525,7 @@ function EditorialContextStep({
           name="positioning"
           type="text"
           defaultValue={context?.positioning}
-          placeholder="Optionnel pour le MVP"
+          placeholder="Optionnel, vous pourrez compléter ce champ plus tard"
         />
       </label>
       <label className="field">
@@ -584,7 +581,7 @@ function CompletionStep({
       <div>
         <h2>
           {context
-            ? `${organization.name} est pret pour le MVP.`
+            ? `${organization.name} est prêt à être utilisé.`
             : `Checklist de ${organization.name}.`}
         </h2>
         <p className="muted">
@@ -618,7 +615,7 @@ function CompletionStep({
       {advanced ? (
         <div className="onboarding-section">
           <div>
-            <h2>Checklist de prise en main V2</h2>
+            <h2>Checklist de prise en main</h2>
             <p className="muted">
               Le parcours avance peut etre ignore, repris ou complete par
               petites etapes.

@@ -8,6 +8,10 @@ import type {
   GeneratedContentIdeasPayload,
   GenerationLanguage,
   GenerationTargetLength,
+  IdeaDiscoveryFeedbackResultPayload,
+  IdeaDiscoveryFeedPayload,
+  IdeaDiscoveryRejectionReason,
+  IdeaDiscoverySignal,
 } from "@content-ai/shared";
 
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
@@ -121,4 +125,82 @@ export async function checkIdeaDuplicate(
   );
 
   return readApiResponse<{ duplicate: ContentIdeaDuplicatePayload }>(response);
+}
+
+export async function fetchIdeaDiscoveryFeed(
+  organizationSlug: string,
+): Promise<ApiResponse<IdeaDiscoveryFeedPayload>> {
+  return requestIdeaDiscovery<IdeaDiscoveryFeedPayload>(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ideas/discovery`,
+    {
+      credentials: "include",
+    },
+  );
+}
+
+export async function generateIdeaDiscoveryFeed(
+  organizationSlug: string,
+): Promise<ApiResponse<IdeaDiscoveryFeedPayload>> {
+  return requestIdeaDiscovery<IdeaDiscoveryFeedPayload>(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ideas/discovery/generate`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+}
+
+export async function submitIdeaDiscoveryFeedback(
+  organizationSlug: string,
+  candidateId: string,
+  signal: IdeaDiscoverySignal,
+  reason?: IdeaDiscoveryRejectionReason,
+): Promise<ApiResponse<IdeaDiscoveryFeedbackResultPayload>> {
+  return requestIdeaDiscovery<IdeaDiscoveryFeedbackResultPayload>(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ideas/discovery/${candidateId}/feedback`,
+    {
+      body: JSON.stringify({
+        ...(reason ? { reason } : {}),
+        signal,
+      }),
+      credentials: "include",
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    },
+  );
+}
+
+export async function resetIdeaDiscoveryPreferences(
+  organizationSlug: string,
+): Promise<ApiResponse<{ profile: IdeaDiscoveryFeedPayload["profile"] }>> {
+  return requestIdeaDiscovery<{
+    profile: IdeaDiscoveryFeedPayload["profile"];
+  }>(
+    `${getApiBaseUrl()}/api/organizations/${organizationSlug}/ideas/discovery/preferences/reset`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+}
+
+async function requestIdeaDiscovery<TData>(
+  url: string,
+  init: RequestInit,
+): Promise<ApiResponse<TData>> {
+  try {
+    const response = await fetch(url, init);
+    return await readApiResponse<TData>(response);
+  } catch {
+    return {
+      data: null,
+      error: {
+        code: "IDEA_DISCOVERY_NETWORK_ERROR",
+        message:
+          "Impossible de joindre le service de découverte. Vérifiez votre connexion puis réessayez.",
+      },
+    };
+  }
 }

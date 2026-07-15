@@ -6,6 +6,7 @@ import { Users, ArrowRight } from "lucide-react";
 import { OrganizationsOverview } from "@/components/organizations/organizations-overview";
 import { LoadingState } from "@/components/shell/loading-state";
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import type { OrganizationsListPayload } from "@content-ai/shared";
 
 export default function AppHomePage() {
@@ -60,19 +61,16 @@ export default function AppHomePage() {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Espace protégé</p>
-        <h1>Choisir une organisation active.</h1>
-        <p>
-          Accédez aux espaces de travail rattachés à votre compte et suivez les
-          priorités de chaque équipe.
-        </p>
-      </section>
-      <div className="form-footer">
-        <Link className="button" href="/app/organizations/new">
-          Nouvelle organisation
-        </Link>
-      </div>
+      <AppPageHeader
+        actions={
+          <Link className="button" href="/app/organizations/new">
+            Nouvelle organisation
+          </Link>
+        }
+        description="Accédez aux espaces de travail rattachés à votre compte et suivez les priorités de chaque équipe."
+        eyebrow="Espace protégé"
+        title="Choisir une organisation active."
+      />
       <OrganizationsOverview />
     </>
   );

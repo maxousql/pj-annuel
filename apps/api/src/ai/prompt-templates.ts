@@ -15,12 +15,12 @@ import type {
   SummarizeResourceInput,
 } from "./ai.types";
 
-export const CONTENT_IDEAS_PROMPT_VERSION = "content-ideas.v2";
+export const CONTENT_IDEAS_PROMPT_VERSION = "content-ideas.v3";
 export const MARKETING_CONTENT_PROMPT_VERSION = "marketing-content.v2";
 export const RESOURCE_SUMMARY_PROMPT_VERSION = "resource-summary.v2";
 
 const SYSTEM_INSTRUCTION = [
-  "Tu es le moteur IA de Projet Annuel, une plateforme SaaS de content marketing.",
+  "Tu es le moteur IA de Content AI, une plateforme SaaS de content marketing.",
   "Tu produis des sorties en français, exploitables par une équipe marketing.",
   "Tu reponds uniquement avec un JSON conforme au schema fourni.",
   "Tu ne retournes jamais de markdown, de commentaire hors JSON ou de secret.",
@@ -42,6 +42,7 @@ export function buildContentIdeasPrompt(
       `Format préféré: ${formatContentFormat(input.format)}.`,
       `Thématique demandée: ${input.topic?.trim() || "Non précisée"}.`,
       `Brief utilisateur: ${input.brief?.trim() || "Aucun brief spécifique"}.`,
+      formatIdeaDiscovery(input),
       formatHistory(input.history),
       "Chaque idée doit contenir un titre, un angle, un format recommandé, une justification et une catégorie si pertinente.",
       'Retourne exactement ce JSON sans texte autour: {"ideas":[{"title":"...","angle":"...","recommendedFormat":"LINKEDIN_POST","justification":"...","category":"..."}]}',
@@ -54,10 +55,14 @@ export function buildContentIdeasPrompt(
       hasBrief: Boolean(input.brief?.trim()),
       hasBrandVoice: Boolean(brandVoice),
       hasEditorialContext: Boolean(context),
+      hasLearnedPreferences: Boolean(
+        input.discovery && input.discovery.preferences.learnedSignals > 0,
+      ),
       language: settings.language,
       targetLength: settings.targetLength,
       topic: input.topic?.trim() || null,
       toneIntensity: settings.toneIntensity,
+      explorationCount: input.discovery?.explorationCount ?? 0,
     },
     responseSchema: CONTENT_IDEAS_RESPONSE_SCHEMA,
     responseSchemaName: "content_ideas",
@@ -65,6 +70,30 @@ export function buildContentIdeasPrompt(
     type: "CONTENT_IDEA",
     version: CONTENT_IDEAS_PROMPT_VERSION,
   };
+}
+
+function formatIdeaDiscovery(input: GenerateContentIdeasInput): string {
+  if (!input.discovery) {
+    return "Personnalisation Découvrir: non activée pour cette génération.";
+  }
+
+  const { explorationCount, preferences } = input.discovery;
+  return [
+    "Personnalisation Découvrir:",
+    "- Le contexte éditorial déclaré reste prioritaire sur les préférences apprises.",
+    `- Signaux qualifiés disponibles: ${preferences.learnedSignals}.`,
+    `- Thèmes appréciés: ${formatList(preferences.preferredThemes)}.`,
+    `- Thèmes à éviter: ${formatList(preferences.avoidedThemes)}.`,
+    `- Formats appréciés: ${formatList(preferences.preferredFormats)}.`,
+    `- Formats à éviter: ${formatList(preferences.avoidedFormats)}.`,
+    `- Réserve exactement ${explorationCount} proposition(s) sur le lot à des angles ou formats adjacents, sans sortir du secteur, de la cible ni du positionnement.`,
+    `- Place exactement ces ${explorationCount} proposition(s) exploratoire(s) à la fin du tableau JSON, afin qu'elles puissent être signalées correctement.`,
+    "- Les autres propositions exploitent les préférences sans répéter les sujets de l'historique.",
+  ].join("\n");
+}
+
+function formatList(values: string[]): string {
+  return values.length > 0 ? values.join(", ") : "aucun signal";
 }
 
 export function buildMarketingContentPrompt(

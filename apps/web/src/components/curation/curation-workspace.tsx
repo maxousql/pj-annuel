@@ -287,9 +287,7 @@ export function CurationWorkspace({
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement de la veille" />
-    );
+    return <LoadingState title="Chargement de la veille" />;
   }
 
   if (loadError && resources.length === 0 && feeds.length === 0) {

@@ -25,6 +25,7 @@ import {
   CONTENT_STATUS_LABELS,
   formatContentDate,
 } from "@/components/contents/content-labels";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -121,53 +122,45 @@ function DashboardContent({
   );
 
   return (
-    <div className="grid w-full max-w-[1320px] gap-8 text-foreground">
-      <header className="flex flex-col gap-6 border-b border-border pb-7 lg:flex-row lg:items-end lg:justify-between">
-        <div className="grid max-w-2xl gap-2">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--sage)]">
-            Vue d&apos;ensemble
-          </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
-            Votre activité éditoriale
-          </h1>
-          <p className="max-w-xl text-base leading-7 text-muted-foreground">
-            Les priorités, les publications et les sujets à reprendre au même
-            endroit.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            className="h-10 px-4"
-            nativeButton={false}
-            render={
-              <Link href={`/app/${organizationSlug}/calendar`}>
-                <CalendarDays data-icon="inline-start" aria-hidden="true" />
-                Ouvrir le calendrier
-              </Link>
-            }
-            variant="outline"
-          />
-          {summary.canEdit ? (
+    <div className="grid w-full gap-8 text-foreground">
+      <AppPageHeader
+        actions={
+          <>
             <Button
               className="h-10 px-4"
               nativeButton={false}
               render={
-                <Link href={`/app/${organizationSlug}/contents/generate`}>
-                  <PenLine data-icon="inline-start" aria-hidden="true" />
-                  Créer un contenu
+                <Link href={`/app/${organizationSlug}/calendar`}>
+                  <CalendarDays data-icon="inline-start" aria-hidden="true" />
+                  Ouvrir le calendrier
                 </Link>
               }
-              variant="sage"
+              variant="outline"
             />
-          ) : null}
-        </div>
-      </header>
+            {summary.canEdit ? (
+              <Button
+                className="h-10 px-4 !text-white hover:!text-white"
+                nativeButton={false}
+                render={
+                  <Link href={`/app/${organizationSlug}/contents/generate`}>
+                    <PenLine data-icon="inline-start" aria-hidden="true" />
+                    Créer un contenu
+                  </Link>
+                }
+                variant="default"
+              />
+            ) : null}
+          </>
+        }
+        description="Les priorités, les publications et les sujets à reprendre au même endroit."
+        eyebrow="Vue d'ensemble"
+        title="Votre activité éditoriale"
+      />
 
       {!summary.editorialContextConfigured ? (
-        <Alert className="border-[color:var(--sage)]/30 bg-[color:var(--sage)]/5 p-4">
+        <Alert className="border-[color:var(--rubric)]/30 bg-[color:var(--rubric)]/5 p-4">
           <CircleAlert
-            className="text-[color:var(--sage)]"
+            className="text-[color:var(--rubric)]"
             aria-hidden="true"
           />
           <AlertTitle>Contexte éditorial à compléter</AlertTitle>
@@ -224,7 +217,7 @@ function DashboardContent({
                 <span
                   className={
                     item.tone === "accent"
-                      ? "bg-[color:var(--sage)]"
+                      ? "bg-[color:var(--rubric)]"
                       : item.tone === "strong"
                         ? "bg-foreground/70"
                         : "bg-foreground/20"
@@ -376,7 +369,7 @@ function DashboardContent({
                   key={topic.topic}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[color:var(--sage)]/10 text-[color:var(--sage)]">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]">
                       <Lightbulb aria-hidden="true" />
                     </span>
                     <span className="truncate text-sm font-medium">
@@ -423,7 +416,7 @@ function Metric({
 }) {
   return (
     <article className="grid min-h-32 grid-cols-[auto_1fr] gap-x-4 border-b border-border p-5 last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(3)]:border-b-0 xl:border-b-0 xl:border-r xl:last:border-r-0">
-      <span className="grid size-9 place-items-center rounded-lg bg-[color:var(--sage)]/10 text-[color:var(--sage)]">
+      <span className="grid size-9 place-items-center rounded-lg bg-[color:var(--rubric)]/10 text-[color:var(--rubric)]">
         <Icon aria-hidden="true" />
       </span>
       <div className="grid gap-1">
@@ -535,7 +528,7 @@ function StatusBadge({
   const isPublished = status === "PUBLISHED" || status === "USED";
 
   return (
-    <Badge variant={isPublished ? "sage" : "secondary"}>
+    <Badge variant={isPublished ? "default" : "secondary"}>
       {formatDashboardStatus(status)}
     </Badge>
   );
@@ -558,7 +551,7 @@ function EmptyBlock({
 
 function DashboardSkeleton() {
   return (
-    <div className="grid w-full max-w-[1320px] gap-8" aria-busy="true">
+    <div className="grid w-full gap-8" aria-busy="true">
       <span className="sr-only" role="status">
         Chargement du tableau de bord
       </span>

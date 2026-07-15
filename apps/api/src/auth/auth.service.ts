@@ -1,17 +1,25 @@
 import { randomBytes } from "node:crypto";
 
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type {
+  AccountActivityStatsPayload,
+  AccountProfilePayload,
+  AuthProvider,
+  IdeaDiscoverySignal,
+} from "@content-ai/shared";
 import bcrypt from "bcryptjs";
 import type { Request } from "express";
 import { sign, verify, type JwtPayload } from "jsonwebtoken";
 
 import { PrismaService } from "../database/prisma.service";
+import { Prisma } from "../generated/prisma/client";
 import {
   AUTH_TOKEN_AUDIENCE,
   AUTH_TOKEN_ISSUER,
@@ -27,6 +35,7 @@ import type {
 } from "./auth.types";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
+import type { ChangePasswordDto } from "./dto/change-password.dto";
 import type { UpdateProfileDto } from "./dto/update-profile.dto";
 import { normalizeEmail } from "./utils/password-policy";
 import { joinUrl } from "./utils/redirects";
@@ -153,6 +162,210 @@ export class AuthService {
     });
 
     return toAuthenticatedUser(user);
+  }
+
+  async getProfile(userId: string): Promise<AccountProfilePayload> {
+    const user = await this.prisma.user.findUnique({
+      select: {
+        authAccounts: {
+          select: {
+            passwordHash: true,
+            provider: true,
+          },
+        },
+        avatarUrl: true,
+        createdAt: true,
+        deletedAt: true,
+        email: true,
+        id: true,
+        memberships: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          select: {
+            createdAt: true,
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            role: true,
+          },
+          where: {
+            organization: { deletedAt: null },
+            status: "ACTIVE",
+          },
+        },
+        name: true,
+      },
+      where: { id: userId },
+    });
+
+    if (!user || user.deletedAt) {
+      throw new UnauthorizedException("Session invalide.");
+    }
+
+    const organizationIds = user.memberships.map(
+      ({ organization }) => organization.id,
+    );
+    const emptyStats: AccountActivityStatsPayload = {
+      aiGenerations: 0,
+      contentIdeasGenerated: 0,
+      contentIdeasSaved: 0,
+      contentItemsCreated: 0,
+      discoveryFeedbacks: {
+        disliked: 0,
+        liked: 0,
+        skipped: 0,
+      },
+    };
+    let stats = emptyStats;
+
+    if (organizationIds.length > 0) {
+      const [
+        ideaGenerationRows,
+        aiGenerations,
+        savedIdeas,
+        contentItems,
+        feedbackGroups,
+      ] = await Promise.all([
+        this.prisma.$queryRaw<Array<{ total: bigint }>>(Prisma.sql`
+          select coalesce(sum(
+            case
+              when jsonb_typeof(prompt_metadata -> 'resultCount') = 'number'
+                and (prompt_metadata ->> 'resultCount') ~ '^[0-9]+$'
+              then (prompt_metadata ->> 'resultCount')::integer
+              else 0
+            end
+          ), 0)::bigint as total
+          from public.ai_generation_logs
+          where user_id = ${userId}
+            and organization_id in (${Prisma.join(organizationIds)})
+            and status = 'SUCCEEDED'
+            and type = 'CONTENT_IDEA'
+        `),
+        this.prisma.aiGenerationLog.count({
+          where: {
+            organizationId: { in: organizationIds },
+            status: "SUCCEEDED",
+            userId,
+          },
+        }),
+        this.prisma.contentIdea.count({
+          where: {
+            createdById: userId,
+            organizationId: { in: organizationIds },
+          },
+        }),
+        this.prisma.contentItem.count({
+          where: {
+            createdById: userId,
+            deletedAt: null,
+            organizationId: { in: organizationIds },
+          },
+        }),
+        this.prisma.ideaDiscoveryFeedback.groupBy({
+          _count: {
+            _all: true,
+          },
+          by: ["signal"],
+          where: {
+            organizationId: { in: organizationIds },
+            userId,
+          },
+        }),
+      ]);
+
+      stats = {
+        aiGenerations,
+        contentIdeasGenerated: Number(ideaGenerationRows[0]?.total ?? 0),
+        contentIdeasSaved: savedIdeas,
+        contentItemsCreated: contentItems,
+        discoveryFeedbacks: toDiscoveryFeedbackStats(feedbackGroups),
+      };
+    }
+
+    const providers = Array.from(
+      new Set(user.authAccounts.map(({ provider }) => provider)),
+    ) as AuthProvider[];
+
+    return {
+      credentialsEnabled: user.authAccounts.some(
+        (account) =>
+          account.provider === "CREDENTIALS" && Boolean(account.passwordHash),
+      ),
+      memberships: user.memberships.map((membership) => ({
+        joinedAt: membership.createdAt.toISOString(),
+        organization: membership.organization,
+        role: membership.role,
+      })),
+      providers,
+      stats,
+      user: {
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt.toISOString(),
+        email: user.email,
+        id: user.id,
+        name: user.name,
+      },
+    };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    const account = await this.prisma.authAccount.findFirst({
+      select: {
+        id: true,
+        passwordHash: true,
+      },
+      where: {
+        provider: "CREDENTIALS",
+        userId,
+      },
+    });
+
+    if (!account?.passwordHash) {
+      throw new BadRequestException(
+        "Aucun mot de passe local n'est associé à ce compte.",
+      );
+    }
+
+    const currentPasswordIsValid = await bcrypt.compare(
+      dto.currentPassword,
+      account.passwordHash,
+    );
+
+    if (!currentPasswordIsValid) {
+      throw new BadRequestException("Le mot de passe actuel est incorrect.");
+    }
+
+    const passwordIsUnchanged = await bcrypt.compare(
+      dto.newPassword,
+      account.passwordHash,
+    );
+
+    if (passwordIsUnchanged) {
+      throw new BadRequestException(
+        "Le nouveau mot de passe doit être différent de l'actuel.",
+      );
+    }
+
+    const result = await this.prisma.authAccount.updateMany({
+      data: {
+        passwordHash: await bcrypt.hash(dto.newPassword, BCRYPT_COST),
+      },
+      where: {
+        id: account.id,
+        passwordHash: account.passwordHash,
+      },
+    });
+
+    if (result.count !== 1) {
+      throw new BadRequestException(
+        "Le mot de passe a été modifié depuis un autre onglet. Réessayez.",
+      );
+    }
   }
 
   async deleteAccount(userId: string): Promise<void> {
@@ -458,6 +671,27 @@ function parseCsvEnv(value?: string | undefined): string[] {
     .split(",")
     .map((entry) => entry.trim())
     .filter((entry): entry is string => entry.length > 0);
+}
+
+function toDiscoveryFeedbackStats(
+  groups: Array<{
+    _count: { _all: number };
+    signal: IdeaDiscoverySignal;
+  }>,
+): AccountActivityStatsPayload["discoveryFeedbacks"] {
+  const stats = {
+    disliked: 0,
+    liked: 0,
+    skipped: 0,
+  };
+
+  for (const group of groups) {
+    if (group.signal === "LIKE") stats.liked = group._count._all;
+    if (group.signal === "DISLIKE") stats.disliked = group._count._all;
+    if (group.signal === "SKIP") stats.skipped = group._count._all;
+  }
+
+  return stats;
 }
 
 function readRequestOrigin(request: Request): string | null {

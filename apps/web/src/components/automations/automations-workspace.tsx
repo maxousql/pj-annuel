@@ -166,9 +166,7 @@ export function AutomationsWorkspace({
   }
 
   if (isLoading) {
-    return (
-      <LoadingState title="Chargement des automatisations" />
-    );
+    return <LoadingState title="Chargement des automatisations" />;
   }
 
   if (!state) {
@@ -220,7 +218,7 @@ export function AutomationsWorkspace({
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
             <CardTitle>Recommandations</CardTitle>
             <CardDescription>
-              Actions suggerees par le moteur deterministe V2.
+              Actions suggérées à partir de votre activité éditoriale.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 px-5 py-5">

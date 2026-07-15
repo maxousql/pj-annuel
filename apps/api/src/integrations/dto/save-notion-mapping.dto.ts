@@ -36,6 +36,10 @@ export class SaveNotionMappingDto {
 
   @IsString()
   @IsNotEmpty()
+  dataSourceId!: string;
+
+  @IsString()
+  @IsNotEmpty()
   databaseName!: string;
 
   @ValidateNested()

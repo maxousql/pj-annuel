@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ContentsLibrary } from "@/components/contents/contents-library";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
   title: "Contenus",
@@ -18,19 +19,19 @@ export default async function ContentsPage({ params }: ContentsPageProps) {
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Contenus</p>
-        <h1>Bibliothèque de contenus.</h1>
-        <p>Historique, brouillons et contenus finalisés de l'organisation.</p>
-        <div className="app-title-actions">
+      <AppPageHeader
+        actions={
           <Link
             className="button"
             href={`/app/${organizationSlug}/contents/generate`}
           >
-            Générer un contenu
+            Créer un contenu
           </Link>
-        </div>
-      </section>
+        }
+        description="Historique, brouillons et contenus finalisés de l'organisation."
+        eyebrow="Contenus"
+        title="Bibliothèque de contenus."
+      />
       <ContentsLibrary organizationSlug={organizationSlug} />
     </>
   );

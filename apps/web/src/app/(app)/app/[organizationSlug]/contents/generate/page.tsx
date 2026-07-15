@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 import { ContentGenerator } from "@/components/contents/content-generator";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 
 export const metadata: Metadata = {
-  title: "Generer un contenu",
+  title: "Créer un contenu",
 };
 
 type GenerateContentPageProps = {
@@ -24,14 +25,11 @@ export default async function GenerateContentPage({
 
   return (
     <>
-      <section className="app-title">
-        <p className="eyebrow">Generation de contenus</p>
-        <h1>Creer un brouillon exploitable.</h1>
-        <p>
-          Selectionnez un format, ajoutez un brief ou partez d'une idee
-          sauvegardee.
-        </p>
-      </section>
+      <AppPageHeader
+        description="Sélectionnez un format, ajoutez un brief ou partez d'une idée sauvegardée."
+        eyebrow="Création de contenu"
+        title="Créer un brouillon exploitable."
+      />
       <ContentGenerator
         initialIdeaId={ideaId}
         organizationSlug={organizationSlug}

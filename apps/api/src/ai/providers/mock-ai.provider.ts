@@ -83,7 +83,7 @@ function readRequestedFormat(input: string): ContentFormat {
 }
 
 function readRequestedIdeasCount(input: string): number {
-  const countMatch = input.match(/Nombre d'idees souhaite: (\d+)/);
+  const countMatch = input.match(/Nombre d['’]idées souhaité: (\d+)/u);
   const requestedCount = countMatch?.[1]
     ? Number.parseInt(countMatch[1], 10)
     : 1;

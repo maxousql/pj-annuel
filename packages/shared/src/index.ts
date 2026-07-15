@@ -116,6 +116,68 @@ export type GeneratedContentIdeasPayload = {
   ideas: GeneratedContentIdeaSuggestion[];
 };
 
+export const IDEA_DISCOVERY_SIGNALS = ["LIKE", "DISLIKE", "SKIP"] as const;
+export type IdeaDiscoverySignal = (typeof IDEA_DISCOVERY_SIGNALS)[number];
+
+export const IDEA_DISCOVERY_REJECTION_REASONS = [
+  "OFF_TOPIC",
+  "ALREADY_COVERED",
+  "WRONG_FORMAT",
+  "TOO_GENERIC",
+  "NOT_NOW",
+] as const;
+export type IdeaDiscoveryRejectionReason =
+  (typeof IDEA_DISCOVERY_REJECTION_REASONS)[number];
+
+export type IdeaDiscoveryCandidatePayload = ContentIdeaSuggestion & {
+  createdAt: string;
+  duplicate: ContentIdeaDuplicatePayload;
+  id: string;
+  isExploratory: boolean;
+  organizationId: string;
+};
+
+export type IdeaDiscoveryThemePreferencePayload = {
+  name: string;
+  score: number;
+};
+
+export type IdeaDiscoveryFormatPreferencePayload = {
+  format: ContentFormat;
+  score: number;
+};
+
+export type IdeaDiscoveryProfilePayload = {
+  avoidedFormats: IdeaDiscoveryFormatPreferencePayload[];
+  avoidedThemes: IdeaDiscoveryThemePreferencePayload[];
+  dislikedCount: number;
+  learnedSignals: number;
+  likedCount: number;
+  organizationId: string;
+  preferredFormats: IdeaDiscoveryFormatPreferencePayload[];
+  preferredThemes: IdeaDiscoveryThemePreferencePayload[];
+  resetAt: string | null;
+  updatedAt: string | null;
+};
+
+export type IdeaDiscoveryFeedPayload = {
+  candidates: IdeaDiscoveryCandidatePayload[];
+  profile: IdeaDiscoveryProfilePayload;
+};
+
+export type IdeaDiscoveryFeedbackPayload = {
+  candidateId: string;
+  reason: IdeaDiscoveryRejectionReason | null;
+  signal: IdeaDiscoverySignal;
+};
+
+export type IdeaDiscoveryFeedbackResultPayload = {
+  candidate: IdeaDiscoveryCandidatePayload;
+  feedback: IdeaDiscoveryFeedbackPayload;
+  idea: ContentIdeaPayload | null;
+  profile: IdeaDiscoveryProfilePayload;
+};
+
 export type MarketingContentPayload = {
   title: string;
   body: string;
@@ -508,6 +570,38 @@ export type AuthSessionPayload = {
   user: AuthUser;
 };
 
+export type AccountMembershipPayload = {
+  joinedAt: string;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  role: OrganizationRole;
+};
+
+export type AccountActivityStatsPayload = {
+  aiGenerations: number;
+  contentIdeasGenerated: number;
+  contentIdeasSaved: number;
+  contentItemsCreated: number;
+  discoveryFeedbacks: {
+    disliked: number;
+    liked: number;
+    skipped: number;
+  };
+};
+
+export type AccountProfilePayload = {
+  credentialsEnabled: boolean;
+  memberships: AccountMembershipPayload[];
+  providers: AuthProvider[];
+  stats: AccountActivityStatsPayload;
+  user: AuthUser & {
+    createdAt: string;
+  };
+};
+
 export const ONBOARDING_STEPS = [
   "CREATE_ORGANIZATION",
   "CONFIGURE_EDITORIAL_CONTEXT",
@@ -725,6 +819,8 @@ export type NotionPropertyMappingPayload = {
   title: string;
 };
 
+export type NotionPropertyIdMappingPayload = NotionPropertyMappingPayload;
+
 export type NotionPropertyTypeMappingPayload = {
   channel: "select";
   date: "date";
@@ -735,21 +831,63 @@ export type NotionPropertyTypeMappingPayload = {
 };
 
 export type NotionDatabasePayload = {
+  databaseId: string;
+  dataSourceId: string;
+  /** @deprecated Use dataSourceId. Kept during the advanced-mapping transition. */
   id: string;
   name: string;
+  url: string | null;
   properties: Array<{
     id: string;
     name: string;
+    options: string[];
     type: string;
   }>;
+};
+
+export type NotionParentPagePayload = {
+  id: string;
+  name: string;
+  url: string | null;
+};
+
+export type NotionSchemaStatus =
+  "UNCHECKED" | "PROVISIONING" | "READY" | "DRIFTED" | "UNAVAILABLE";
+
+export type NotionSchemaIssuePayload = {
+  actualType: string | null;
+  code:
+    | "MISSING_PROPERTY"
+    | "INCOMPATIBLE_PROPERTY"
+    | "MISSING_STATUS_OPTIONS"
+    | "SOURCE_MISMATCH";
+  expectedType: string;
+  field: keyof NotionPropertyMappingPayload;
+  message: string;
+  propertyId: string | null;
+  reparable: boolean;
+};
+
+export type NotionSchemaHealthPayload = {
+  checkedAt: string | null;
+  issues: NotionSchemaIssuePayload[];
+  status: NotionSchemaStatus;
 };
 
 export type NotionMappingPayload = {
   conflictStrategy: NotionConflictStrategy;
   databaseId: string;
   databaseName: string;
+  databaseUrl: string | null;
+  dataSourceId: string | null;
+  managed: boolean;
+  parentPageId: string | null;
+  propertyIdMapping: NotionPropertyIdMappingPayload;
   propertyMapping: NotionPropertyMappingPayload;
   propertyTypes: NotionPropertyTypeMappingPayload;
+  schemaHealth: NotionSchemaHealthPayload;
+  schemaVersion: number;
+  setupMode: "MANAGED" | "ADVANCED";
   updatedAt: string;
 };
 
@@ -783,6 +921,16 @@ export type NotionConnectPayload = {
 
 export type NotionDatabasesPayload = {
   databases: NotionDatabasePayload[];
+};
+
+export type NotionParentPagesPayload = {
+  pages: NotionParentPagePayload[];
+};
+
+export type NotionProvisionPayload = {
+  health: NotionSchemaHealthPayload;
+  mapping: NotionMappingPayload;
+  recovered: boolean;
 };
 
 export type NotionSyncResultPayload = {

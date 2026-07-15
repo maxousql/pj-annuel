@@ -37,7 +37,7 @@ test("invitation journey preserves the token through registration", async ({
   await expect(
     page.getByRole("heading", { name: "Rejoindre Invitation Team" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Creer le compte invite" }).click();
+  await page.getByRole("link", { name: "Créer un compte" }).click();
   await expect(page).toHaveURL(/\/register\?next=%2Finvite%2F/);
 
   await page.getByLabel("Nom complet").fill("Invited Editor");

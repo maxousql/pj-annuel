@@ -93,6 +93,19 @@ try {
     migrationsRoot,
     migrationNames[hardeningIndex],
   );
+  await upgrade.query(`
+    insert into public.notion_database_mappings (
+      organization_id, database_id, database_name, property_mapping
+    ) values (
+      '20000000-0000-4000-8000-000000000001',
+      'legacy-database',
+      'Legacy database',
+      '{"title":"Nom","status":"Statut","date":"Date de publication","channel":"Canal","entityType":"Type","sourceUrl":"URL source"}'::jsonb
+    );
+  `);
+  for (const migrationName of migrationNames.slice(hardeningIndex + 1)) {
+    await executeMigration(upgrade, migrationsRoot, migrationName);
+  }
 
   const recommendation = await upgrade.query(`
     select count(*)::integer as count, min(status::text) as status
@@ -107,10 +120,20 @@ try {
     from public.scheduled_job_runs
     where job_key = 'upgrade-job' and status = 'RUNNING';
   `);
+  const notionMapping = await upgrade.query(`
+    select data_source_id, property_id_mapping, schema_issues, schema_status, schema_version
+    from public.notion_database_mappings
+    where organization_id = '20000000-0000-4000-8000-000000000001';
+  `);
   if (
     recommendation.rows[0]?.count !== 1 ||
     recommendation.rows[0]?.status !== "DISMISSED" ||
-    activeJobs.rows[0]?.count !== 1
+    activeJobs.rows[0]?.count !== 1 ||
+    notionMapping.rows[0]?.data_source_id !== null ||
+    JSON.stringify(notionMapping.rows[0]?.property_id_mapping) !== "{}" ||
+    JSON.stringify(notionMapping.rows[0]?.schema_issues) !== "[]" ||
+    notionMapping.rows[0]?.schema_status !== "UNCHECKED" ||
+    notionMapping.rows[0]?.schema_version !== 1
   ) {
     throw new Error("Migration deduplication verification failed.");
   }

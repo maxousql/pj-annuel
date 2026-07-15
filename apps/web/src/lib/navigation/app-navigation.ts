@@ -1,4 +1,4 @@
-import type { OrganizationRole } from "@content-ai/shared";
+import type { OrganizationRole, OrganizationSummary } from "@content-ai/shared";
 
 export type NavigationAvailability = "available" | "soon";
 
@@ -61,7 +61,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Planification éditoriale V1.",
+    description: "Planifiez et suivez vos publications éditoriales.",
     href: (organizationSlug) => `/app/${organizationSlug}/calendar`,
     id: "calendar",
     label: "Calendrier",
@@ -77,7 +77,7 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
   },
   {
     availability: "available",
-    description: "Rappels, recommandations et notifications V2.",
+    description: "Rappels, recommandations et notifications éditoriales.",
     href: (organizationSlug) => `/app/${organizationSlug}/automation`,
     id: "automation",
     label: "Automatisation",
@@ -119,6 +119,20 @@ export function isNavigationItemEnabled(item: AppNavigationItem): boolean {
 
 export function getDefaultOrganizationHref(organizationSlug: string): string {
   return `/app/${organizationSlug}/dashboard`;
+}
+
+export function resolveActiveOrganization(
+  organizations: OrganizationSummary[],
+  requestedOrganizationSlug?: string,
+  recentOrganizationSlug?: string,
+): OrganizationSummary | undefined {
+  const preferredOrganizationSlug =
+    requestedOrganizationSlug ?? recentOrganizationSlug;
+  const preferredOrganization = preferredOrganizationSlug
+    ? organizations.find(({ slug }) => slug === preferredOrganizationSlug)
+    : undefined;
+
+  return preferredOrganization ?? organizations[0];
 }
 
 export function getOrganizationSlugFromPath(

@@ -13,16 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getDefaultOrganizationHref } from "@/lib/navigation/app-navigation";
+import { getOrganizationRoleLabel } from "@/lib/organizations/roles";
 
 type OrganizationSwitcherProps = {
   activeOrganization?: OrganizationSummary | undefined;
   organizations: OrganizationSummary[];
-};
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: "Administrateur",
-  EDITOR: "Éditeur",
-  READER: "Lecteur",
 };
 
 export function OrganizationSwitcher({
@@ -31,7 +26,8 @@ export function OrganizationSwitcher({
 }: OrganizationSwitcherProps) {
   const router = useRouter();
 
-  function handleValueChange(slug: string) {
+  function handleValueChange(slug: string | null) {
+    if (!slug) return;
     const next = organizations.find((o) => o.slug === slug);
     if (next) router.push(getDefaultOrganizationHref(next.slug));
   }
@@ -57,8 +53,9 @@ export function OrganizationSwitcher({
     );
   }
 
-  const activeRole = activeOrganization?.role;
-  const roleLabel = activeRole ? (ROLE_LABELS[activeRole] ?? activeRole) : null;
+  const roleLabel = activeOrganization
+    ? getOrganizationRoleLabel(activeOrganization.role)
+    : null;
 
   return (
     <div className="grid gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-3">

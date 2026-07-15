@@ -60,7 +60,9 @@ export function InvitationAcceptance({ token }: Props) {
         {!preview && !error ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-[color:var(--border-strong)] bg-[color:var(--paper-card)] px-8 py-12 text-center">
             <Loader2 className="size-6 animate-spin text-[color:var(--rubric)]" />
-            <p className="text-[15px] font-medium">Vérification de l'invitation...</p>
+            <p className="text-[15px] font-medium">
+              Vérification de l'invitation...
+            </p>
           </div>
         ) : null}
         {preview ? (
