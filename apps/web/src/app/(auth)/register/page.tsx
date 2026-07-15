@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth-form";
 import { BrandLockup } from "@/components/brand/logo";
+import { getInvitationTokenFromUrl } from "@/lib/auth/client";
 
 export const metadata: Metadata = {
   title: "Inscription",
 };
 
 export default function RegisterPage() {
+  const invitationToken = getInvitationTokenFromUrl();
+
   return (
     <main className="page-shell">
       <div className="auth-layout">
@@ -23,7 +26,7 @@ export default function RegisterPage() {
             préparer les prochains contenus.
           </p>
         </section>
-        <AuthForm mode="register" />
+        <AuthForm mode="register" invitationToken={invitationToken} />
       </div>
     </main>
   );

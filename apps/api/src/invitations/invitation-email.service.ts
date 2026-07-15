@@ -58,6 +58,10 @@ export class InvitationEmailService {
     });
 
     if (!response.ok) {
+      const error = await response.text().catch(() => "No response body");
+      this.logger.error(
+        `Resend API error: ${response.status} ${response.statusText} - ${error}`,
+      );
       throw new ServiceUnavailableException(
         "L'email d'invitation n'a pas pu etre envoye.",
       );

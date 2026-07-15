@@ -188,6 +188,11 @@ textarea {
   font: inherit;
 }
 
+button:not(:disabled),
+select:not(:disabled) {
+  cursor: pointer;
+}
+
 button:disabled,
 input:disabled,
 select:disabled,
@@ -1384,6 +1389,7 @@ textarea:disabled {
 .members-row {
   display: grid;
   grid-template-columns: 1.1fr 1.4fr 0.7fr 0.8fr;
+  align-items: center;
   gap: 12px;
   padding: 12px 14px;
   border-top: 1px solid var(--border);
@@ -1392,6 +1398,10 @@ textarea:disabled {
 
 .members-row:first-child {
   border-top: 0;
+}
+
+.members-row:not(.members-row-header):hover {
+  background: var(--paper-2);
 }
 
 .members-row-header {

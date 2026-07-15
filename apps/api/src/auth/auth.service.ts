@@ -155,6 +155,35 @@ export class AuthService {
     return toAuthenticatedUser(user);
   }
 
+  async deleteAccount(userId: string): Promise<void> {
+    await this.prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException("Utilisateur introuvable.");
+      }
+
+      await transaction.organization.deleteMany({
+        where: { ownerId: userId },
+      });
+
+      await transaction.authAccount.deleteMany({
+        where: { userId },
+      });
+
+      await transaction.membership.deleteMany({
+        where: { userId },
+      });
+
+      await transaction.user.delete({
+        where: { id: userId },
+      });
+    });
+  }
+
   verifySessionToken(token: string): Pick<AuthenticatedUser, "id"> {
     try {
       const payload = verify(token, this.getAuthSecret(), {

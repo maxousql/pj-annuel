@@ -189,7 +189,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
         <label className="field">
           <span>Role initial</span>
           <select
-            className="h-11 rounded-xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3"
+            className="h-11.5 w-full rounded-[6px] border-[1.5px] border-(--border-strong) bg-(--surface-raised) px-3.5 text-base"
             value={role}
             onChange={(event) =>
               setRole(event.target.value as OrganizationRole)
@@ -200,7 +200,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
             <option value="READER">Lecteur</option>
           </select>
         </label>
-        <Button className="self-end" type="submit" disabled={busy !== null}>
+        <Button className="self-end min-h-11.5" type="submit" disabled={busy !== null}>
           {busy === "invite" ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
@@ -223,7 +223,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
             <span role="cell">{member.email}</span>
             <span role="cell">
               <select
-                className="max-w-full rounded-lg border border-[color:var(--border)] bg-[color:var(--paper-2)] px-2 py-1"
+                className="h-9 w-fit min-w-28 rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-2.5 text-sm font-medium transition-colors hover:bg-[color:var(--surface-accent)] focus:border-[color:var(--klein)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                 value={member.role}
                 disabled={busy === `member:${member.id}`}
                 onChange={(event) =>
@@ -241,6 +241,7 @@ export function MembersList({ organizationSlug }: MembersListProps) {
             </span>
             <span role="cell">
               <Button
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 type="button"
                 size="sm"
                 variant="ghost"

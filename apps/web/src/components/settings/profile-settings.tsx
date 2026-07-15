@@ -2,6 +2,7 @@
 
 import type { AuthSessionPayload } from "@content-ai/shared";
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { LoadingState } from "@/components/shell/loading-state";
 import { getApiBaseUrl, readApiResponse } from "@/lib/auth/client";
@@ -12,8 +13,10 @@ type ProfileState =
   | { status: "error"; user?: never; message: string };
 
 export function ProfileSettings() {
+  const router = useRouter();
   const [state, setState] = useState<ProfileState>({ status: "loading" });
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,6 +112,44 @@ export function ProfileSettings() {
     window.location.href = "/login";
   }
 
+  async function handleDeleteAccount() {
+    if (
+      !window.confirm(
+        "Êtes-vous certain de vouloir supprimer votre compte ? Cette action est irréversible."
+      )
+    ) {
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
+        credentials: "include",
+        method: "DELETE",
+      });
+      const result = await readApiResponse<{ ok: boolean }>(response);
+
+      if (!response.ok || result.error) {
+        setState({
+          message: result.error?.message ?? "Suppression impossible.",
+          status: "ready",
+          user: state.status === "ready" ? state.user : { id: "", email: "", name: "", avatarUrl: null },
+        });
+        return;
+      }
+
+      router.push("/login");
+    } catch {
+      setState({
+        message: "Suppression impossible.",
+        status: "ready",
+        user: state.status === "ready" ? state.user : { id: "", email: "", name: "", avatarUrl: null },
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  }
+
   if (state.status === "loading") {
     return <LoadingState title="Chargement du profil" />;
   }
@@ -153,6 +194,14 @@ export function ProfileSettings() {
           onClick={handleLogout}
         >
           Se deconnecter
+        </button>
+        <button
+          className="button-secondary text-destructive hover:bg-destructive/10 hover:text-destructive"
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={isDeletingAccount}
+        >
+          {isDeletingAccount ? "Suppression..." : "Supprimer mon compte"}
         </button>
       </div>
     </form>

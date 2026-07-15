@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuthSessionPayload } from "@content-ai/shared";
+import type { AuthSessionPayload, InvitationPreviewPayload } from "@content-ai/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -10,11 +10,13 @@ import {
   getSafeNextPath,
   readApiResponse,
 } from "@/lib/auth/client";
+import { fetchInvitationPreview, acceptInvitation } from "@/lib/invitations/client";
 
 type AuthMode = "login" | "register";
 
 type AuthFormProps = {
   mode: AuthMode;
+  invitationToken?: string | null;
 };
 
 const authConfig = {
@@ -34,17 +36,32 @@ const authConfig = {
   },
 } satisfies Record<AuthMode, Record<string, string>>;
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, invitationToken }: AuthFormProps) {
   const config = authConfig[mode];
   const isRegister = mode === "register";
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alternateNextPath, setAlternateNextPath] = useState("/app");
+  const [invitationPreview, setInvitationPreview] = useState<InvitationPreviewPayload | null>(null);
+  const [prefilledEmail, setPrefilledEmail] = useState("");
 
   useEffect(() => {
     setAlternateNextPath(getSafeNextPath());
   }, []);
+
+  useEffect(() => {
+    if (!invitationToken || mode !== "register") return;
+
+    void fetchInvitationPreview(invitationToken).then((result) => {
+      if (result.error) {
+        setError(result.error.message);
+      } else {
+        setInvitationPreview(result.data);
+        setPrefilledEmail(result.data.email);
+      }
+    });
+  }, [invitationToken, mode]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,10 +92,19 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      const nextPath = getSafeNextPath();
-      router.push(
-        isRegister && nextPath === "/app" ? "/app/onboarding" : nextPath,
-      );
+      if (isRegister && invitationToken) {
+        const acceptResult = await acceptInvitation(invitationToken);
+        if (acceptResult.error) {
+          setError(acceptResult.error.message);
+          return;
+        }
+        router.push(`/app/${acceptResult.data.organizationSlug}/dashboard`);
+      } else {
+        const nextPath = getSafeNextPath();
+        router.push(
+          isRegister && nextPath === "/app" ? "/app/onboarding" : nextPath,
+        );
+      }
       router.refresh();
     } catch {
       setError("Authentification impossible.");
@@ -97,8 +123,17 @@ export function AuthForm({ mode }: AuthFormProps) {
   return (
     <section className="auth-panel" aria-labelledby={`${mode}-title`}>
       <div>
-        <p className="eyebrow">Acces securise</p>
-        <h1 id={`${mode}-title`}>{config.title}</h1>
+        {invitationPreview ? (
+          <>
+            <p className="eyebrow">Invitation d'équipe</p>
+            <h1 id={`${mode}-title`}>Rejoindre {invitationPreview.organizationName}</h1>
+          </>
+        ) : (
+          <>
+            <p className="eyebrow">Acces securise</p>
+            <h1 id={`${mode}-title`}>{config.title}</h1>
+          </>
+        )}
       </div>
       <form className="auth-form" method="post" onSubmit={handleSubmit}>
         {isRegister ? (
@@ -109,7 +144,13 @@ export function AuthForm({ mode }: AuthFormProps) {
         ) : null}
         <label className="field">
           <span>Email</span>
-          <input name="email" type="email" autoComplete="email" required />
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            defaultValue={prefilledEmail}
+            required
+          />
         </label>
         <label className="field">
           <span>Mot de passe</span>
