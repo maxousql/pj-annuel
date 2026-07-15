@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
-  BarChart3,
+  ArrowUpRight,
   CalendarDays,
-  Download,
+  CircleAlert,
   FileText,
   Lightbulb,
-  MoreHorizontal,
-  Plus,
+  PenLine,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -27,16 +25,30 @@ import {
   CONTENT_STATUS_LABELS,
   formatContentDate,
 } from "@/components/contents/content-labels";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDashboardSummary } from "@/lib/dashboard/client";
-import { cn } from "@/lib/utils";
 
 type DashboardOverviewProps = {
   organizationSlug: string;
 };
 
-type Accent = "blue" | "lime" | "violet";
-type PerformanceMode = "actions" | "views";
+type PipelineItem = {
+  count: number;
+  label: string;
+  tone: "accent" | "muted" | "strong";
+};
 
 export function DashboardOverview({
   organizationSlug,
@@ -44,8 +56,6 @@ export function DashboardOverview({
   const [summary, setSummary] = useState<DashboardSummaryPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [performanceMode, setPerformanceMode] =
-    useState<PerformanceMode>("views");
 
   useEffect(() => {
     let isMounted = true;
@@ -76,376 +86,383 @@ export function DashboardOverview({
   }, [organizationSlug]);
 
   if (isLoading) {
-    return (
-      <DashboardState
-        icon={BarChart3}
-        title="Chargement du tableau de bord"
-        description="Lecture des indicateurs editoriaux de l'organisation."
-      />
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!summary) {
     return (
-      <DashboardState
-        icon={BarChart3}
-        title="Dashboard indisponible"
-        description={message ?? "Les indicateurs n'ont pas pu etre charges."}
-      />
+      <Alert className="max-w-3xl p-5" variant="destructive">
+        <CircleAlert aria-hidden="true" />
+        <AlertTitle>Tableau de bord indisponible</AlertTitle>
+        <AlertDescription>
+          {message ?? "Les indicateurs n'ont pas pu être chargés."}
+        </AlertDescription>
+      </Alert>
     );
   }
 
-  const completionRate = getCompletionRate(summary);
-  const publishedCount = Math.max(
-    summary.counters.contentsCount -
-      summary.counters.draftsCount -
-      summary.counters.toReviewCount,
-    0,
+  return (
+    <DashboardContent organizationSlug={organizationSlug} summary={summary} />
   );
-  const chartBars = buildChartBars(summary, performanceMode, completionRate);
+}
+
+function DashboardContent({
+  organizationSlug,
+  summary,
+}: {
+  organizationSlug: string;
+  summary: DashboardSummaryPayload;
+}) {
+  const otherStatusCount = getOtherStatusCount(summary);
+  const pipeline = buildPipeline(summary, otherStatusCount);
+  const totalPipelineItems = Math.max(
+    pipeline.reduce((total, item) => total + item.count, 0),
+    1,
+  );
 
   return (
-    <div className="grid w-full max-w-[1048px] gap-[36px] text-[color:var(--ink)]">
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="min-w-0">
-          <h1 className="text-[40px] font-extrabold leading-[1.05] text-[color:var(--ink)] sm:text-[44px]">
-            Tableau de bord
+    <div className="grid w-full max-w-[1320px] gap-8 text-foreground">
+      <header className="flex flex-col gap-6 border-b border-border pb-7 lg:flex-row lg:items-end lg:justify-between">
+        <div className="grid max-w-2xl gap-2">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--sage)]">
+            Vue d&apos;ensemble
+          </p>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
+            Votre activité éditoriale
           </h1>
-          <p className="mt-3 max-w-[520px] text-[22px] font-medium leading-[1.35] text-[color:var(--text-muted)]">
-            Bienvenue. Voici l'etat de votre strategie de contenu.
+          <p className="max-w-xl text-base leading-7 text-muted-foreground">
+            Les priorités, les publications et les sujets à reprendre au même
+            endroit.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:pt-[26px]">
-          <DashboardAction
-            href={`/app/${organizationSlug}/history`}
-            icon={Download}
-            variant="secondary"
-          >
-            Exporter le rapport
-          </DashboardAction>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            className="h-10 px-4"
+            render={
+              <Link href={`/app/${organizationSlug}/calendar`}>
+                <CalendarDays data-icon="inline-start" aria-hidden="true" />
+                Ouvrir le calendrier
+              </Link>
+            }
+            variant="outline"
+          />
           {summary.canEdit ? (
-            <DashboardAction
-              href={`/app/${organizationSlug}/contents/generate`}
-              icon={Plus}
-              variant="primary"
-            >
-              Creer un contenu
-            </DashboardAction>
+            <Button
+              className="h-10 px-4"
+              render={
+                <Link href={`/app/${organizationSlug}/contents/generate`}>
+                  <PenLine data-icon="inline-start" aria-hidden="true" />
+                  Créer un contenu
+                </Link>
+              }
+              variant="sage"
+            />
           ) : null}
         </div>
-      </section>
+      </header>
 
-      <section className="grid gap-[26px] lg:grid-cols-3">
-        <StatCard
-          accent="blue"
-          icon={Sparkles}
-          label="Contenus generes"
-          suffix="+12%"
-          value={summary.counters.aiGenerationsCount}
+      {!summary.editorialContextConfigured ? (
+        <Alert className="border-[color:var(--sage)]/30 bg-[color:var(--sage)]/5 p-4">
+          <CircleAlert
+            className="text-[color:var(--sage)]"
+            aria-hidden="true"
+          />
+          <AlertTitle>Contexte éditorial à compléter</AlertTitle>
+          <AlertDescription>
+            {summary.canEdit
+              ? "Ajoutez votre ton et vos règles de marque pour mieux cadrer les prochaines générations."
+              : "Un administrateur doit compléter le ton et les règles de marque de cet espace."}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      <section
+        aria-label="Indicateurs principaux"
+        className="grid overflow-hidden rounded-xl border border-border bg-card sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <Metric
+          icon={FileText}
+          label="Contenus"
+          value={summary.counters.contentsCount}
         />
-        <StatCard
-          accent="violet"
+        <Metric
           icon={Lightbulb}
-          label="Idees en attente"
-          suffix="Nouveau"
+          label="Idées actives"
           value={summary.counters.ideasCount}
         />
-        <StatCard
-          accent="lime"
-          icon={CalendarDays}
-          label="Contenus planifies"
-          suffix={`${summary.counters.toReviewCount} a relire`}
-          value={publishedCount}
+        <Metric
+          icon={CircleAlert}
+          label="À relire"
+          value={summary.counters.toReviewCount}
+        />
+        <Metric
+          icon={Sparkles}
+          label="Générations IA"
+          value={summary.counters.aiGenerationsCount}
         />
       </section>
 
-      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,1fr)_325px]">
-        <Panel className="min-h-[541px]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-[24px] font-extrabold leading-tight text-[color:var(--ink)]">
-                Performance editoriale
-              </h2>
-              <p className="mt-1 text-[16px] font-medium text-[color:var(--text-muted)]">
-                {performanceMode === "views"
-                  ? "Engagement cumule des 30 derniers jours"
-                  : "Actions cumulees des 30 derniers jours"}
-              </p>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <Card className="py-0">
+          <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
+            <CardTitle className="text-xl">
+              <h2>Pipeline éditorial</h2>
+            </CardTitle>
+            <CardDescription>
+              Répartition réelle des contenus selon leur avancement.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-7 px-5 py-6 sm:px-6">
+            <div
+              className="flex h-3 overflow-hidden rounded-full bg-muted"
+              aria-hidden="true"
+            >
+              {pipeline.map((item) => (
+                <span
+                  className={
+                    item.tone === "accent"
+                      ? "bg-[color:var(--sage)]"
+                      : item.tone === "strong"
+                        ? "bg-foreground/70"
+                        : "bg-foreground/20"
+                  }
+                  key={item.label}
+                  style={{
+                    width: `${(item.count / totalPipelineItems) * 100}%`,
+                  }}
+                  title={`${item.label} : ${item.count}`}
+                />
+              ))}
             </div>
-            <div className="flex h-10 rounded-[8px] bg-[color:var(--paper-2)] p-1">
-              <button
-                className={cn(
-                  "grid h-8 min-w-[69px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
-                  performanceMode === "views"
-                    ? "bg-[color:var(--klein)] text-[color:var(--paper)]"
-                    : "text-[color:var(--text-muted)] hover:text-[color:var(--ink)]",
-                )}
-                aria-pressed={performanceMode === "views"}
-                onClick={() => {
-                  setPerformanceMode("views");
-                }}
-                type="button"
-              >
-                Vues
-              </button>
-              <button
-                className={cn(
-                  "grid h-8 min-w-[88px] place-items-center rounded-[6px] px-4 text-[13px] font-extrabold transition",
-                  performanceMode === "actions"
-                    ? "bg-[color:var(--klein)] text-[color:var(--paper)]"
-                    : "text-[color:var(--text-muted)] hover:text-[color:var(--ink)]",
-                )}
-                aria-pressed={performanceMode === "actions"}
-                onClick={() => {
-                  setPerformanceMode("actions");
-                }}
-                type="button"
-              >
-                Actions
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-[38px] h-[288px] border-b border-l border-[color:var(--border-strong)] pl-2">
-            <div className="flex h-full items-end gap-px">
-              {chartBars.map((bar, index) => (
-                <div
-                  className="flex h-full min-w-0 flex-1 items-end"
-                  key={`${bar.primary}-${index}`}
-                >
-                  <div className="relative h-full w-full">
-                    <span
-                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[color:var(--paper-2)]"
-                      style={{ height: `${bar.secondary}%` }}
-                    />
-                    <span
-                      className="absolute bottom-0 left-0 right-0 rounded-t-[8px] bg-[color:var(--klein)]"
-                      style={{ height: `${bar.primary}%` }}
-                    />
-                  </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {pipeline.map((item) => (
+                <div className="grid gap-1" key={item.label}>
+                  <strong className="font-mono text-2xl font-semibold tabular-nums">
+                    {item.count.toLocaleString("fr-FR")}
+                  </strong>
+                  <span className="text-sm text-muted-foreground">
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="mt-[29px] grid grid-cols-4 text-[12px] font-black uppercase text-[color:var(--text-subtle)]">
-            <span>Semaine 1</span>
-            <span>Semaine 2</span>
-            <span>Semaine 3</span>
-            <span>Semaine 4</span>
-          </div>
-        </Panel>
+            <Separator />
 
-        <Panel className="min-h-[541px]">
-          <div className="mb-[34px] flex items-center justify-between gap-4">
-            <h2 className="text-[24px] font-extrabold leading-tight text-[color:var(--ink)]">
-              A venir
-            </h2>
-            <MoreHorizontal className="size-5 text-[color:var(--text-muted)]" />
-          </div>
-          <div className="grid gap-5">
-            {summary.reviewItems.slice(0, 3).map((item, index) => (
-              <UpcomingItem item={item} index={index} key={item.id} />
-            ))}
-            {summary.reviewItems.length === 0 ? (
-              <CompactEmpty>Aucun contenu en attente.</CompactEmpty>
-            ) : null}
-          </div>
-          <Link
-            className="mt-[28px] inline-flex h-[51px] w-full items-center justify-center rounded-[12px] border border-[color:var(--border-strong)] bg-transparent text-[16px] font-extrabold text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"
-            href={`/app/${organizationSlug}/calendar`}
-          >
-            Voir tout le calendrier
-          </Link>
-        </Panel>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="grid gap-1">
+                <p className="text-sm font-medium text-foreground">
+                  {otherStatusCount > 0
+                    ? `${otherStatusCount} contenu${otherStatusCount > 1 ? "s" : ""} avec un autre statut`
+                    : "Tous les contenus sont encore en préparation"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {summary.counters.toReviewCount > 0
+                    ? `${summary.counters.toReviewCount} élément${summary.counters.toReviewCount > 1 ? "s" : ""} demande${summary.counters.toReviewCount > 1 ? "nt" : ""} une relecture.`
+                    : "Le pipeline ne contient aucune relecture en attente."}
+                </p>
+              </div>
+              <Button
+                className="self-start sm:self-auto"
+                render={
+                  <Link href={`/app/${organizationSlug}/library`}>
+                    Voir les contenus
+                    <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                  </Link>
+                }
+                variant="outline"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="py-0">
+          <CardHeader className="border-b border-border px-5 py-5">
+            <CardTitle className="text-xl">
+              <h2>À traiter</h2>
+            </CardTitle>
+            <CardDescription>
+              Les prochains contenus à reprendre.
+            </CardDescription>
+            <CardAction>
+              <Badge variant="secondary">
+                {summary.counters.draftsCount + summary.counters.toReviewCount}{" "}
+                en attente
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="grid gap-1 px-3 py-3">
+            {summary.reviewItems.length > 0 ? (
+              <>
+                {summary.reviewItems.slice(0, 4).map((item) => (
+                  <PriorityItem
+                    item={item}
+                    organizationSlug={organizationSlug}
+                    key={`${item.type}:${item.id}`}
+                  />
+                ))}
+                <Button
+                  className="mt-2"
+                  render={
+                    <Link href={`/app/${organizationSlug}/library`}>
+                      Voir toute la file
+                      <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                    </Link>
+                  }
+                  variant="outline"
+                />
+              </>
+            ) : (
+              <EmptyBlock
+                description="Les brouillons et contenus à relire apparaîtront ici."
+                title="Rien à traiter"
+              />
+            )}
+          </CardContent>
+        </Card>
       </section>
 
-      <section className="grid gap-[36px] xl:grid-cols-[minmax(0,1fr)_325px]">
-        <Panel className="min-h-[544px] p-0">
-          <div className="flex items-center justify-between px-[37px] pb-7 pt-[38px]">
-            <h2 className="text-[24px] font-extrabold text-[color:var(--ink)]">
-              Contenus recents
-            </h2>
-            <Link
-              className="text-[14px] font-extrabold text-[color:var(--klein)]"
-              href={`/app/${organizationSlug}/history`}
-            >
-              Voir tout
-            </Link>
-          </div>
-          <RecentTable
-            items={summary.latestItems}
-            organizationSlug={organizationSlug}
-          />
-        </Panel>
-
-        <Panel className="min-h-[544px]">
-          <h2 className="mb-[29px] text-[24px] font-extrabold text-[color:var(--ink)]">
-            Idees a explorer
-          </h2>
-          <div className="grid gap-5">
-            {summary.topTopics.slice(0, 2).map((topic, index) => (
-              <IdeaCard
-                count={topic.count}
-                index={index}
-                topic={topic.topic}
-                key={topic.topic}
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <Card className="py-0">
+          <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
+            <CardTitle className="text-xl">
+              <h2>Activité récente</h2>
+            </CardTitle>
+            <CardDescription>
+              Les dernières idées et contenus modifiés.
+            </CardDescription>
+            <CardAction>
+              <Button
+                render={
+                  <Link href={`/app/${organizationSlug}/history`}>
+                    Tout voir
+                    <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                  </Link>
+                }
+                size="sm"
+                variant="ghost"
               />
-            ))}
-            {summary.topTopics.length === 0 ? (
-              <CompactEmpty>Aucune idee a explorer.</CompactEmpty>
-            ) : null}
-          </div>
-          <Link
-            className="mt-[29px] inline-flex h-[58px] w-full items-center justify-center gap-2 rounded-[12px] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[15px] font-extrabold text-[color:var(--text-muted)] transition hover:border-[color:var(--klein)] hover:text-[color:var(--ink)]"
-            href={`/app/${organizationSlug}/ideas`}
-          >
-            <Lightbulb className="size-5" />
-            Nouvelle inspiration
-          </Link>
-        </Panel>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="px-0">
+            <RecentActivity
+              items={summary.latestItems}
+              organizationSlug={organizationSlug}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="py-0">
+          <CardHeader className="border-b border-border px-5 py-5">
+            <CardTitle className="text-xl">
+              <h2>Sujets actifs</h2>
+            </CardTitle>
+            <CardDescription>
+              Les thèmes les plus présents dans votre espace.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-2 px-3 py-3">
+            {summary.topTopics.length > 0 ? (
+              summary.topTopics.slice(0, 5).map((topic) => (
+                <div
+                  className="flex items-center justify-between gap-4 rounded-lg px-3 py-3 hover:bg-muted/70"
+                  key={topic.topic}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[color:var(--sage)]/10 text-[color:var(--sage)]">
+                      <Lightbulb aria-hidden="true" />
+                    </span>
+                    <span className="truncate text-sm font-medium">
+                      {topic.topic}
+                    </span>
+                  </div>
+                  <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                    {topic.count}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <EmptyBlock
+                description="Les thèmes récurrents apparaîtront avec vos prochains contenus."
+                title="Aucun sujet détecté"
+              />
+            )}
+            <Button
+              className="mt-2"
+              render={
+                <Link href={`/app/${organizationSlug}/ideas`}>
+                  Explorer les idées
+                  <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                </Link>
+              }
+              variant="outline"
+            />
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
 }
 
-function DashboardAction({
-  children,
-  href,
+function Metric({
   icon: Icon,
-  variant,
+  label,
+  value,
 }: {
-  children: ReactNode;
-  href: string;
   icon: LucideIcon;
-  variant: "primary" | "secondary";
+  label: string;
+  value: number;
+}) {
+  return (
+    <article className="grid min-h-32 grid-cols-[auto_1fr] gap-x-4 border-b border-border p-5 last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(3)]:border-b-0 xl:border-b-0 xl:border-r xl:last:border-r-0">
+      <span className="grid size-9 place-items-center rounded-lg bg-[color:var(--sage)]/10 text-[color:var(--sage)]">
+        <Icon aria-hidden="true" />
+      </span>
+      <div className="grid gap-1">
+        <strong className="font-mono text-3xl font-semibold leading-none tabular-nums text-foreground">
+          {value.toLocaleString("fr-FR")}
+        </strong>
+        <span className="text-sm text-muted-foreground">{label}</span>
+      </div>
+    </article>
+  );
+}
+
+function PriorityItem({
+  item,
+  organizationSlug,
+}: {
+  item: DashboardLatestItemPayload;
+  organizationSlug: string;
 }) {
   return (
     <Link
-      className={cn(
-        "inline-flex h-[82px] min-w-[220px] items-center justify-center gap-5 rounded-[12px] px-6 text-center text-[18px] font-extrabold leading-tight transition",
-        variant === "primary" &&
-          "bg-[color:var(--klein)] text-[color:var(--paper)] shadow-[0_15px_32px_rgba(132,164,255,0.24)] hover:bg-[color:var(--klein)]",
-        variant === "secondary" &&
-          "bg-[color:var(--paper-2)] text-[color:var(--ink)] hover:bg-[color:var(--paper-2)]",
-      )}
-      href={href}
+      className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-muted/70"
+      href={getItemHref(organizationSlug, item)}
     >
-      <Icon className="size-6 shrink-0" />
-      <span className="max-w-[128px]">{children}</span>
+      <span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground">
+        <FileText aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium text-foreground">
+          {item.title}
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+          {CONTENT_FORMAT_LABELS[item.format]} -{" "}
+          {formatContentDate(item.updatedAt)}
+        </span>
+      </span>
+      <ArrowUpRight
+        className="text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+        aria-hidden="true"
+      />
     </Link>
   );
 }
 
-function StatCard({
-  accent,
-  icon: Icon,
-  label,
-  suffix,
-  value,
-}: {
-  accent: Accent;
-  icon: LucideIcon;
-  label: string;
-  suffix: string;
-  value: number;
-}) {
-  return (
-    <article
-      className={cn(
-        "min-h-[194px] rounded-[16px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[27px]",
-        accent === "violet" && "bg-[color:var(--klein)]/4",
-        accent === "lime" && "bg-[color:var(--rubric)]/4",
-      )}
-    >
-      <span
-        className={cn(
-          "grid size-[52px] place-items-center rounded-[13px] border-[1.5px]",
-          accent === "blue" &&
-            "border-[color:var(--border-strong)] bg-[color:var(--paper-2)] text-[color:var(--ink)]",
-          accent === "violet" &&
-            "border-[color:var(--klein)] bg-[color:var(--klein)]/8 text-[color:var(--klein)]",
-          accent === "lime" &&
-            "border-[color:var(--rubric)] bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
-        )}
-      >
-        <Icon className="size-6" />
-      </span>
-      <p className="mt-[21px] text-[16px] font-semibold text-[color:var(--text-muted)]">
-        {label}
-      </p>
-      <div className="mt-2 flex items-end gap-3">
-        <strong className="text-[34px] font-extrabold leading-none text-[color:var(--ink)]">
-          {value.toLocaleString("fr-FR")}
-        </strong>
-        <span
-          className={cn(
-            "pb-1 text-[13px] font-extrabold",
-            accent === "blue" && "text-[color:var(--rubric)]",
-            accent === "violet" && "text-[color:var(--text-muted)]",
-            accent === "lime" && "text-[color:var(--rubric)]",
-          )}
-        >
-          {suffix}
-        </span>
-      </div>
-    </article>
-  );
-}
-
-function Panel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section
-      className={cn(
-        "rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[37px]",
-        className,
-      )}
-    >
-      {children}
-    </section>
-  );
-}
-
-function UpcomingItem({
-  index,
-  item,
-}: {
-  index: number;
-  item: DashboardLatestItemPayload;
-}) {
-  const days = ["MAR", "MER", "JEU"];
-
-  return (
-    <article className="grid min-h-[97px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-[14px] bg-[color:var(--paper-2)] px-[18px]">
-      <div className="grid size-[56px] place-items-center rounded-[13px] bg-[color:var(--paper-2)] text-center">
-        <span className="block text-[13px] font-extrabold text-[color:var(--klein)]">
-          {days[index] ?? "VEN"}
-        </span>
-        <strong className="block text-[23px] font-extrabold leading-none text-[color:var(--ink)]">
-          {12 + index}
-        </strong>
-      </div>
-      <div className="min-w-0">
-        <h3 className="line-clamp-2 text-[16px] font-extrabold leading-[1.25] text-[color:var(--ink)]">
-          {item.title}
-        </h3>
-        <p className="mt-1 truncate text-[13px] font-medium text-[color:var(--text-muted)]">
-          {CONTENT_FORMAT_LABELS[item.format]} -{" "}
-          {formatContentDate(item.updatedAt)}
-        </p>
-      </div>
-    </article>
-  );
-}
-
-function RecentTable({
+function RecentActivity({
   items,
   organizationSlug,
 }: {
@@ -454,120 +471,53 @@ function RecentTable({
 }) {
   if (items.length === 0) {
     return (
-      <div className="px-[37px] pb-[37px]">
-        <CompactEmpty>Les contenus recents apparaitront ici.</CompactEmpty>
+      <div className="p-5">
+        <EmptyBlock
+          description="Les dernières modifications apparaîtront ici."
+          title="Aucune activité récente"
+        />
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1.4fr)_110px_110px_110px] border-b border-[color:var(--border-strong)] px-[37px] pb-[17px] text-[12px] font-black uppercase text-[color:var(--text-subtle)]">
-        <span>Titre du contenu</span>
+    <div className="grid">
+      <div className="hidden grid-cols-[minmax(0,1fr)_130px_130px] border-b border-border px-6 py-3 text-xs font-medium text-muted-foreground md:grid">
+        <span>Contenu</span>
         <span>Statut</span>
-        <span>Score IA</span>
-        <span className="text-right">Date</span>
+        <span className="text-right">Modification</span>
       </div>
-      <div className="grid">
-        {items.slice(0, 3).map((item) => (
-          <Link
-            className="grid min-h-[91px] grid-cols-[minmax(0,1.4fr)_110px_110px_110px] items-center border-b border-[color:var(--border-strong)] px-[37px] transition hover:bg-[color:var(--paper-card)]"
-            href={`/app/${organizationSlug}/history/${item.type.toLowerCase()}/${item.id}`}
-            key={`${item.type}:${item.id}`}
-          >
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[color:var(--paper-2)] text-[color:var(--text-muted)]">
-                <FileText className="size-4" />
-              </span>
-              <span className="line-clamp-2 text-[17px] font-extrabold leading-[1.15] text-[color:var(--ink)]">
+      {items.slice(0, 5).map((item) => (
+        <Link
+          className="grid gap-3 border-b border-border px-5 py-4 transition-colors last:border-b-0 hover:bg-muted/50 md:grid-cols-[minmax(0,1fr)_130px_130px] md:items-center md:px-6"
+          href={getItemHref(organizationSlug, item)}
+          key={`${item.type}:${item.id}`}
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+              {item.type === "IDEA" ? (
+                <Lightbulb aria-hidden="true" />
+              ) : (
+                <FileText aria-hidden="true" />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium text-foreground">
                 {item.title}
               </span>
-            </div>
-            <StatusBadge status={item.status} />
-            <div className="flex items-center gap-2 text-[15px] font-bold text-[color:var(--ink)]">
-              <span className="h-1 w-9 rounded-full bg-[color:var(--klein)]" />
-              {scoreForStatus(item.status)}%
-            </div>
-            <span className="truncate text-right text-[14px] font-medium text-[color:var(--text-muted)]">
-              {formatContentDate(item.updatedAt)}
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                {CONTENT_FORMAT_LABELS[item.format]}
+              </span>
             </span>
-          </Link>
-        ))}
-      </div>
+          </span>
+          <StatusBadge status={item.status} />
+          <span className="text-sm text-muted-foreground md:text-right">
+            <span className="md:sr-only">Modifié le </span>
+            {formatContentDate(item.updatedAt)}
+          </span>
+        </Link>
+      ))}
     </div>
-  );
-}
-
-function IdeaCard({
-  count,
-  index,
-  topic,
-}: {
-  count: number;
-  index: number;
-  topic: string;
-}) {
-  const label = index === 0 ? "Tech" : "Trend";
-  const confidence = index === 0 ? "Haut potentiel" : "Relevant";
-
-  return (
-    <article className="min-h-[151px] rounded-[14px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <Badge
-          className={cn(
-            "rounded-[5px] px-2.5 py-1 text-[11px] font-black uppercase",
-            index === 0
-              ? "bg-[color:var(--klein)] text-[color:var(--klein)]"
-              : "bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
-          )}
-        >
-          {label}
-        </Badge>
-        <span className="text-[11px] font-black uppercase text-[color:var(--text-muted)]">
-          {confidence}
-        </span>
-      </div>
-      <h3 className="line-clamp-3 text-[17px] font-extrabold leading-[1.24] text-[color:var(--ink)]">
-        {topic}
-      </h3>
-      <p className="mt-3 text-[13px] font-semibold text-[color:var(--text-muted)]">
-        {count} occurrence{count > 1 ? "s" : ""}
-      </p>
-    </article>
-  );
-}
-
-function CompactEmpty({ children }: { children: ReactNode }) {
-  return (
-    <div className="rounded-[14px] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-5 text-[15px] font-semibold text-[color:var(--text-muted)]">
-      {children}
-    </div>
-  );
-}
-
-function DashboardState({
-  description,
-  icon: Icon,
-  title,
-}: {
-  description: string;
-  icon: LucideIcon;
-  title: string;
-}) {
-  return (
-    <section className="max-w-[1048px] rounded-[18px] border border-[color:var(--border-strong)] bg-[color:var(--paper-card)] p-[37px] text-[color:var(--ink)]">
-      <div className="flex items-start gap-4">
-        <span className="grid size-[52px] shrink-0 place-items-center rounded-[13px] bg-[color:var(--paper-2)] text-[color:var(--klein)]">
-          <Icon className="size-6" />
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-[24px] font-extrabold">{title}</h2>
-          <p className="mt-2 text-[16px] font-medium leading-6 text-[color:var(--text-muted)]">
-            {description}
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -576,179 +526,87 @@ function StatusBadge({
 }: {
   status: ContentIdeaStatus | ContentItemStatus;
 }) {
-  const tone = getStatusTone(status);
+  const isPublished = status === "PUBLISHED" || status === "USED";
 
   return (
-    <Badge
-      className={cn(
-        "w-fit rounded-[5px] px-2 py-1 text-[11px] font-black uppercase",
-        tone === "lime" &&
-          "bg-[color:var(--rubric-soft)] text-[color:var(--rubric)]",
-        tone === "blue" &&
-          "bg-[color:var(--paper-2)] text-[color:var(--klein)]",
-        tone === "violet" &&
-          "bg-[color:var(--paper-2)] text-[color:var(--text-muted)]",
-      )}
-    >
+    <Badge variant={isPublished ? "sage" : "secondary"}>
       {formatDashboardStatus(status)}
     </Badge>
   );
 }
 
-function buildChartBars(
+function EmptyBlock({
+  description,
+  title,
+}: {
+  description: string;
+  title: string;
+}) {
+  return (
+    <div className="grid gap-1 rounded-lg border border-dashed border-border p-4">
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid w-full max-w-[1320px] gap-8" aria-busy="true">
+      <span className="sr-only" role="status">
+        Chargement du tableau de bord
+      </span>
+      <div className="flex flex-col gap-4 border-b border-border pb-7">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-10 w-full max-w-md" />
+        <Skeleton className="h-5 w-full max-w-xl" />
+      </div>
+      <Skeleton className="h-32 w-full" />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <Skeleton className="h-80 w-full" />
+        <Skeleton className="h-80 w-full" />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    </div>
+  );
+}
+
+function buildPipeline(
   summary: DashboardSummaryPayload,
-  mode: PerformanceMode,
-  completionRate: number,
-) {
-  const bucketCount = 10;
-  const windowMs = 30 * 24 * 60 * 60 * 1000;
-  const bucketMs = windowMs / bucketCount;
-  const now = Date.now();
-  const timedSeries = Array.from({ length: bucketCount }, () => 0);
-  const seenItems = new Set<string>();
+  otherStatusCount: number,
+): PipelineItem[] {
+  return [
+    {
+      count: summary.counters.draftsCount,
+      label: "Brouillons",
+      tone: "muted",
+    },
+    {
+      count: summary.counters.toReviewCount,
+      label: "À relire",
+      tone: "strong",
+    },
+    { count: otherStatusCount, label: "Autres statuts", tone: "accent" },
+  ];
+}
 
-  [...summary.latestItems, ...summary.reviewItems].forEach((item) => {
-    const itemKey = `${item.type}:${item.id}`;
-
-    if (seenItems.has(itemKey)) {
-      return;
-    }
-
-    seenItems.add(itemKey);
-
-    const updatedAt = Date.parse(item.updatedAt);
-
-    if (!Number.isFinite(updatedAt)) {
-      return;
-    }
-
-    const age = now - updatedAt;
-
-    if (age < 0 || age > windowMs) {
-      return;
-    }
-
-    const bucketIndex = Math.min(
-      bucketCount - 1,
-      Math.floor((windowMs - age) / bucketMs),
-    );
-    timedSeries[bucketIndex] += getPerformanceWeight(item, mode);
-  });
-
-  const publishedCount = Math.max(
+function getOtherStatusCount(summary: DashboardSummaryPayload): number {
+  return Math.max(
     summary.counters.contentsCount -
       summary.counters.draftsCount -
       summary.counters.toReviewCount,
     0,
   );
-  const topicCounts = summary.topTopics.map((topic) => topic.count);
-  const seeds = [
-    summary.counters.aiGenerationsCount,
-    summary.counters.contentsCount,
-    summary.counters.ideasCount,
-    summary.latestItems.length * 5,
-    summary.reviewItems.length * 6,
-    topicCounts[0] ?? 0,
-    summary.counters.draftsCount,
-    summary.counters.toReviewCount,
-    publishedCount,
-    completionRate,
-  ];
-  const hasTimedActivity = timedSeries.some((value) => value > 0);
-  const series = hasTimedActivity
-    ? timedSeries
-    : seeds.map((value, index) => {
-        if (mode === "views") {
-          return (
-            value + (topicCounts[index % Math.max(topicCounts.length, 1)] ?? 0)
-          );
-        }
-
-        return (
-          value * 0.68 +
-          summary.reviewItems.length * 2 +
-          summary.latestItems.length +
-          (index % 4) * 2
-        );
-      });
-  const maxValue = Math.max(...series, 1);
-
-  return series.map((value, index) => {
-    const rhythm = ((index % 3) - 1) * 4;
-    const primary = Math.min(
-      88,
-      Math.max(18, 18 + Math.round((value / maxValue) * 64) + rhythm),
-    );
-
-    return {
-      primary,
-      secondary: Math.min(100, primary + 18 + (index % 2) * 5),
-    };
-  });
 }
 
-function getPerformanceWeight(
+function getItemHref(
+  organizationSlug: string,
   item: DashboardLatestItemPayload,
-  mode: PerformanceMode,
-): number {
-  if (mode === "views") {
-    return item.type === "CONTENT" ? 14 : 9;
-  }
-
-  if (item.status === "PUBLISHED" || item.status === "USED") {
-    return 9;
-  }
-
-  if (item.status === "REVIEW" || item.status === "SAVED") {
-    return 6;
-  }
-
-  return 3;
-}
-
-function scoreForStatus(status: ContentIdeaStatus | ContentItemStatus): number {
-  if (status === "PUBLISHED" || status === "USED") {
-    return 92;
-  }
-
-  if (status === "REVIEW" || status === "SAVED") {
-    return 84;
-  }
-
-  return 65;
-}
-
-function getCompletionRate(summary: DashboardSummaryPayload): number {
-  if (summary.counters.contentsCount === 0) {
-    return 0;
-  }
-
-  const completed =
-    summary.counters.contentsCount -
-    summary.counters.draftsCount -
-    summary.counters.toReviewCount;
-
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round((completed / summary.counters.contentsCount) * 100),
-    ),
-  );
-}
-
-function getStatusTone(
-  status: ContentIdeaStatus | ContentItemStatus,
-): "blue" | "lime" | "violet" {
-  if (status === "SAVED" || status === "PUBLISHED" || status === "USED") {
-    return "lime";
-  }
-
-  if (status === "REVIEW" || status === "SCHEDULED") {
-    return "blue";
-  }
-
-  return "violet";
+): string {
+  return `/app/${organizationSlug}/history/${item.type.toLowerCase()}/${item.id}`;
 }
 
 function formatDashboardStatus(
