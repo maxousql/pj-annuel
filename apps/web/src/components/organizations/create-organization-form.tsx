@@ -31,7 +31,7 @@ export function CreateOrganizationForm() {
       router.push(`/app/onboarding`);
       router.refresh();
     } catch {
-      setError("Creation impossible.");
+      setError("Création impossible.");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +58,7 @@ export function CreateOrganizationForm() {
         </p>
       ) : null}
       <button className="button" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Creation..." : "Creer l'organisation"}
+        {isSubmitting ? "Création..." : "Créer l'organisation"}
       </button>
     </form>
   );

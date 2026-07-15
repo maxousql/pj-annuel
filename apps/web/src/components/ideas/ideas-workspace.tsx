@@ -273,7 +273,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
 
             <label className="grid gap-2">
               <span className="text-xs font-bold uppercase text-[color:var(--text-muted)]">
-                Format prefere
+                Format préféré
               </span>
               <select
                 className={selectClass}
@@ -407,7 +407,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               ) : (
                 <Wand2 className="size-4" />
               )}
-              {isGenerating ? "Generation..." : "Generer des idees"}
+              {isGenerating ? "Génération..." : "Générer des idées"}
             </Button>
           </form>
         </CardContent>
@@ -483,7 +483,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               </div>
             ) : (
               <EmptyIdeaState
-                description="Lancez une generation pour obtenir des titres, angles et formats recommandes."
+                description="Lancez une generation pour obtenir des titres, angles et formats recommandés."
                 title="Aucune suggestion"
               />
             )}

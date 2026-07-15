@@ -402,7 +402,7 @@ export function ContentGenerator({
               ) : (
                 <Wand2 className="size-4" />
               )}
-              {isGenerating ? "Generation..." : "Generer"}
+              {isGenerating ? "Génération..." : "Générer"}
             </Button>
           </form>
         </CardContent>
@@ -541,7 +541,7 @@ export function ContentGenerator({
               label="Source"
               value={selectedIdea ? selectedIdea.title : "Brief libre"}
             />
-            <ContextRow label="Sujet" value={topic || "A definir"} />
+            <ContextRow label="Sujet" value={topic || "À définir"} />
             <ContextRow
               label="Brief"
               value={

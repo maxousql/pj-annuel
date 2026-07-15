@@ -174,7 +174,7 @@ export function AiSettingsForm({ organizationSlug }: AiSettingsFormProps) {
                 className={cn(inputClass, "min-h-36 rounded-2xl")}
                 name="toneRules"
                 defaultValue={profile.toneRules}
-                placeholder="Direct, concret, eviter le jargon, toujours donner un exemple..."
+                placeholder="Direct, concret, éviter le jargon, toujours donner un exemple..."
               />
             </label>
             <div className="grid gap-4 md:grid-cols-2">
@@ -228,7 +228,7 @@ export function AiSettingsForm({ organizationSlug }: AiSettingsFormProps) {
         <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
           <CardTitle>Prompts actifs</CardTitle>
           <CardDescription>
-            Traçabilite des versions journalisees.
+            Traçabilité des versions journalisées.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-5 py-5">

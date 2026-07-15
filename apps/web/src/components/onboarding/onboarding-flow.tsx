@@ -11,6 +11,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shell/empty-state";
 import { LoadingState } from "@/components/shell/loading-state";
+import { getApiBaseUrl } from "@/lib/auth/client";
 import { createOrganization } from "@/lib/organizations/client";
 import {
   applyOnboardingPreset,
@@ -119,6 +120,33 @@ export function OnboardingFlow() {
     await loadState(organizationSlug);
   }
 
+  async function handleSkipToGuest() {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/onboarding/skip`, {
+        credentials: "include",
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error("Skip onboarding failed:", error);
+        setSubmission({
+          message: error.message ?? "Impossible de continuer.",
+          status: "idle",
+        });
+        return;
+      }
+
+      window.location.assign("/app");
+    } catch (error) {
+      console.error("Skip onboarding error:", error);
+      setSubmission({
+        message: "Erreur lors de la requete.",
+        status: "idle",
+      });
+    }
+  }
+
   async function handleSaveContext(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -189,7 +217,7 @@ export function OnboardingFlow() {
 
     const confirmOverwrite = payload?.editorialContext
       ? window.confirm(
-          "Ce preset remplacera le contexte editorial actuel. Continuer ?",
+          "Ce preset remplacera le contexte éditorial actuel. Continuer ?",
         )
       : false;
 
@@ -244,7 +272,7 @@ export function OnboardingFlow() {
   return (
     <section className="onboarding-layout" aria-labelledby="onboarding-title">
       <aside className="onboarding-steps" aria-label="Progression onboarding">
-        {["Organisation", "Contexte editorial", "Premier dashboard"].map(
+        {["Organisation", "Contexte éditorial", "Premier dashboard"].map(
           (step, index) => (
             <div
               className="onboarding-step"
@@ -289,6 +317,7 @@ export function OnboardingFlow() {
           message={submission.message}
           onCreate={handleCreateOrganization}
           onSelect={handleSelectOrganization}
+          onSkipToGuest={handleSkipToGuest}
         />
       );
     }
@@ -331,6 +360,7 @@ type OrganizationStepProps = {
   message: string | null;
   onCreate: (event: FormEvent<HTMLFormElement>) => void;
   onSelect: (organizationSlug: string) => void;
+  onSkipToGuest?: () => void;
 };
 
 function OrganizationStep({
@@ -339,6 +369,7 @@ function OrganizationStep({
   message,
   onCreate,
   onSelect,
+  onSkipToGuest,
 }: OrganizationStepProps) {
   return (
     <div className="onboarding-section">
@@ -346,7 +377,7 @@ function OrganizationStep({
         <h2>Choisir l'organisation de depart</h2>
         <p className="muted">
           Creez un espace pour rattacher vos idees, contenus, sources et
-          parametres d'equipe.
+          paramètres d'équipe.
         </p>
       </div>
 
@@ -370,6 +401,9 @@ function OrganizationStep({
       ) : null}
 
       <form className="settings-form onboarding-form" onSubmit={onCreate}>
+        <div>
+          <h3 className="text-sm font-semibold mb-3">Créer une nouvelle organisation</h3>
+        </div>
         <div className="onboarding-form-grid">
           <label className="field">
             <span>Nom de l'organisation</span>
@@ -396,9 +430,26 @@ function OrganizationStep({
           </p>
         ) : null}
         <button className="button" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creation..." : "Creer et continuer"}
+          {isSubmitting ? "Création..." : "Créer et continuer"}
         </button>
       </form>
+
+      <div className="border-t border-[color:var(--border)] pt-6 mt-6">
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold mb-1">Vous êtes invité ?</h3>
+          <p className="text-xs text-[color:var(--text-muted)]">
+            Si vous attendez une invitation, vous pouvez accéder au tableau de bord provisoirement.
+          </p>
+        </div>
+        <button
+          className="button-secondary"
+          type="button"
+          onClick={onSkipToGuest}
+          disabled={isSubmitting}
+        >
+          Continuer en tant qu'utilisateur invité
+        </button>
+      </div>
     </div>
   );
 }
@@ -421,7 +472,7 @@ function EditorialContextStep({
   return (
     <form className="settings-form onboarding-form" onSubmit={onSubmit}>
       <div>
-        <h2>Contexte editorial de {organization.name}</h2>
+        <h2>Contexte éditorial de {organization.name}</h2>
         <p className="muted">
           Ces informations alimentent les prompts IA et les prochaines vues
           metier.
@@ -539,7 +590,7 @@ function CompletionStep({
         <p className="muted">
           {context
             ? "Le dashboard devient accessible et la generation d'idees pourra utiliser ce contexte."
-            : "Vous pouvez consulter l'espace pendant qu'un editeur finalise le contexte editorial."}
+            : "Vous pouvez consulter l'espace pendant qu'un editeur finalise le contexte éditorial."}
         </p>
       </div>
 

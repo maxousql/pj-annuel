@@ -93,7 +93,7 @@ export function OrganizationSettingsPanel({
       <article className="settings-panel">
         <header>
           <div>
-            <p className="eyebrow">Contexte editorial</p>
+            <p className="eyebrow">Contexte éditorial</p>
             <h2>IA et positionnement</h2>
           </div>
         </header>
@@ -131,13 +131,13 @@ export function OrganizationSettingsPanel({
             </Link>
           </div>
         ) : (
-          <p className="muted">Reserve aux administrateurs.</p>
+          <p className="muted">Réservé aux administrateurs.</p>
         )}
       </article>
       <article className="settings-panel">
         <header>
           <div>
-            <p className="eyebrow">Identite</p>
+            <p className="eyebrow">Identité</p>
             <h2>{state.organizationName}</h2>
           </div>
         </header>
@@ -146,7 +146,7 @@ export function OrganizationSettingsPanel({
           ajoutée avec les prochains modules d'administration.
         </p>
         {state.role !== "ADMIN" ? (
-          <p className="muted">Reserve aux administrateurs.</p>
+          <p className="muted">Réservé aux administrateurs.</p>
         ) : null}
       </article>
       <article className="settings-panel">
@@ -158,7 +158,7 @@ export function OrganizationSettingsPanel({
         </header>
         <p className="muted">
           Les administrateurs peuvent consulter les membres depuis la section
-          dediee.
+          dédiée.
         </p>
         {state.role === "ADMIN" ? (
           <div className="form-footer">
@@ -170,7 +170,7 @@ export function OrganizationSettingsPanel({
             </Link>
           </div>
         ) : (
-          <p className="muted">Reserve aux administrateurs.</p>
+          <p className="muted">Réservé aux administrateurs.</p>
         )}
       </article>
     </section>

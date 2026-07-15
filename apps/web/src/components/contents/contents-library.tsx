@@ -69,7 +69,7 @@ export function ContentsLibrary({ organizationSlug }: ContentsLibraryProps) {
             className="button-secondary"
             href={`/app/${organizationSlug}/contents/generate`}
           >
-            Generer un contenu
+            Générer un contenu
           </Link>
         }
       />
@@ -80,13 +80,13 @@ export function ContentsLibrary({ organizationSlug }: ContentsLibraryProps) {
     return (
       <EmptyState
         title="Aucun contenu"
-        description="Les contenus generes et sauvegardes apparaitront ici."
+        description="Les contenus générés et sauvegardés apparaîtront ici."
         action={
           <Link
             className="button"
             href={`/app/${organizationSlug}/contents/generate`}
           >
-            Generer un contenu
+            Générer un contenu
           </Link>
         }
       />
@@ -94,7 +94,7 @@ export function ContentsLibrary({ organizationSlug }: ContentsLibraryProps) {
   }
 
   return (
-    <section className="content-list" aria-label="Bibliotheque de contenus">
+    <section className="content-list" aria-label="Bibliothèque de contenus">
       {contents.map((content) => (
         <article className="content-list-item" key={content.id}>
           <div>

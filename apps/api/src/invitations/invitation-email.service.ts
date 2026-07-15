@@ -38,7 +38,7 @@ export class InvitationEmailService {
 
     if (this.provider !== "resend" || !this.resendApiKey) {
       throw new ServiceUnavailableException(
-        "Le service d'envoi d'invitations n'est pas configure.",
+        "Le service d'envoi d'invitations n'est pas configuré.",
       );
     }
 

@@ -131,7 +131,7 @@ export function NotificationsWorkspace({
     await reload();
     toast.success(
       result.data.updatedCount > 0
-        ? `${result.data.updatedCount} notification(s) marquee(s) comme lues.`
+        ? `${result.data.updatedCount} notification(s) marquée(s) comme lues.`
         : "Aucune notification non lue.",
     );
   }
@@ -156,8 +156,8 @@ export function NotificationsWorkspace({
     await reload();
     toast.success(
       status === "APPLIED"
-        ? "Recommandation marquee comme faite."
-        : "Recommandation ignoree.",
+        ? "Recommandation marquée comme faite."
+        : "Recommandation ignorée.",
     );
   }
 

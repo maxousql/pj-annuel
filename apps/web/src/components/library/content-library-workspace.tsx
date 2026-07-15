@@ -175,16 +175,16 @@ export function ContentLibraryWorkspace({
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-3 py-1 text-xs font-bold uppercase text-[color:var(--text-muted)]">
               <Sparkles className="size-3.5 text-[color:var(--rubric)]" />
-              Bibliotheque Architect AI
+              Bibliothèque Architect AI
             </div>
             <h2 className="text-3xl font-extrabold leading-[1.08] text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               Pilotez vos{" "}
               <span className="text-[color:var(--rubric)]">contenus</span>{" "}
-              depuis une base editoriale premium.
+              depuis une base éditoriale premium.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-muted)]">
               Filtrez, qualifiez et retrouvez chaque brouillon, publication ou
-              contenu archive sans changer les routes ni les actions existantes.
+              contenu archivé sans changer les routes ni les actions existantes.
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export function ContentLibraryWorkspace({
             href={`/app/${organizationSlug}/contents/generate`}
           >
             <Plus className="size-4" />
-            Generer
+            Générer
           </Link>
         </div>
       </section>
@@ -420,7 +420,7 @@ export function ContentLibraryWorkspace({
                 href={`/app/${organizationSlug}/contents/generate`}
               >
                 <Plus className="size-4 text-[color:var(--rubric)]" />
-                Generer
+                Générer
               </Link>
             </div>
           </header>
@@ -445,7 +445,7 @@ export function ContentLibraryWorkspace({
       return (
         <PremiumState
           description={errorMessage}
-          title="Bibliotheque indisponible"
+          title="Bibliothèque indisponible"
           tone="danger"
         />
       );

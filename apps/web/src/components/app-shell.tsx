@@ -158,10 +158,13 @@ export function AppShell({ children }: AppShellProps) {
       return;
     }
 
+    const isGuest = !activeOrganization;
+
     if (
       !state.onboarding.completed &&
       !isOnboardingPath &&
-      !isOrganizationCreationPath
+      !isOrganizationCreationPath &&
+      !isGuest
     ) {
       router.replace("/app/onboarding");
       return;
@@ -403,7 +406,7 @@ export function AppShell({ children }: AppShellProps) {
                       </p>
                     ) : (
                       <p className="px-3 py-2 text-[13px] font-semibold text-[color:var(--text-muted)]">
-                        Aucun resultat pour cette recherche.
+                        Aucun résultat pour cette recherche.
                       </p>
                     )}
                   </div>
@@ -483,7 +486,7 @@ export function AppShell({ children }: AppShellProps) {
       return (
         <EmptyState
           title="Onboarding requis"
-          description="Terminez la creation de l'organisation et du contexte editorial pour ouvrir l'application."
+          description="Terminez la création de l'organisation et du contexte editorial pour ouvrir l'application."
         />
       );
     }
@@ -545,7 +548,7 @@ function buildShellSearchResults(
         description: "Creer un espace avant d'ouvrir les modules.",
         href: "/app/organizations/new",
         id: "navigation:new-organization",
-        keywords: ["creation", "organisation", "espace"],
+        keywords: ["création", "organisation", "espace"],
         label: "Nouvelle organisation",
       },
     ];
@@ -569,11 +572,11 @@ function buildShellSearchResults(
       label: "Idees",
     },
     {
-      description: "Generer un nouveau contenu assiste par IA.",
+      description: "Générer un nouveau contenu assisté par IA.",
       href: `${basePath}/contents/generate`,
       id: "navigation:content-generate",
-      keywords: ["generer", "ia", "creation", "contenu", "redaction"],
-      label: "Generer un contenu",
+      keywords: ["générer", "ia", "création", "contenu", "rédaction"],
+      label: "Générer un contenu",
     },
     {
       description: "Retrouver les contenus crees et leurs statuts.",

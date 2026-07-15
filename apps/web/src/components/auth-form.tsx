@@ -130,7 +130,7 @@ export function AuthForm({ mode, invitationToken }: AuthFormProps) {
           </>
         ) : (
           <>
-            <p className="eyebrow">Acces securise</p>
+            <p className="eyebrow">Accès sécurisé</p>
             <h1 id={`${mode}-title`}>{config.title}</h1>
           </>
         )}

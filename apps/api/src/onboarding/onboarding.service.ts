@@ -79,9 +79,12 @@ export class OnboardingService {
       ? contextByOrganizationId.get(activeOrganization.id)
       : null;
     const hasMinimumContext = hasMinimumEditorialContext(editorialContext);
-    const completed = Boolean(
-      user.onboardingCompletedAt && activeOrganization && hasMinimumContext,
-    );
+    const isGuest = organizations.length === 0;
+    const completed = isGuest
+      ? Boolean(user.onboardingCompletedAt)
+      : Boolean(
+          user.onboardingCompletedAt && activeOrganization && hasMinimumContext,
+        );
     const advanced = activeOrganization
       ? await this.getAdvancedPayload(
           userId,
@@ -303,6 +306,20 @@ export class OnboardingService {
     return this.getState(userId, organizationContext.organization.slug);
   }
 
+  async skipOnboardingForGuest(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      data: {
+        onboardingCompletedAt: new Date(),
+      },
+      select: {
+        id: true,
+      },
+      where: {
+        id: userId,
+      },
+    });
+  }
+
   private async getAdvancedPayload(
     userId: string,
     organizationId: string,
@@ -391,7 +408,7 @@ export class OnboardingService {
 
     if (!availableSteps.includes(step)) {
       throw new BadRequestException(
-        "Cette etape ne correspond pas a votre role.",
+        "Cette étape ne correspond pas à votre rôle.",
       );
     }
     const existing = await this.prisma.onboardingProgress.findUnique({

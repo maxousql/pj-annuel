@@ -161,7 +161,7 @@ export function ProfileSettings() {
   return (
     <form className="settings-form" onSubmit={handleSubmit}>
       <label className="field">
-        <span>Nom affiche</span>
+        <span>Nom affiché</span>
         <input
           name="name"
           type="text"
@@ -193,7 +193,7 @@ export function ProfileSettings() {
           type="button"
           onClick={handleLogout}
         >
-          Se deconnecter
+          Se déconnecter
         </button>
         <button
           className="button-secondary text-destructive hover:bg-destructive/10 hover:text-destructive"

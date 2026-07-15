@@ -108,4 +108,11 @@ export class OnboardingController {
 
     return successResponse(state);
   }
+
+  @Post("skip")
+  async skipOnboardingAsGuest(@Req() request: AuthenticatedRequest) {
+    await this.onboardingService.skipOnboardingForGuest(request.user.id);
+
+    return successResponse({ ok: true });
+  }
 }
