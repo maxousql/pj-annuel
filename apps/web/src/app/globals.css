@@ -50,8 +50,10 @@
   --accent-soft: var(--rubric-soft);
   --tertiary: var(--klein);
   --warning: #a16207;
+  --warning-foreground: #704300;
   --danger: #b3261e;
   --success: var(--sage);
+  --success-foreground: #275c3b;
 
   /* Ombres : douces pour le repos, dures pour la presse */
   --shadow: 0 18px 40px rgba(23, 19, 15, 0.08);
@@ -2526,6 +2528,10 @@ textarea:disabled {
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);

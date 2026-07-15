@@ -34,6 +34,11 @@ import {
   saveNotionMapping,
   syncNotion,
 } from "@/lib/integrations/client";
+import {
+  formatNotionSyncCounts,
+  getNotionSyncOperationLabel,
+  getNotionSyncStatusPresentation,
+} from "@/lib/integrations/notion-status";
 
 const DEFAULT_MAPPING: NotionPropertyMappingPayload = {
   channel: "Canal",
@@ -361,30 +366,34 @@ export function NotionIntegrationPanel({ organizationSlug }: Props) {
               </p>
             ) : (
               <div className="grid gap-2">
-                {integration.logs.map((log) => (
-                  <div
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[color:var(--border)] px-3 py-2 text-sm"
-                    key={log.id}
-                  >
-                    <span>{log.operation}</span>
-                    <span>
-                      {log.processedCount} traite(s) · {log.failedCount}{" "}
-                      echec(s)
-                    </span>
-                    <Badge
-                      variant={
-                        log.status === "SUCCEEDED" ? "default" : "secondary"
-                      }
+                {integration.logs.map((log) => {
+                  const statusPresentation = getNotionSyncStatusPresentation(
+                    log.status,
+                  );
+
+                  return (
+                    <div
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[color:var(--border)] px-3 py-2 text-sm"
+                      key={log.id}
                     >
-                      {log.status}
-                    </Badge>
-                    {log.errorMessage ? (
-                      <span className="w-full text-[color:var(--text-muted)]">
-                        {log.errorMessage}
+                      <span>{getNotionSyncOperationLabel(log.operation)}</span>
+                      <span>
+                        {formatNotionSyncCounts(
+                          log.processedCount,
+                          log.failedCount,
+                        )}
                       </span>
-                    ) : null}
-                  </div>
-                ))}
+                      <Badge variant={statusPresentation.variant}>
+                        {statusPresentation.label}
+                      </Badge>
+                      {log.errorMessage ? (
+                        <span className="w-full text-[color:var(--text-muted)]">
+                          {log.errorMessage}
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

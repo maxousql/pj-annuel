@@ -14,8 +14,12 @@ const badgeVariants = cva(
         sage: "border-[color:var(--sage)]/25 bg-[color:var(--sage)]/10 text-[color:var(--sage)] [a]:hover:bg-[color:var(--sage)]/15",
         secondary:
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+        success:
+          "border-success/25 bg-success/10 text-success-foreground focus-visible:ring-success/50 [a]:hover:bg-success/20",
+        warning:
+          "border-warning/25 bg-warning/10 text-warning-foreground focus-visible:ring-warning/50 [a]:hover:bg-warning/20",
         destructive:
-          "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+          "border-destructive/25 bg-destructive/10 text-destructive focus-visible:ring-destructive/50 dark:bg-destructive/20 dark:focus-visible:ring-destructive/50 [a]:hover:bg-destructive/20",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:
