@@ -5,6 +5,15 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import {
+  type InvitationEmailInput,
+  renderInvitationEmail,
+} from "./invitation-email.template";
+
+const DELIVERY_ERROR_MESSAGE = "L'email d'invitation n'a pas pu être envoyé.";
+const CONFIGURATION_ERROR_MESSAGE =
+  "Le service d'envoi d'invitations n'est pas configuré.";
+
 @Injectable()
 export class InvitationEmailService {
   private readonly logger = new Logger(InvitationEmailService.name);
@@ -21,81 +30,69 @@ export class InvitationEmailService {
       "Content AI <noreply@example.invalid>";
   }
 
-  async sendInvitation(input: {
-    email: string;
-    expiresAt: Date;
-    invitationUrl: string;
-    inviterName: string;
-    organizationName: string;
-    role: string;
-  }): Promise<void> {
+  async sendInvitation(input: InvitationEmailInput): Promise<void> {
     if (this.provider === "console" && process.env.NODE_ENV !== "production") {
       this.logger.log(
-        `Invitation prepared for ${maskEmail(input.email)} (${input.organizationName}).`,
+        `Invitation prepared for ${maskEmail(input.email)} (${safeLogLabel(input.organizationName)}).`,
       );
       return;
     }
 
     if (this.provider !== "resend" || !this.resendApiKey) {
-      throw new ServiceUnavailableException(
-        "Le service d'envoi d'invitations n'est pas configure.",
-      );
+      throw new ServiceUnavailableException(CONFIGURATION_ERROR_MESSAGE);
     }
 
-    const response = await fetch("https://api.resend.com/emails", {
-      body: JSON.stringify({
-        from: this.from,
-        html: buildInvitationHtml(input),
-        subject: `${input.inviterName} vous invite sur Content AI`,
-        to: [input.email],
-      }),
-      headers: {
-        authorization: `Bearer ${this.resendApiKey}`,
-        "content-type": "application/json",
-      },
-      method: "POST",
-      signal: AbortSignal.timeout(10_000),
-    });
+    const email = renderInvitationEmail(input);
+    let response: Response;
+
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        body: JSON.stringify({
+          from: this.from,
+          html: email.html,
+          subject: email.subject,
+          text: email.text,
+          to: [input.email],
+        }),
+        headers: {
+          authorization: `Bearer ${this.resendApiKey}`,
+          "content-type": "application/json",
+        },
+        method: "POST",
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      this.logger.error(
+        `Resend invitation email request failed (${classifyFetchFailure(error)}).`,
+      );
+      throw new ServiceUnavailableException(DELIVERY_ERROR_MESSAGE);
+    }
 
     if (!response.ok) {
-      const error = await response.text().catch(() => "No response body");
       this.logger.error(
-        `Resend API error: ${response.status} ${response.statusText} - ${error}`,
+        `Resend invitation email rejected (status=${response.status}).`,
       );
-      throw new ServiceUnavailableException(
-        "L'email d'invitation n'a pas pu etre envoye.",
-      );
+      throw new ServiceUnavailableException(DELIVERY_ERROR_MESSAGE);
     }
   }
 }
 
-function buildInvitationHtml(input: {
-  expiresAt: Date;
-  invitationUrl: string;
-  inviterName: string;
-  organizationName: string;
-  role: string;
-}): string {
-  return `
-    <p>${escapeHtml(input.inviterName)} vous invite a rejoindre <strong>${escapeHtml(
-      input.organizationName,
-    )}</strong> sur Content AI.</p>
-    <p>Role propose : ${escapeHtml(input.role)}.</p>
-    <p><a href="${escapeHtml(input.invitationUrl)}">Accepter l'invitation</a></p>
-    <p>Ce lien expire le ${escapeHtml(input.expiresAt.toISOString())}.</p>
-  `;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+function classifyFetchFailure(error: unknown): "network" | "timeout" {
+  return error instanceof Error &&
+    ["AbortError", "TimeoutError"].includes(error.name)
+    ? "timeout"
+    : "network";
 }
 
 function maskEmail(email: string): string {
   const [localPart = "", domain = ""] = email.split("@");
   return `${localPart.slice(0, 1)}***@${domain}`;
+}
+
+function safeLogLabel(value: string): string {
+  return value
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
 }
