@@ -412,7 +412,10 @@ export function IdeaDiscoveryWorkspace({
 
             {activeCandidate ? (
               <div className="mx-auto max-w-3xl pb-2 sm:px-4">
-                <div className="relative grid pb-4">
+                <div
+                  className="relative grid pb-4"
+                  data-testid="idea-discovery-card-stack"
+                >
                   {feed.candidates.length > 2 ? (
                     <div
                       aria-hidden="true"
@@ -453,7 +456,13 @@ export function IdeaDiscoveryWorkspace({
                   </AnimatePresence>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-3 text-xs font-medium text-[color:var(--text-muted)]">
+                <div
+                  className={cn(
+                    "flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-3 text-xs font-medium text-[color:var(--text-muted)]",
+                    feed.candidates.length > 1 && "mt-3",
+                  )}
+                  data-testid="idea-discovery-swipe-hints"
+                >
                   <span className="inline-flex items-center gap-1.5">
                     <ArrowLeft className="size-3.5 text-[color:var(--danger)]" />
                     Glissez pour refuser

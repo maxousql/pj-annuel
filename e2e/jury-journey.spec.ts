@@ -48,6 +48,9 @@ test("jury journey: account to planned content", async ({ page }) => {
     }),
   ).toBeVisible();
   const discoveryCard = page.getByTestId("idea-discovery-card");
+  const discoveryStack = page.getByTestId("idea-discovery-card-stack");
+  const swipeHints = page.getByTestId("idea-discovery-swipe-hints");
+  await expectVerticalGap(discoveryStack, swipeHints, 8);
   const candidateId = await discoveryCard.getAttribute("data-candidate-id");
   const cardBox = await discoveryCard.boundingBox();
   expect(cardBox).not.toBeNull();
@@ -124,6 +127,23 @@ async function expectTabsInsideTrack(tablist: Locator, tabs: Locator) {
       trackBox.y + trackBox.height + 1,
     );
   }
+}
+
+async function expectVerticalGap(
+  upperElement: Locator,
+  lowerElement: Locator,
+  minimumGap: number,
+) {
+  const upperBox = await upperElement.boundingBox();
+  const lowerBox = await lowerElement.boundingBox();
+  expect(upperBox).not.toBeNull();
+  expect(lowerBox).not.toBeNull();
+
+  if (!upperBox || !lowerBox) return;
+
+  expect(lowerBox.y - (upperBox.y + upperBox.height)).toBeGreaterThanOrEqual(
+    minimumGap,
+  );
 }
 
 async function dragCandidate(
