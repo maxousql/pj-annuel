@@ -18,3 +18,9 @@ Les tokens sont chiffrés en AES-256-GCM. La déconnexion supprime credential, m
 ## Invitations
 
 En developpement, `INVITATION_EMAIL_PROVIDER=console` n'envoie rien et ne journalise jamais le lien. En production, configurer `resend`, `RESEND_API_KEY` et `INVITATION_EMAIL_FROM` sur un domaine verifie. Realiser le premier envoi uniquement vers une adresse de test autorisee.
+
+Chaque invitation envoyee a Resend contient un sujet contextualise, un document HTML responsive aux couleurs de Content AI et une version texte equivalente. Le HTML utilise uniquement des tableaux de presentation, des styles inline, des couleurs litterales et des polices systeme afin de rester lisible dans Gmail, Outlook et sur mobile. Il conserve aussi l'URL complete sous le bouton; la version texte fournit la meme URL, le role en francais et l'expiration en UTC.
+
+Pour la recette, utiliser une organisation de preview et une adresse explicitement autorisee, puis verifier les deux representations HTML et texte dans le message recu. Tester au minimum une largeur mobile, l'affichage sans images et la copie de l'URL de secours. Ne jamais utiliser la suite Jest ou Playwright avec un provider Resend actif : les tests mockent le transport et le mode `console` reste obligatoire pour les parcours locaux.
+
+En cas de refus, de panne reseau ou de timeout du provider, l'API retourne une erreur generique. Les logs indiquent uniquement la categorie technique ou le statut HTTP; ils ne contiennent ni le corps de reponse distant, ni la cle Resend, ni le lien d'invitation.

@@ -8,6 +8,37 @@ import {
 import { IdeasService } from "./ideas.service";
 
 describe("IdeasService discovery", () => {
+  it("lists the creator's minimal identity and preserves a missing creator", async () => {
+    const prisma = createPrismaMock();
+    prisma.contentIdea.findMany.mockResolvedValue([
+      {
+        ...contentIdea(discoveryCandidate(0)),
+        createdBy: { id: "user-id", name: "Camille Martin" },
+      },
+      {
+        ...contentIdea(discoveryCandidate(1)),
+        createdBy: null,
+        id: "idea-without-creator",
+      },
+    ]);
+    const service = new IdeasService(prisma as never, {} as never, {} as never);
+
+    const result = await service.listIdeas(organizationContext());
+
+    expect(result[0]?.createdBy).toEqual({
+      id: "user-id",
+      name: "Camille Martin",
+    });
+    expect(result[1]?.createdBy).toBeNull();
+    expect(prisma.contentIdea.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          createdBy: { select: { id: true, name: true } },
+        }),
+      }),
+    );
+  });
+
   it("creates an atomic five-card batch with one exploratory proposal", async () => {
     const candidates = Array.from({ length: 5 }, (_, index) =>
       discoveryCandidate(index),
@@ -436,6 +467,7 @@ function contentIdea(candidate: ReturnType<typeof discoveryCandidate>) {
     archivedAt: null,
     category: candidate.category,
     createdAt: new Date("2026-07-15T12:00:00.000Z"),
+    createdBy: null,
     id: "saved-idea-id",
     justification: candidate.justification,
     organizationId: candidate.organizationId,

@@ -16,21 +16,21 @@ export const CONTENT_FORMAT_LABELS: Record<ContentFormat, string> = {
 };
 
 export const CONTENT_STATUS_LABELS: Record<ContentItemStatus, string> = {
-  ARCHIVED: "Archive",
-  DELETED: "Supprime",
+  ARCHIVED: "Archivé",
+  DELETED: "Supprimé",
   DRAFT: "Brouillon",
-  PUBLISHED: "Publie",
-  READY: "Pret",
-  REVIEW: "A valider",
-  SCHEDULED: "Planifie",
+  PUBLISHED: "Publié",
+  READY: "Prêt",
+  REVIEW: "À valider",
+  SCHEDULED: "Planifié",
 };
 
 export const CONTENT_IDEA_STATUS_LABELS: Record<ContentIdeaStatus, string> = {
-  ARCHIVED: "Archivee",
-  DISMISSED: "Ignoree",
+  ARCHIVED: "Archivée",
+  DISMISSED: "Ignorée",
   DRAFT: "Brouillon",
-  SAVED: "Sauvegardee",
-  USED: "Utilisee",
+  SAVED: "Sauvegardée",
+  USED: "Utilisée",
 };
 
 export const SAVE_STATUS_OPTIONS: Array<{
@@ -38,9 +38,9 @@ export const SAVE_STATUS_OPTIONS: Array<{
   value: ContentSaveStatus;
 }> = [
   { label: "Brouillon", value: "DRAFT" },
-  { label: "A relire", value: "REVIEW" },
-  { label: "Pret", value: "READY" },
-  { label: "Archive", value: "ARCHIVED" },
+  { label: "À relire", value: "REVIEW" },
+  { label: "Prêt", value: "READY" },
+  { label: "Archivé", value: "ARCHIVED" },
 ];
 
 export function formatContentDate(value: string): string {

@@ -454,7 +454,7 @@ export class IdeasService {
     });
 
     if (!existingIdea) {
-      throw new NotFoundException("Idee introuvable.");
+      throw new NotFoundException("Idée introuvable.");
     }
 
     const idea = await this.prisma.contentIdea.update({
@@ -685,6 +685,12 @@ const contentIdeaSelect = {
   archivedAt: true,
   category: true,
   createdAt: true,
+  createdBy: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   id: true,
   justification: true,
   organizationId: true,
@@ -721,6 +727,10 @@ type ContentIdeaRecord = {
   archivedAt: Date | string | null;
   category: string | null;
   createdAt: Date | string;
+  createdBy: {
+    id: string;
+    name: string;
+  } | null;
   id: string;
   justification: string;
   organizationId: string;
@@ -763,6 +773,12 @@ function toContentIdeaPayload(idea: ContentIdeaRecord): ContentIdeaPayload {
     archivedAt: idea.archivedAt ? toIsoString(idea.archivedAt) : null,
     category: idea.category,
     createdAt: toIsoString(idea.createdAt),
+    createdBy: idea.createdBy
+      ? {
+          id: idea.createdBy.id,
+          name: idea.createdBy.name,
+        }
+      : null,
     id: idea.id,
     justification: idea.justification,
     organizationId: idea.organizationId,
