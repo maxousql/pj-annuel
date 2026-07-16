@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   changeAccountPassword,
   fetchAccountProfile,
+  getApiBaseUrl,
   updateAccountProfile,
 } from "./client";
 
@@ -18,7 +19,7 @@ describe("account auth client", () => {
     await fetchAccountProfile();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:4000/api/auth/me/profile",
+      `${getApiBaseUrl()}/api/auth/me/profile`,
       { credentials: "include" },
     );
   });
@@ -33,7 +34,7 @@ describe("account auth client", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:4000/api/auth/me",
+      `${getApiBaseUrl()}/api/auth/me`,
       expect.objectContaining({
         body: JSON.stringify({
           avatarUrl: "https://example.com/avatar.jpg",
@@ -55,7 +56,7 @@ describe("account auth client", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:4000/api/auth/me/password",
+      `${getApiBaseUrl()}/api/auth/me/password`,
       expect.objectContaining({
         body: JSON.stringify({
           currentPassword: "Password123",

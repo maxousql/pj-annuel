@@ -19,7 +19,8 @@ export default function AppHomePage() {
         const response = await fetch(`${getApiBaseUrl()}/api/organizations`, {
           credentials: "include",
         });
-        const result = await readApiResponse<OrganizationsListPayload>(response);
+        const result =
+          await readApiResponse<OrganizationsListPayload>(response);
         if (!result.error) {
           setOrganizations(result.data.organizations);
         }

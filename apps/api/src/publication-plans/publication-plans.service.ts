@@ -511,11 +511,7 @@ async function syncContentStatusForPlan(
   }
 
   if (status === "CANCELLED") {
-    await relaxScheduledContentIfUnused(
-      transaction,
-      organizationId,
-      contentId,
-    );
+    await relaxScheduledContentIfUnused(transaction, organizationId, contentId);
     return;
   }
 

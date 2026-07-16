@@ -399,7 +399,9 @@ function OrganizationStep({
 
       <form className="settings-form onboarding-form" onSubmit={onCreate}>
         <div>
-          <h3 className="text-sm font-semibold mb-3">Créer une nouvelle organisation</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            Créer une nouvelle organisation
+          </h3>
         </div>
         <div className="onboarding-form-grid">
           <label className="field">
@@ -435,7 +437,8 @@ function OrganizationStep({
         <div className="mb-3">
           <h3 className="text-sm font-semibold mb-1">Vous êtes invité ?</h3>
           <p className="text-xs text-[color:var(--text-muted)]">
-            Si vous attendez une invitation, vous pouvez accéder au tableau de bord provisoirement.
+            Si vous attendez une invitation, vous pouvez accéder au tableau de
+            bord provisoirement.
           </p>
         </div>
         <button

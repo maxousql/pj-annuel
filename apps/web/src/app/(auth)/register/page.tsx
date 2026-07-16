@@ -14,8 +14,10 @@ export default async function RegisterPage(props: {
   searchParams: SearchParams;
 }) {
   const searchParams = await props.searchParams;
-  const nextPath = typeof searchParams.next === "string" ? searchParams.next : null;
-  const invitationEmail = typeof searchParams.email === "string" ? searchParams.email : null;
+  const nextPath =
+    typeof searchParams.next === "string" ? searchParams.next : null;
+  const invitationEmail =
+    typeof searchParams.email === "string" ? searchParams.email : null;
 
   // Extract token from next path like "/invite/[token]"
   const invitationToken = nextPath?.match(/^\/invite\/(.+)$/)?.[1] ?? null;
