@@ -299,9 +299,9 @@ export function CurationWorkspace({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-      <aside className="grid gap-5 xl:sticky xl:top-5 xl:self-start">
-        <Card className={cn(panelClass, "rounded-3xl py-0")}>
+    <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <aside className="grid min-w-0 gap-5 xl:sticky xl:top-5 xl:self-start">
+        <Card className={cn(panelClass, "min-w-0 rounded-3xl py-0")}>
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Link2 className="size-5 text-[color:var(--klein)]" />
@@ -429,10 +429,10 @@ export function CurationWorkspace({
       </aside>
 
       <section className="grid min-w-0 gap-5">
-        <Card className={cn(panelClass, "rounded-3xl py-0")}>
+        <Card className={cn(panelClass, "min-w-0 rounded-3xl py-0")}>
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <CardTitle className="text-2xl">
                   Ressources collectées
                 </CardTitle>
@@ -441,7 +441,7 @@ export function CurationWorkspace({
                 </CardDescription>
               </div>
               <select
-                className={cn(selectClass, "w-[220px]")}
+                className={cn(selectClass, "w-full max-w-full sm:w-[220px]")}
                 value={format}
                 onChange={(event) =>
                   setFormat(event.target.value as ContentGenerationFormat)
@@ -455,7 +455,7 @@ export function CurationWorkspace({
               </select>
             </div>
           </CardHeader>
-          <CardContent className="grid gap-4 px-5 py-5">
+          <CardContent className="grid min-w-0 gap-4 px-5 py-5">
             {resources.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-[color:var(--border-strong)] p-8 text-center">
                 <FileText className="mx-auto mb-3 size-8 text-[color:var(--klein)]" />
@@ -545,36 +545,41 @@ function ResourceCard({
   resource: CuratedResourcePayload;
 }) {
   return (
-    <article className="rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <article className="min-w-0 rounded-3xl border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,260px)] lg:items-start">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap gap-2">
             <Badge>{resource.type}</Badge>
             <Badge>{resource.status}</Badge>
-            {resource.topic ? <Badge>{resource.topic}</Badge> : null}
+            {resource.topic ? (
+              <Badge className="max-w-full whitespace-normal [overflow-wrap:anywhere]">
+                {resource.topic}
+              </Badge>
+            ) : null}
           </div>
-          <h3 className="text-xl font-bold leading-tight text-[color:var(--ink)]">
+          <h3 className="text-xl font-bold leading-tight text-[color:var(--ink)] [overflow-wrap:anywhere]">
             <Link href={`/app/${organizationSlug}/curation/${resource.id}`}>
               {resource.title}
             </Link>
           </h3>
           <a
-            className="mt-2 block truncate text-sm font-medium text-[color:var(--klein)]"
+            className="mt-2 block max-w-full truncate text-sm font-medium text-[color:var(--klein)]"
             href={resource.url}
             rel="noreferrer"
             target="_blank"
+            title={resource.url}
           >
             {resource.url}
           </a>
           {resource.description ? (
-            <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)]">
+            <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)] [overflow-wrap:anywhere]">
               {resource.description}
             </p>
           ) : null}
         </div>
-        <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-[260px] lg:grid-cols-1">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-1">
           <Button
-            className="h-10 rounded-xl"
+            className="h-auto min-h-10 min-w-0 whitespace-normal rounded-xl px-3"
             disabled={!canEdit || busyKey === `summary:${resource.id}`}
             type="button"
             variant="outline"
@@ -588,7 +593,7 @@ function ResourceCard({
             Resumer
           </Button>
           <Button
-            className="h-10 rounded-xl bg-[color:var(--rubric)] font-bold text-[color:var(--paper)] hover:bg-[color:var(--rubric)]"
+            className="h-auto min-h-10 min-w-0 whitespace-normal rounded-xl bg-[color:var(--rubric)] px-3 font-bold text-[color:var(--paper)] hover:bg-[color:var(--rubric)]"
             disabled={!canEdit || busyKey === `generation:${resource.id}`}
             type="button"
             onClick={() => onUse(resource.id)}
@@ -603,15 +608,20 @@ function ResourceCard({
         </div>
       </div>
       {resource.summary ? (
-        <div className="mt-4 rounded-2xl bg-[color:var(--paper-card)] p-4">
+        <div className="mt-4 min-w-0 rounded-2xl bg-[color:var(--paper-card)] p-4">
           <strong className="text-sm">Resume IA</strong>
-          <p className="mt-2 text-sm leading-6 text-[color:var(--text-muted)]">
+          <p className="mt-2 text-sm leading-6 text-[color:var(--text-muted)] [overflow-wrap:anywhere]">
             {resource.summary}
           </p>
           {resource.keyPoints.length > 0 ? (
-            <ul className="mt-3 grid gap-1 text-sm text-[color:var(--text-muted)]">
-              {resource.keyPoints.map((point) => (
-                <li key={point}>- {point}</li>
+            <ul className="mt-3 grid min-w-0 gap-1 text-sm text-[color:var(--text-muted)]">
+              {resource.keyPoints.map((point, index) => (
+                <li
+                  className="[overflow-wrap:anywhere]"
+                  key={`${point}-${index}`}
+                >
+                  - {point}
+                </li>
               ))}
             </ul>
           ) : null}

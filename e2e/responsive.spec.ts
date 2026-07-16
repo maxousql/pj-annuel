@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const apiUrl = process.env.E2E_API_URL ?? "http://127.0.0.1:4000";
+const webUrl = process.env.E2E_WEB_URL ?? "http://127.0.0.1:3000";
 
 test("public and authentication pages remain usable on mobile", async ({
   page,
@@ -111,4 +112,152 @@ test("public and authentication pages remain usable on mobile", async ({
   expect(page.url()).not.toContain(registrationEmail);
   expect(page.url()).not.toContain(registrationPassword);
   expect(cspViolations).toEqual([]);
+});
+
+test("curation cards keep long content and actions within their bounds", async ({
+  page,
+}) => {
+  const organization = {
+    createdAt: "2026-07-16T10:00:00.000Z",
+    id: "organization-1",
+    name: "Horizon Local",
+    ownerId: "user-1",
+    role: "ADMIN",
+    slug: "horizon-local",
+  };
+  const longToken = "contenu-sans-espace-".repeat(35);
+
+  await page.context().addCookies([
+    {
+      name: "app_session",
+      url: webUrl,
+      value: "browser-smoke-session",
+    },
+  ]);
+  await page.route(`${apiUrl}/api/auth/me`, async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        data: {
+          user: {
+            avatarUrl: null,
+            email: "browser-smoke@example.invalid",
+            id: "user-1",
+            name: "Browser Smoke",
+          },
+        },
+        error: null,
+      }),
+      contentType: "application/json",
+    });
+  });
+  await page.route(`${apiUrl}/api/organizations`, async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        data: { organizations: [organization] },
+        error: null,
+      }),
+      contentType: "application/json",
+    });
+  });
+  await page.route(`${apiUrl}/api/onboarding`, async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        data: {
+          activeOrganization: organization,
+          advanced: null,
+          completed: true,
+          editorialContext: null,
+          nextStep: "READY",
+          organizations: [organization],
+          user: { onboardingCompletedAt: "2026-07-16T10:00:00.000Z" },
+        },
+        error: null,
+      }),
+      contentType: "application/json",
+    });
+  });
+  await page.route(
+    `${apiUrl}/api/organizations/horizon-local/curation`,
+    async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({
+          data: {
+            canEdit: true,
+            feeds: [],
+            resources: [
+              {
+                createdAt: "2026-07-16T10:00:00.000Z",
+                description: longToken,
+                id: "resource-1",
+                keyPoints: [longToken, longToken],
+                organizationId: organization.id,
+                publishedAt: null,
+                sourceFeedId: null,
+                sourceName: null,
+                status: "NEW",
+                summary: longToken,
+                tags: [],
+                title: `Ressource ${longToken}`,
+                topic: longToken,
+                type: "URL",
+                updatedAt: "2026-07-16T10:00:00.000Z",
+                url: `https://example.com/${longToken}`,
+              },
+            ],
+            tags: [],
+          },
+          error: null,
+        }),
+        contentType: "application/json",
+      });
+    },
+  );
+
+  await page.goto("/app/horizon-local/curation");
+
+  const resourceCard = page.locator("article").filter({
+    has: page.getByRole("heading", { name: /Ressource contenu-sans-espace/ }),
+  });
+  await expect(resourceCard).toBeVisible();
+  const summarizeButton = resourceCard.getByRole("button", {
+    name: "Resumer",
+  });
+  const generateButton = resourceCard.getByRole("button", {
+    name: "Generer",
+  });
+  await expect(summarizeButton).toBeVisible();
+  await expect(generateButton).toBeVisible();
+
+  const bounds = await resourceCard.evaluate((card) => {
+    const cardBounds = card.getBoundingClientRect();
+    const inspectedElements = Array.from(
+      card.querySelectorAll("a, button, [data-slot='badge']"),
+    );
+
+    return {
+      card: { left: cardBounds.left, right: cardBounds.right },
+      children: inspectedElements.map((element) => {
+        const childBounds = element.getBoundingClientRect();
+        return {
+          left: childBounds.left,
+          right: childBounds.right,
+          text: element.textContent?.trim() ?? "",
+        };
+      }),
+      documentScrollWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    };
+  });
+
+  expect(bounds.documentScrollWidth).toBeLessThanOrEqual(bounds.viewportWidth);
+  for (const child of bounds.children) {
+    expect(
+      child.left,
+      `${child.text} starts before the card`,
+    ).toBeGreaterThanOrEqual(bounds.card.left - 1);
+    expect(
+      child.right,
+      `${child.text} ends after the card`,
+    ).toBeLessThanOrEqual(bounds.card.right + 1);
+  }
 });
