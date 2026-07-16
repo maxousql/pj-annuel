@@ -155,7 +155,7 @@ export function CurationWorkspace({
     setUrl("");
     setTopic("");
     setTagNames("");
-    toast.success("URL ajoutee a la veille.");
+    toast.success("URL ajoutée à la veille.");
   }
 
   async function handleAddFeed(event: FormEvent<HTMLFormElement>) {
@@ -177,7 +177,7 @@ export function CurationWorkspace({
     setFeedUrl("");
     setFeedTitle("");
     await reload();
-    toast.success(`${result.data.importedCount} ressource(s) importee(s).`);
+    toast.success(`${result.data.importedCount} ressource(s) importée(s).`);
   }
 
   async function handleImportFeed(feedId: string) {
@@ -213,7 +213,7 @@ export function CurationWorkspace({
         resource.id === resourceId ? result.data.resource : resource,
       ),
     );
-    toast.success("Resume IA ajoute a la ressource.");
+    toast.success("Résumé IA ajouté à la ressource.");
   }
 
   async function handleUseResource(resourceId: string) {
@@ -241,7 +241,7 @@ export function CurationWorkspace({
 
     setDraft({
       body: result.data.draft.body,
-      brief: `Genere depuis la ressource de veille: ${
+      brief: `Généré depuis la ressource de veille : ${
         resource?.title ?? "ressource"
       }`,
       format,
@@ -250,7 +250,7 @@ export function CurationWorkspace({
       topic: resource?.topic ?? null,
     });
     await reload();
-    toast.success("Brouillon genere depuis la ressource.");
+    toast.success("Brouillon généré depuis la ressource.");
   }
 
   async function handleSaveDraft() {
@@ -434,10 +434,10 @@ export function CurationWorkspace({
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-2xl">
-                  Ressources collectees
+                  Ressources collectées
                 </CardTitle>
                 <CardDescription>
-                  Resumez une source ou utilisez-la comme inspiration.
+                  Résumez une source ou utilisez-la comme inspiration.
                 </CardDescription>
               </div>
               <select

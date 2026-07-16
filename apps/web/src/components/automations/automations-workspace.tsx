@@ -119,7 +119,7 @@ export function AutomationsWorkspace({
     await reload();
     toast.success(
       nextStatus === "ACTIVE"
-        ? "Automatisation activee."
+        ? "Automatisation activée."
         : "Automatisation mise en pause.",
     );
   }
@@ -144,8 +144,8 @@ export function AutomationsWorkspace({
     await reload();
     toast.success(
       status === "APPLIED"
-        ? "Recommandation marquee comme faite."
-        : "Recommandation ignoree.",
+        ? "Recommandation marquée comme faite."
+        : "Recommandation ignorée.",
     );
   }
 
@@ -162,7 +162,7 @@ export function AutomationsWorkspace({
     }
 
     await reload();
-    toast.success("Preferences de notifications mises a jour.");
+    toast.success("Préférences de notifications mises à jour.");
   }
 
   if (isLoading) {
@@ -184,7 +184,7 @@ export function AutomationsWorkspace({
       <section className="grid min-w-0 gap-5">
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
-            <CardTitle>Regles actives</CardTitle>
+            <CardTitle>Règles actives</CardTitle>
             <CardDescription>
               Les automatisations proposent, notifient, mais ne modifient pas
               les contenus sans action utilisateur.
@@ -194,7 +194,7 @@ export function AutomationsWorkspace({
             <RuleCard
               busyKey={busyKey}
               canEdit={state.canEdit}
-              description="Cree une notification quand une publication planifiee approche."
+              description="Crée une notification quand une publication planifiée approche."
               icon={Bell}
               rule={rulesByType.get("PUBLICATION_REMINDER")}
               title="Rappels de publication"
@@ -204,7 +204,7 @@ export function AutomationsWorkspace({
             <RuleCard
               busyKey={busyKey}
               canEdit={state.canEdit}
-              description="Detecte contenus non planifies et idees a transformer."
+              description="Détecte contenus non planifiés et idées à transformer."
               icon={Sparkles}
               rule={rulesByType.get("EDITORIAL_RECOMMENDATION")}
               title="Recommandations editoriales"
@@ -242,9 +242,9 @@ export function AutomationsWorkspace({
       <aside className="grid gap-5 xl:sticky xl:top-5 xl:self-start">
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
-            <CardTitle>Jobs planifies</CardTitle>
+            <CardTitle>Jobs planifiés</CardTitle>
             <CardDescription>
-              Les automatisations tournent en arriere-plan quand les regles sont
+              Les automatisations tournent en arrière-plan quand les règles sont
               actives.
             </CardDescription>
           </CardHeader>
@@ -271,8 +271,8 @@ export function AutomationsWorkspace({
                     Recommandations editoriales
                   </strong>
                   <p className="mt-1 text-sm leading-6 text-[color:var(--text-muted)]">
-                    Analyse toutes les heures les contenus non planifies et les
-                    idees sauvegardees.
+                    Analyse toutes les heures les contenus non planifiés et les
+                    idées sauvegardées.
                   </p>
                 </div>
               </div>
@@ -284,8 +284,8 @@ export function AutomationsWorkspace({
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
             <CardTitle>Centre de notifications</CardTitle>
             <CardDescription>
-              Lecture, filtres et recommandations sont regroupes dans une page
-              dediee.
+              Lecture, filtres et recommandations sont regroupés dans une page
+              dédiée.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-5 py-5">
@@ -301,7 +301,7 @@ export function AutomationsWorkspace({
 
         <Card className={cn(panelClass, "rounded-3xl py-0")}>
           <CardHeader className="border-b border-[color:var(--border-strong)] px-5 py-5">
-            <CardTitle>Preferences</CardTitle>
+            <CardTitle>Préférences</CardTitle>
             <CardDescription>
               Activation des notifications internes.
             </CardDescription>

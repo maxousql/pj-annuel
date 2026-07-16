@@ -627,6 +627,18 @@ export function EditorialCalendarWorkspace({
                   <RotateCcw className="size-4" />
                   Annuler
                 </Button>
+                {editingPlanId ? (
+                  <Button
+                    className="h-11 rounded-[16px] border border-[color:var(--danger)]/30 bg-[color:var(--danger)]/10 px-4 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/20"
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleDelete(editingPlanId)}
+                    disabled={isSaving}
+                  >
+                    <Trash2 className="size-4" />
+                    Supprimer
+                  </Button>
+                ) : null}
               </div>
 
               {!calendar.contentOptions.length ? (
@@ -640,7 +652,7 @@ export function EditorialCalendarWorkspace({
             <div className="rounded-[20px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-4">
               <EmptyState
                 title="Lecture seule"
-                description="Votre role permet de consulter le calendrier sans modifier les planifications."
+                description="Votre rôle permet de consulter le calendrier sans modifier les planifications."
               />
             </div>
           )}
@@ -812,7 +824,7 @@ export function EditorialCalendarWorkspace({
       return (
         <EmptyState
           title="Aucune planification"
-          description="Cette periode ne contient pas encore de publication planifiee."
+          description="Cette periode ne contient pas encore de publication planifiée."
           action={
             <Link
               className="inline-flex h-10 items-center justify-center rounded-[14px] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] px-4 text-sm font-medium text-[color:var(--ink)] transition hover:bg-[color:var(--paper-2)]"

@@ -102,7 +102,7 @@ export function InvitationAcceptance({ token }: Props) {
                 </Button>
                 <Link
                   className="block rounded-lg border-2 border-[color:var(--border-strong)] bg-transparent py-2.5 text-center text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-muted)]"
-                  href={`/register?next=${encodeURIComponent(`/invite/${token}`)}`}
+                  href={`/register?email=${encodeURIComponent(preview.email)}&next=${encodeURIComponent(`/invite/${token}`)}`}
                 >
                   Créer un compte
                 </Link>

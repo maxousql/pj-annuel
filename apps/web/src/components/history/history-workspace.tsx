@@ -127,7 +127,7 @@ export function HistoryWorkspace({ organizationSlug }: HistoryWorkspaceProps) {
         <header>
           <div>
             <p className="eyebrow">Recherche</p>
-            <h2>Historique editorial</h2>
+            <h2>Historique éditorial</h2>
           </div>
         </header>
 
@@ -137,7 +137,7 @@ export function HistoryWorkspace({ organizationSlug }: HistoryWorkspaceProps) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Titre, thematique, format, mot-cle..."
+              placeholder="Titre, thématique, format, mot-clé..."
             />
           </label>
 

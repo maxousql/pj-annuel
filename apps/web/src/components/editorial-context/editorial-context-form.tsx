@@ -81,7 +81,7 @@ export function EditorialContextForm({
     setMessage(null);
 
     if (!canEdit) {
-      setMessage("Role insuffisant pour modifier le contexte editorial.");
+      setMessage("Role insuffisant pour modifier le contexte éditorial.");
       return;
     }
 
@@ -110,7 +110,7 @@ export function EditorialContextForm({
       setSummary(summaryResult.data.summary);
     }
 
-    setMessage("Contexte editorial mis a jour.");
+    setMessage("Contexte editorial mis à jour.");
   }
 
   if (isLoading) {
@@ -134,13 +134,13 @@ export function EditorialContextForm({
             className="button-secondary"
             href={`/app/${organizationSlug}/settings`}
           >
-            Parametres
+            Paramètres
           </Link>
         </header>
 
         {!canEdit ? (
           <p className="form-error">
-            Lecture seule. Les administrateurs et editeurs peuvent modifier ce
+            Lecture seule. Les administrateurs et éditeurs peuvent modifier ce
             contexte.
           </p>
         ) : null}
@@ -185,7 +185,7 @@ export function EditorialContextForm({
               />
               <datalist id="editorial-tone-options">
                 <option value="Expert et direct" />
-                <option value="Pedagogique et accessible" />
+                <option value="Pédagogique et accessible" />
                 <option value="Inspire et engageant" />
                 <option value="Sobre et analytique" />
               </datalist>

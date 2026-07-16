@@ -511,7 +511,7 @@ export function IdeasWorkspace({ organizationSlug }: IdeasWorkspaceProps) {
               </div>
             ) : (
               <EmptyIdeaState
-                description="Lancez une génération pour obtenir des titres, angles et formats recommandés."
+                description="Lancez une génération pour obtenir des titres, angles et formats recommandes."
                 title="Aucune suggestion"
               />
             )}

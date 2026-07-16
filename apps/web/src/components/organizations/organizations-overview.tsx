@@ -70,10 +70,10 @@ export function OrganizationsOverview() {
     return (
       <EmptyState
         title="Aucune organisation"
-        description="Creez un premier espace de travail pour rattacher les idees, contenus et parametres editoriaux."
+        description="Créez un premier espace de travail pour rattacher les idées, contenus et paramètres éditoriaux."
         action={
           <Link className="button" href="/app/organizations/new">
-            Creer une organisation
+            Créer une organisation
           </Link>
         }
       />

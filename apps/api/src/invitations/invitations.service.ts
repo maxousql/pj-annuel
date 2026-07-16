@@ -145,7 +145,7 @@ export class InvitationsService {
 
     if (existing.status === "ACCEPTED" || existing.status === "REVOKED") {
       throw new ConflictException(
-        "Cette invitation ne peut plus etre relancee.",
+        "Cette invitation ne peut plus être relancée.",
       );
     }
 
@@ -185,7 +185,7 @@ export class InvitationsService {
 
         if (updated.count !== 1) {
           throw new ConflictException(
-            "Cette invitation a ete modifiee. Rechargez la liste.",
+            "Cette invitation a été modifiée. Rechargez la liste.",
           );
         }
 
@@ -285,7 +285,7 @@ export class InvitationsService {
     }
 
     return {
-      email: maskEmail(invitation.email),
+      email: invitation.email,
       expiresAt: invitation.expiresAt.toISOString(),
       organizationName: invitation.organization.name,
       organizationSlug: invitation.organization.slug,
@@ -320,7 +320,7 @@ export class InvitationsService {
 
         const now = new Date();
         if (invitation.expiresAt.getTime() <= now.getTime()) {
-          throw new ConflictException("Cette invitation a expire.");
+          throw new ConflictException("Cette invitation a expiré.");
         }
 
         const user = await transaction.user.findUnique({
@@ -349,7 +349,7 @@ export class InvitationsService {
         });
 
         if (consumed.count !== 1) {
-          throw new ConflictException("Cette invitation a deja ete utilisee.");
+          throw new ConflictException("Cette invitation a déjà été utilisée.");
         }
 
         const existing = await transaction.membership.findUnique({
@@ -498,7 +498,7 @@ export class InvitationsService {
     });
 
     if (membership) {
-      throw new ConflictException("Cette personne est deja membre.");
+      throw new ConflictException("Cette personne est déjà membre.");
     }
   }
 
@@ -518,7 +518,7 @@ export class InvitationsService {
 
     if (otherAdmins === 0) {
       throw new ConflictException(
-        "Le dernier administrateur ne peut pas etre retrograde ou retire.",
+        "Le dernier administrateur ne peut pas être rétrogradé ou retiré.",
       );
     }
   }
