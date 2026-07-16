@@ -367,8 +367,10 @@ export function IdeaDiscoveryWorkspace({
                   Sélection éditoriale
                 </p>
                 <CardTitle
+                  aria-level={2}
                   className="mt-2 text-2xl font-bold text-[color:var(--ink)]"
                   id="discovery-selection-title"
+                  role="heading"
                 >
                   Des idées choisies pour votre organisation
                 </CardTitle>
@@ -569,7 +571,7 @@ function DiscoveryCandidateCard({
       animate="animate"
       aria-roledescription="carte de proposition"
       className={cn(
-        "relative col-start-1 row-start-1 grid min-h-[34rem] cursor-grab gap-6 touch-pan-y rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 shadow-[0_12px_32px_rgba(23,19,15,0.08)] will-change-transform active:cursor-grabbing sm:p-7",
+        "relative col-start-1 row-start-1 grid min-h-[34rem] cursor-grab select-none gap-6 touch-pan-y rounded-[1.75rem] border border-[color:var(--border-strong)] bg-[color:var(--paper-2)] p-5 shadow-[0_12px_32px_rgba(23,19,15,0.08)] will-change-transform active:cursor-grabbing sm:p-7",
         isRejecting && "cursor-default active:cursor-default",
       )}
       data-candidate-id={candidate.id}

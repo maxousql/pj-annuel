@@ -46,7 +46,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "npm run start:dev -w @content-ai/api",
+      command: "npm run start:e2e -w @content-ai/api",
       env: {
         ...process.env,
         AI_PROVIDER: "mock",

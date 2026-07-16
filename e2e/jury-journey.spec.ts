@@ -5,6 +5,7 @@ test("jury journey: account to planned content", async ({ page }) => {
   const email = `jury-${unique}@example.com`;
   const organizationSlug = `jury-${unique}`;
 
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/register");
   await page.getByLabel("Nom complet").fill("Jury Demo");
   await page.getByLabel("Email").fill(email);
@@ -14,7 +15,7 @@ test("jury journey: account to planned content", async ({ page }) => {
 
   await page.getByLabel("Nom de l'organisation").fill("Organisation Jury");
   await page.getByLabel("Slug public").fill(organizationSlug);
-  await page.getByRole("button", { name: "Creer et continuer" }).click();
+  await page.getByRole("button", { name: "Créer et continuer" }).click();
 
   await page.getByLabel("Secteur").fill("SaaS B2B");
   await page.getByLabel("Audience cible").fill("Responsables marketing");
@@ -27,7 +28,7 @@ test("jury journey: account to planned content", async ({ page }) => {
     .fill("Atelier editorial pour equipes B2B");
   await page.getByRole("button", { name: "Enregistrer le contexte" }).click();
   await expect(
-    page.getByRole("heading", { name: /est pret pour le MVP/ }),
+    page.getByRole("heading", { name: /est prêt à être utilisé/ }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Terminer et ouvrir le dashboard" })
@@ -80,8 +81,11 @@ test("jury journey: account to planned content", async ({ page }) => {
 
   await dragCandidate(page, discoveryCard, 40);
   await expect(discoveryCard).toHaveAttribute("data-candidate-id", candidateId);
+  await expect
+    .poll(async () => (await discoveryCard.boundingBox())?.x)
+    .toBeCloseTo(cardBox.x, 0);
 
-  await dragCandidate(page, discoveryCard, Math.min(220, cardBox.width / 2));
+  await dragCandidate(page, discoveryCard, Math.min(180, cardBox.width * 0.4));
   const nextDiscoveryCard = page.locator(
     `[data-testid="idea-discovery-card"]:not([data-candidate-id="${candidateId}"])`,
   );
@@ -90,7 +94,7 @@ test("jury journey: account to planned content", async ({ page }) => {
     await nextDiscoveryCard.getAttribute("data-candidate-id");
   expect(rejectedCandidateId).not.toBeNull();
 
-  await dragCandidate(page, nextDiscoveryCard, -220);
+  await dragCandidate(page, nextDiscoveryCard, -180);
   await expect(
     page.locator(
       `[data-testid="idea-discovery-card"][data-candidate-id="${rejectedCandidateId}"]`,
@@ -108,7 +112,7 @@ test("jury journey: account to planned content", async ({ page }) => {
 
   await page.getByRole("link", { name: "Transformer" }).first().click();
   await expect(page).toHaveURL(/\/contents\/generate\?ideaId=/);
-  await page.getByRole("button", { name: "Generer", exact: true }).click();
+  await page.getByRole("button", { name: "Générer", exact: true }).click();
   const generatedTitle = page.getByLabel("Titre");
   await expect(generatedTitle).not.toHaveValue("");
   const title = await generatedTitle.inputValue();
@@ -170,19 +174,24 @@ async function dragCandidate(
   card: Locator,
   horizontalDelta: number,
 ) {
+  await card.scrollIntoViewIfNeeded();
   const cardBox = await card.boundingBox();
 
   if (!cardBox) {
     throw new Error("Discovery card is missing its swipe geometry.");
   }
 
-  const cardCenter = {
+  const viewport = page.viewportSize();
+  const visibleStart = {
     x: cardBox.x + cardBox.width / 2,
-    y: cardBox.y + cardBox.height / 2,
+    y: Math.min(
+      Math.max(cardBox.y + Math.min(140, cardBox.height / 4), 80),
+      (viewport?.height ?? 720) - 80,
+    ),
   };
-  await page.mouse.move(cardCenter.x, cardCenter.y);
+  await page.mouse.move(visibleStart.x, visibleStart.y);
   await page.mouse.down();
-  await page.mouse.move(cardCenter.x + horizontalDelta, cardCenter.y, {
+  await page.mouse.move(visibleStart.x + horizontalDelta, visibleStart.y, {
     steps: 8,
   });
   await page.mouse.up();

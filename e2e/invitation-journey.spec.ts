@@ -38,15 +38,30 @@ test("invitation journey preserves the token through registration", async ({
     page.getByRole("heading", { name: "Rejoindre Invitation Team" }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Créer un compte" }).click();
-  await expect(page).toHaveURL(/\/register\?next=%2Finvite%2F/);
+  await expect(page).toHaveURL(/\/register\?/);
+
+  const registrationUrl = new URL(page.url());
+  expect(registrationUrl.searchParams.get("email")).toBe(invitedEmail);
+  expect(registrationUrl.searchParams.get("next")).toBe(
+    new URL(payload.data.previewUrl!).pathname,
+  );
 
   await page.getByLabel("Nom complet").fill("Invited Editor");
-  await page.getByLabel("Email").fill(invitedEmail);
+  await expect(page.getByLabel("Email")).toHaveValue(invitedEmail);
   await page.getByLabel("Mot de passe").fill("InvitationEditor2026!");
   await page.getByRole("button", { name: "Creer le compte" }).click();
-  await expect(page).toHaveURL(/\/invite\/[A-Za-z0-9_-]+$/);
-  await page.getByRole("button", { name: "Accepter l'invitation" }).click();
-  await expect(page).toHaveURL(
-    new RegExp(`/app/${organizationSlug}/dashboard$`),
+  await expect(page).toHaveURL(/\/app\/onboarding$/);
+
+  const organizationsResponse = await page.request.get(
+    `${apiUrl}/api/organizations`,
+  );
+  expect(organizationsResponse.ok()).toBe(true);
+  const organizationsPayload = (await organizationsResponse.json()) as {
+    data: { organizations: Array<{ role: string; slug: string }> };
+  };
+  expect(organizationsPayload.data.organizations).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ role: "EDITOR", slug: organizationSlug }),
+    ]),
   );
 });
